@@ -78,7 +78,7 @@
 <link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
 
 
-  <meta name="keywords" content="Hexo, NexT" />
+  <meta name="keywords" content="linux,服务器,git," />
 
 
 
@@ -94,14 +94,20 @@
 
 
 
-<meta property="og:type" content="website">
-<meta property="og:title" content="categories">
-<meta property="og:url" content="https://zhanghongtong.github.io/categories/index.html">
+<meta name="description" content="1 问题1git pull 后发现此版本不是想要的版本，但pull后的版本，在我的当前分支版本基础上又迭代了N个版本。 2 恢复到本分支的原来版本11、git reflog master  (查看本地master分支历史变动纪录)  122、git reset --hard &amp;lt;COMMIT_ID&amp;gt; （恢复到之前位置）   git reset --hard master@&amp;#123;1&amp;">
+<meta name="keywords" content="linux,服务器,git">
+<meta property="og:type" content="article">
+<meta property="og:title" content="git pull 后恢复到原来版本">
+<meta property="og:url" content="https://zhanghongtong.github.io/2018/06/07/gitPull后恢复到原来版本/index.html">
 <meta property="og:site_name" content="张奇怪的blog">
+<meta property="og:description" content="1 问题1git pull 后发现此版本不是想要的版本，但pull后的版本，在我的当前分支版本基础上又迭代了N个版本。 2 恢复到本分支的原来版本11、git reflog master  (查看本地master分支历史变动纪录)  122、git reset --hard &amp;lt;COMMIT_ID&amp;gt; （恢复到之前位置）   git reset --hard master@&amp;#123;1&amp;">
 <meta property="og:locale" content="简体中文">
-<meta property="og:updated_time" content="2018-05-14T08:51:59.170Z">
+<meta property="og:image" content="https://img-blog.csdn.net/20161114114953641">
+<meta property="og:updated_time" content="2018-06-07T09:39:52.898Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="categories">
+<meta name="twitter:title" content="git pull 后恢复到原来版本">
+<meta name="twitter:description" content="1 问题1git pull 后发现此版本不是想要的版本，但pull后的版本，在我的当前分支版本基础上又迭代了N个版本。 2 恢复到本分支的原来版本11、git reflog master  (查看本地master分支历史变动纪录)  122、git reset --hard &amp;lt;COMMIT_ID&amp;gt; （恢复到之前位置）   git reset --hard master@&amp;#123;1&amp;">
+<meta name="twitter:image" content="https://img-blog.csdn.net/20161114114953641">
 
 
 
@@ -130,13 +136,13 @@
 
 
 
-  <link rel="canonical" href="https://zhanghongtong.github.io/categories/"/>
+  <link rel="canonical" href="https://zhanghongtong.github.io/2018/06/07/gitPull后恢复到原来版本/"/>
 
 
 
 
 
-  <title>categories | 张奇怪的blog</title>
+  <title>git pull 后恢复到原来版本 | 张奇怪的blog</title>
   
 
 
@@ -257,40 +263,172 @@
 
   <div id="posts" class="posts-expand">
     
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://zhanghongtong.github.io/2018/06/07/gitPull后恢复到原来版本/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="张奇怪">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="张奇怪的blog">
+    </span>
+
     
-    
-    <div class="post-block page">
       <header class="post-header">
 
-	<h1 class="post-title" itemprop="name headline">categories</h1>
-
-
-
-</header>
-
-      
-      
-      
-      <div class="post-body">
         
         
-          <div class="category-all-page">
-            <div class="category-all-title">
-                2 categories in total
-            </div>
-            <div class="category-all">
-              <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/golang/">golang</a><span class="category-list-count">5</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/服务器/">服务器</a><span class="category-list-count">3</span></li></ul>
-            </div>
-          </div>
+          <h1 class="post-title" itemprop="name headline">git pull 后恢复到原来版本</h1>
         
-      </div>
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-06-07T17:38:39+08:00">
+                2018-06-07
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/服务器/" itemprop="url" rel="index">
+                    <span itemprop="name">服务器</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
       
       
+
+      
+        <h3 id="1-问题"><a href="#1-问题" class="headerlink" title="1 问题"></a>1 问题</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git pull 后发现此版本不是想要的版本，但pull后的版本，在我的当前分支版本基础上又迭代了N个版本。</span><br></pre></td></tr></table></figure>
+<h3 id="2-恢复到本分支的原来版本"><a href="#2-恢复到本分支的原来版本" class="headerlink" title="2 恢复到本分支的原来版本"></a>2 恢复到本分支的原来版本</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">1、git reflog master  (查看本地master分支历史变动纪录)</span><br></pre></td></tr></table></figure>
+<p><img src="https://img-blog.csdn.net/20161114114953641" alt="这里写图片描述"></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">2、git reset --hard &lt;COMMIT_ID&gt; （恢复到之前位置）</span><br><span class="line">   git reset --hard master@&#123;1&#125;</span><br></pre></td></tr></table></figure>
       
     </div>
     
     
     
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/linux/" rel="tag"># linux</a>
+          
+            <a href="/tags/服务器/" rel="tag"># 服务器</a>
+          
+            <a href="/tags/git/" rel="tag"># git</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/05/29/Let'sEncrypt使用教程，免费的SSL证书，让你的网站拥抱HTTPS/" rel="next" title="Let's Encrypt 使用教程，免费的 SSL 证书，让你的网站拥抱 HTTPS">
+                <i class="fa fa-chevron-left"></i> Let's Encrypt 使用教程，免费的 SSL 证书，让你的网站拥抱 HTTPS
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
   </div>
 
 
@@ -323,8 +461,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Overview
+          </li>
+        </ul>
+      
 
-      <section class="site-overview sidebar-panel sidebar-panel-active">
+      <section class="site-overview sidebar-panel">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
           <img class="site-author-image" itemprop="image"
                src="/images/avatar.gif"
@@ -386,6 +533,22 @@
 
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-问题"><span class="nav-number">1.</span> <span class="nav-text">1 问题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-恢复到本分支的原来版本"><span class="nav-number">2.</span> <span class="nav-text">2 恢复到本分支的原来版本</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       
@@ -499,10 +662,10 @@
   
 
   
-    <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
 <script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
 
-  
+
 
   
 
