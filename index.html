@@ -270,6 +270,180 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://zhanghongtong.github.io/2018/06/14/使用docker安装nginx和php-fpm服务/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="张奇怪">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="张奇怪的blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/06/14/使用docker安装nginx和php-fpm服务/" itemprop="url">使用docker安装nginx和php-fpm服务</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-06-14T16:55:12+08:00">
+                2018-06-14
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/服务器/" itemprop="url" rel="index">
+                    <span itemprop="name">服务器</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h3 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h3><p>之前使用docker都是直接当做虚拟机来用，直接pull一个ubuntu的镜像，然后再里面安装各种服务。后来发现docker的正确用法应该是起多个容器，一个容器一个进程，包含程序相关的上下文，暂时拿最常用的nginx+php-fpm的服务来练手。</p>
+<h3 id="实战"><a href="#实战" class="headerlink" title="实战"></a>实战</h3><p>应为生产环境一直使用的是阿里云的容器服务，懒得自己搭了，直接在阿里云的容器服务上继续试验</p>
+<p>1、创建应用，Docker Compose的配置如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line">php:</span><br><span class="line">  image: &apos;php:5.6-fpm&apos;		</span><br><span class="line">  volumes:</span><br><span class="line">    - &apos;/docker_test/www:/var/www:rw&apos;</span><br><span class="line">  mem_limit: 0</span><br><span class="line">  kernel_memory: 0</span><br><span class="line">  memswap_reservation: 0</span><br><span class="line">  restart: always</span><br><span class="line">  environment:</span><br><span class="line">        - &apos;constraint:aliyun.node_index==5&apos;</span><br><span class="line">  shm_size: 0</span><br><span class="line">  memswap_limit: 0</span><br><span class="line">  labels:</span><br><span class="line">    aliyun.scale: &apos;1&apos;</span><br><span class="line">  tty: true</span><br><span class="line">  </span><br><span class="line">nginx:</span><br><span class="line">  image: &apos;nginx:latest&apos;</span><br><span class="line">  volumes:</span><br><span class="line">    - &apos;/docker_test/www:/var/www:rw&apos;</span><br><span class="line">  ports:</span><br><span class="line">    - &apos;8090:80/tcp&apos;</span><br><span class="line">  mem_limit: 0</span><br><span class="line">  kernel_memory: 0</span><br><span class="line">  memswap_reservation: 0</span><br><span class="line">  restart: always</span><br><span class="line">  environment:</span><br><span class="line">        - &apos;constraint:aliyun.node_index==5&apos;</span><br><span class="line">  shm_size: 0</span><br><span class="line">  memswap_limit: 0</span><br><span class="line">  labels:</span><br><span class="line">    aliyun.scale: &apos;1&apos;</span><br><span class="line">  tty: true</span><br></pre></td></tr></table></figure>
+<p>常规操作，没什么好说的，需要注意的是目前php在docker hub的最新镜像为7.2，本次先使用5.6-fpm的版本(貌似镜像有fpm和cil之分，拉取时需要注意)，另外两个容器都映射了<code>/var/www</code>目录。</p>
+<p>2、使用 <code>docker ps -a</code> 命令查看创建的容器</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"># docker ps -a</span><br><span class="line">CONTAINER ID		IMAGE			COMMAND				CREATED					STATUS		PORTS				NAMES                                                                                                        a22c7473cd43        nginx:latest 	&quot;nginx -g &apos;daemon ...&quot;   6 hours ago         Up 6 hours          0.0.0.0:8090-&gt;80/tcp	test_nginx_1                                                                            </span><br><span class="line">b8273c6825f9        php:5.6-fpm    &quot;docker-php-entryp...&quot;   6 hours ago         Up 6 hours          9000/tcp               test_php_1</span><br></pre></td></tr></table></figure>
+<p>可以看到成功的创建了两个容器，php-fpm的容器默认使用9000端口，可以使用端口映射到宿主机的其他端口，使用<code>docker inspect</code>命令查看php容器的内网IP，方便修改nginx的配置项</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"># docker inspect test_php_1 | grep &quot;IPAddress&quot;     </span><br><span class="line">&quot;SecondaryIPAddresses&quot;: null,</span><br><span class="line">&quot;IPAddress&quot;: &quot;&quot;,</span><br><span class="line">&quot;IPAddress&quot;: &quot;172.18.0.5&quot;,</span><br></pre></td></tr></table></figure>
+<p><code>docker inspect</code> 命令可以查看容器的详细信息，使用管道命令只输出IPAddress</p>
+<p>3、修改nginx的相关配置</p>
+<p>使用 <code>docker exec -it test_nginx_1 /bin/bash</code>  命令登录到容器内部，查看配置的相关文件，可以看到nginx的配置文件路径为  <code>/etc/nginx/conf.d/default.conf</code>和 <code>/etc/nginx/nginx.conf</code></p>
+<p>在容器中是没有vim命令的，所以不能在容器中直接修改配置文件，可以将配置文件映射到宿主机目录编辑，或者使用docker cp命令将配置文件复制到宿主机进行编辑，这里使用docker cp命令</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">#docker cp test_nginx_1:/etc/nginx/conf.d/default.conf ./default.conf</span><br></pre></td></tr></table></figure>
+<p>编辑<code>default.conf</code>中php的部分</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">location ~ \.php$ &#123;</span><br><span class="line">        root           /var/www;</span><br><span class="line">        fastcgi_pass   172.18.0.5:9000;</span><br><span class="line">        fastcgi_index  index.php;</span><br><span class="line">        fastcgi_param  SCRIPT_FILENAME  /scripts$fastcgi_script_name;</span><br><span class="line">       </span><br><span class="line">        include        fastcgi_params;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<p><code>fastcgi_pass</code>的配置为php容器的ip</p>
+<p>保存后使用<code>docker cp</code>命令将配置文件复制回容器里，进入容器重新载入nginx</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">#docker cp ./default.conf test_nginx_1:/etc/nginx/conf.d/default.conf</span><br><span class="line">#docker exec -it test_nginx_1 /bin/bash</span><br><span class="line">#nginx -s reload</span><br></pre></td></tr></table></figure>
+<p>在宿主机<code>/docker_test/www</code>里面新建<code>test.php</code>，使用浏览器访问 <code>http://宿主机IP:8090/test.php</code>。应该可以正常访问了。</p>
+<p>4、一点补充</p>
+<p>实际测试中访问nginx发现报错 File not found，这个错误很常见，一般来说原因是下面两种</p>
+<ol>
+<li>php-fpm找不到SCRIPT_FILENAME里执行的php文件</li>
+<li>php-fpm不能访问所执行的php，也就是权限问题</li>
+</ol>
+<p>针对第一种情况的话，编辑nginx的default.conf文件，将php配置中的<code>fastcgi_param  SCRIPT_FILENAME  /scripts$fastcgi_script_name</code>修改为<code>fastcgi_param   SCRIPT_FILENAME    $document_root$fastcgi_script_name;</code>就可以了</p>
+<p>针对第二种情况，进入php的容器，找到php-fpm的配置文件，php5.6-fpm的镜像的话配置文件在 <code>/usr/local/etc/php-fpm.d/www.conf</code> 中，找到下面一行配置</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">; Unix user/group of processes</span><br><span class="line">; Note: The user is mandatory. If the group is not set, the default user&apos;s group</span><br><span class="line">;       will be used.</span><br><span class="line">user = www-data</span><br><span class="line">group = www-data</span><br></pre></td></tr></table></figure>
+<p>修改.php文件的所属或者是修改配置文件中的这两个项目都可以，本次选择的是修改php文件的所属</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">#chown —R www-data:www-data /var/www</span><br></pre></td></tr></table></figure>
+<p>5、再补充一点</p>
+<p>实际测试中发现nginx不产生日志文件，按照以前的思路怎么修改<code>nginx.conf</code>怎么都不行，后来发现需要修改<code>default.conf</code> ，看来nginx的镜像和ubuntu下直接安装的nginx还是有一定的区别的。</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="https://zhanghongtong.github.io/2018/06/07/gitPull后恢复到原来版本/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1934,7 +2108,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">9</span>
+                <span class="site-state-item-count">10</span>
                 <span class="site-state-item-name">posts</span>
               </a>
             </div>
@@ -1956,7 +2130,7 @@
             
             <div class="site-state-item site-state-tags">
               <a href="/tags/index.html">
-                <span class="site-state-item-count">8</span>
+                <span class="site-state-item-count">11</span>
                 <span class="site-state-item-name">tags</span>
               </a>
             </div>
