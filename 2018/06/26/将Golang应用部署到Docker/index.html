@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="简体中文">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="golang,go,linux,服务器,docker," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="一、编写Dockerfile在 go-example 项目根目录创建 Dockerfile 文件，写入内容 123456789FROM golang:latestWORKDIR $GOPATH/src/go-example	COPY . $GOPATH/src/go-exampleRUN go build .EXPOSE 8000ENTRYPOINT [&amp;quot;./go-example&amp;quo">
+<meta name="keywords" content="golang,go,linux,服务器,docker">
+<meta property="og:type" content="article">
+<meta property="og:title" content="将Golang应用部署到Docker">
+<meta property="og:url" content="https://zhanghongtong.github.io/2018/06/26/将Golang应用部署到Docker/index.html">
+<meta property="og:site_name" content="张奇怪的blog">
+<meta property="og:description" content="一、编写Dockerfile在 go-example 项目根目录创建 Dockerfile 文件，写入内容 123456789FROM golang:latestWORKDIR $GOPATH/src/go-example	COPY . $GOPATH/src/go-exampleRUN go build .EXPOSE 8000ENTRYPOINT [&amp;quot;./go-example&amp;quo">
+<meta property="og:locale" content="简体中文">
+<meta property="og:updated_time" content="2018-06-26T09:13:30.385Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="将Golang应用部署到Docker">
+<meta name="twitter:description" content="一、编写Dockerfile在 go-example 项目根目录创建 Dockerfile 文件，写入内容 123456789FROM golang:latestWORKDIR $GOPATH/src/go-example	COPY . $GOPATH/src/go-exampleRUN go build .EXPOSE 8000ENTRYPOINT [&amp;quot;./go-example&amp;quo">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://zhanghongtong.github.io/2018/06/26/将Golang应用部署到Docker/"/>
+
+
+
+
+
+  <title>将Golang应用部署到Docker | 张奇怪的blog</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="简体中文">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">张奇怪的blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://zhanghongtong.github.io/2018/06/26/将Golang应用部署到Docker/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="张奇怪">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="张奇怪的blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">将Golang应用部署到Docker</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-06-26T16:43:10+08:00">
+                2018-06-26
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/服务器/" itemprop="url" rel="index">
+                    <span itemprop="name">服务器</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h3 id="一、编写Dockerfile"><a href="#一、编写Dockerfile" class="headerlink" title="一、编写Dockerfile"></a>一、编写Dockerfile</h3><p>在 <code>go-example</code> 项目根目录创建 Dockerfile 文件，写入内容</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">FROM golang:latest</span><br><span class="line"></span><br><span class="line">WORKDIR $GOPATH/src/go-example	</span><br><span class="line">COPY . $GOPATH/src/go-example</span><br><span class="line">RUN go build .</span><br><span class="line"></span><br><span class="line">EXPOSE 8000</span><br><span class="line"></span><br><span class="line">ENTRYPOINT [&quot;./go-example&quot;]</span><br></pre></td></tr></table></figure>
+<h4 id="注意"><a href="#注意" class="headerlink" title="注意"></a>注意</h4><p>1.Dockerfile命名必须为“Dockerfile”，Docker镜像构建时，会查找指定目录中的Dockerfile。</p>
+<p>2.将Dockerfile创建在项目根目录，方便COPY命令负责上下文</p>
+<h4 id="作用"><a href="#作用" class="headerlink" title="作用"></a>作用</h4><p><code>golang:latest</code> 镜像为基础镜像，将工作目录设置为 <code>$GOPATH/src/go-example</code>，并将当前上下文目录的内容复制到 <code>$GOPATH/src/go-example</code> 中</p>
+<p>在进行 <code>go build</code> 编译完毕后，将容器启动程序设置为 <code>./go-example</code>，也就是我们所编译的可执行文件</p>
+<p>注意 <code>go-example</code> 在 <code>docker</code> 容器里编译，并没有在宿主机现场编译</p>
+<h4 id="说明"><a href="#说明" class="headerlink" title="说明"></a>说明</h4><p>Dockerfile 文件是用于定义 Docker 镜像生成流程的配置文件，文件内容是一条条指令，每一条指令构建一层，因此每一条指令的内容，就是描述该层应当如何构建；这些指令应用于基础镜像并最终创建一个新的镜像</p>
+<p>你可以认为用于快速创建自定义的 Docker 镜像</p>
+<p><strong>1、 FROM</strong></p>
+<p>指定基础镜像（必须有的指令，并且必须是第一条指令）</p>
+<p><strong>2、 WORKDIR</strong></p>
+<p>格式为 <code>WORKDIR</code> &lt;工作目录路径&gt;</p>
+<p>使用 <code>WORKDIR</code> 指令可以来<strong>指定工作目录</strong>（或者称为当前目录），以后各层的当前目录就被改为指定的目录，如果目录不存在，<code>WORKDIR</code> 会帮你建立目录</p>
+<p><strong>3、COPY</strong></p>
+<p>格式：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">COPY &lt;源路径&gt;... &lt;目标路径&gt;</span><br><span class="line">COPY [&quot;&lt;源路径1&gt;&quot;,... &quot;&lt;目标路径&gt;&quot;]</span><br></pre></td></tr></table></figure>
+<p><code>COPY</code> 指令将从构建上下文目录中 &lt;源路径&gt; 的文件/目录<strong>复制</strong>到新的一层的镜像内的 &lt;目标路径&gt; 位置</p>
+<p><strong>4、RUN</strong></p>
+<p>用于执行命令行命令</p>
+<p>格式：<code>RUN</code> &lt;命令&gt;</p>
+<p><strong>5、EXPOSE</strong></p>
+<p>格式为 <code>EXPOSE</code> &lt;端口1&gt; [&lt;端口2&gt;…]</p>
+<p><code>EXPOSE</code> 指令是<strong>声明运行时容器提供服务端口，这只是一个声明</strong>，在运行时并不会因为这个声明应用就会开启这个端口的服务</p>
+<p>在 Dockerfile 中写入这样的声明有两个好处</p>
+<ul>
+<li>帮助镜像使用者理解这个镜像服务的守护端口，以方便配置映射</li>
+<li>运行时使用随机端口映射时，也就是 <code>docker run -P</code> 时，会自动随机映射 <code>EXPOSE</code> 的端口</li>
+</ul>
+<p><strong>6、ENTRYPOINT</strong></p>
+<p><code>ENTRYPOINT</code> 的格式和 <code>RUN</code> 指令格式一样，分为两种格式</p>
+<ul>
+<li><code>exec</code> 格式：</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;ENTRYPOINT&gt; &quot;&lt;CMD&gt;&quot;</span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>shell</code> 格式：</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ENTRYPOINT [ &quot;curl&quot;, &quot;-s&quot;, &quot;http://ip.cn&quot; ]</span><br></pre></td></tr></table></figure>
+<p><code>ENTRYPOINT</code> 指令是<strong>指定容器启动程序及参数</strong></p>
+<h3 id="二、构建镜像"><a href="#二、构建镜像" class="headerlink" title="二、构建镜像"></a>二、构建镜像</h3><p><code>go-example</code> 的项目根目录下<strong>执行</strong> <code>docker build -t imageName .</code></p>
+<p>该命令作用是创建/构建镜像，<code>-t</code> 指定镜像名称，<code>.</code> 构建内容为当前上下文目录</p>
+<p>构建完成后使用<code>docker images</code> 命令查看</p>
+<h3 id="三、创建并运行一个新容器"><a href="#三、创建并运行一个新容器" class="headerlink" title="三、创建并运行一个新容器"></a>三、创建并运行一个新容器</h3><p>执行命令 <code>docker run -d -p 8000:8000 imageName</code> 启动容器，可以使用<code>-d</code>参数来使容器保持后台运行，貌似可以替代掉<code>supervisorctl</code> 的作用，还未在生产环境中使用过，并不确定</p>
+<h3 id="四、修改Dockerfile"><a href="#四、修改Dockerfile" class="headerlink" title="四、修改Dockerfile"></a>四、修改Dockerfile</h3><p>直接使用 <code>docker</code> 在后台运行 <code>golang</code> 程序的话就没有 <code>supervisorctl</code> 的日志功能了，我们可以使用 <code>golang</code> 的 <code>log</code> 包配合 <code>Dockerfile</code> 来实现日志功能</p>
+<p><code>golang</code> 代码</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">package main</span><br><span class="line"></span><br><span class="line">import (</span><br><span class="line">	&quot;log&quot;</span><br><span class="line">	&quot;os&quot;</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line">func main()&#123;</span><br><span class="line">  	fileName := &quot;/var/log/timerTisk/error.log&quot;	//定义日志文件</span><br><span class="line">    logFile,err  := os.Create(fileName)		</span><br><span class="line">    defer logFile.Close()</span><br><span class="line">    if err != nil &#123;</span><br><span class="line">    	log.Fatalln(&quot;open file error&quot;)</span><br><span class="line">    &#125;</span><br><span class="line">    debugLog := log.New(logFile,&quot;[Error]&quot;,log.Llongfile)</span><br><span class="line">    debugLog.Println(reqinfo)		//输入错误到日志文件</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>Dockerfile</code></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">FROM golang:latest</span><br><span class="line"></span><br><span class="line">#创建日志文件并赋予权限</span><br><span class="line">RUN mkdir -p /var/log/go-example</span><br><span class="line">RUN touch /var/log/go-example/error.log</span><br><span class="line">RUN chmod 777 /var/log/go-example/error.log</span><br><span class="line"></span><br><span class="line">#设置时区</span><br><span class="line">ENV TZ=Asia/Shanghai</span><br><span class="line">RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime &amp;&amp; echo $TZ &gt; /etc/timezone</span><br><span class="line"></span><br><span class="line">WORKDIR $GOPATH/src/go-example	</span><br><span class="line">COPY . $GOPATH/src/go-example</span><br><span class="line">RUN go build .</span><br><span class="line"></span><br><span class="line">EXPOSE 8000</span><br><span class="line"></span><br><span class="line">ENTRYPOINT [&quot;./go-example&quot;]</span><br></pre></td></tr></table></figure>
+<p>构建镜像后使用命令 <code>docker run -d -p 8000:8000 -v /var/log/go-example:/var/log/go-example imageName</code> 来运行服务，就可以去宿主机的相关目录查看日志文件了。</p>
+<h3 id="五、推荐使用Docker-Compose-来部署服务"><a href="#五、推荐使用Docker-Compose-来部署服务" class="headerlink" title="五、推荐使用Docker Compose 来部署服务"></a>五、推荐使用Docker Compose 来部署服务</h3><p>目前使用阿里云容器服务的编排模板功能也可以实现，暂时就先不做相关实验了。</p>
+<h3 id="六、一点疑惑"><a href="#六、一点疑惑" class="headerlink" title="六、一点疑惑"></a>六、一点疑惑</h3><p>每次更新了 <code>Dockerfile</code> 之后都要 <code>docker build</code> 来构建新的镜像，然后再重新部署相关服务貌似有点不够优雅，除非使用蓝绿发布的策略不然也达不到生产中热更新的要求，暂时没找到有什么方法更优雅的实现</p>
+<h3 id="七、资料参考"><a href="#七、资料参考" class="headerlink" title="七、资料参考"></a>七、资料参考</h3><p><a href="https://segmentfault.com/a/1190000013960558#articleHeader5" target="_blank" rel="noopener">Gin实践 连载九 将Golang应用部署到Docker</a></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/golang/" rel="tag"># golang</a>
+          
+            <a href="/tags/go/" rel="tag"># go</a>
+          
+            <a href="/tags/linux/" rel="tag"># linux</a>
+          
+            <a href="/tags/服务器/" rel="tag"># 服务器</a>
+          
+            <a href="/tags/docker/" rel="tag"># docker</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/06/20/nginx报错upstream-timed-out-110-Connection-timed-out-while-reading-response-header-from-upstream-的解决方案/" rel="next" title="nginx报错upstream timed out (110: Connection timed out) while reading response header from upstream..的解决方案">
+                <i class="fa fa-chevron-left"></i> nginx报错upstream timed out (110: Connection timed out) while reading response header from upstream..的解决方案
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="张奇怪" />
+          <p class="site-author-name" itemprop="name">张奇怪</p>
+           
+              <p class="site-description motion-element" itemprop="description"></p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-name">posts</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">2</span>
+                <span class="site-state-item-name">categories</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">12</span>
+                <span class="site-state-item-name">tags</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#一、编写Dockerfile"><span class="nav-number">1.</span> <span class="nav-text">一、编写Dockerfile</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#注意"><span class="nav-number">1.1.</span> <span class="nav-text">注意</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#作用"><span class="nav-number">1.2.</span> <span class="nav-text">作用</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#说明"><span class="nav-number">1.3.</span> <span class="nav-text">说明</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#二、构建镜像"><span class="nav-number">2.</span> <span class="nav-text">二、构建镜像</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#三、创建并运行一个新容器"><span class="nav-number">3.</span> <span class="nav-text">三、创建并运行一个新容器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#四、修改Dockerfile"><span class="nav-number">4.</span> <span class="nav-text">四、修改Dockerfile</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#五、推荐使用Docker-Compose-来部署服务"><span class="nav-number">5.</span> <span class="nav-text">五、推荐使用Docker Compose 来部署服务</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#六、一点疑惑"><span class="nav-number">6.</span> <span class="nav-text">六、一点疑惑</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#七、资料参考"><span class="nav-number">7.</span> <span class="nav-text">七、资料参考</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">张奇怪</span>
+</div>
+
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="https://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
