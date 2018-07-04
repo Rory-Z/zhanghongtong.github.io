@@ -270,6 +270,441 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://zhanghongtong.github.io/2018/05/14/go语言获取文件名、后缀/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="张奇怪">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="张奇怪的blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/05/14/go语言获取文件名、后缀/" itemprop="url">go语言获取文件名、后缀</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-05-14T15:35:07+08:00">
+                2018-05-14
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/golang/" itemprop="url" rel="index">
+                    <span itemprop="name">golang</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">//http://my.oschina.net/itfanr/blog/373983</span><br><span class="line">package main</span><br><span class="line"> </span><br><span class="line">import (</span><br><span class="line">    &quot;fmt&quot;</span><br><span class="line">    &quot;path&quot;</span><br><span class="line">    &quot;strings&quot;</span><br><span class="line">)</span><br><span class="line"> </span><br><span class="line">func main() &#123;</span><br><span class="line">    fullFilename := &quot;/Users/itfanr/Documents/test.txt&quot;</span><br><span class="line">    fmt.Println(&quot;fullFilename =&quot;, fullFilename)</span><br><span class="line">    var filenameWithSuffix string</span><br><span class="line">    filenameWithSuffix = path.Base(fullFilename) //获取文件名带后缀</span><br><span class="line">    fmt.Println(&quot;filenameWithSuffix =&quot;, filenameWithSuffix)</span><br><span class="line">    var fileSuffix string</span><br><span class="line">    fileSuffix = path.Ext(filenameWithSuffix) //获取文件后缀</span><br><span class="line">    fmt.Println(&quot;fileSuffix =&quot;, fileSuffix)</span><br><span class="line"> </span><br><span class="line">    var filenameOnly string</span><br><span class="line">    filenameOnly = strings.TrimSuffix(filenameWithSuffix, fileSuffix)//获取文件名</span><br><span class="line">    fmt.Println(&quot;filenameOnly =&quot;, filenameOnly)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://zhanghongtong.github.io/2018/05/14/GOLANG随机数生成方法/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="张奇怪">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="张奇怪的blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/05/14/GOLANG随机数生成方法/" itemprop="url">GOLANG随机数生成方法</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-05-14T15:31:24+08:00">
+                2018-05-14
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/golang/" itemprop="url" rel="index">
+                    <span itemprop="name">golang</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>使用rand包</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">package main</span><br><span class="line">import (</span><br><span class="line">    &quot;fmt&quot;</span><br><span class="line">    &quot;math/rand&quot;</span><br><span class="line">)</span><br><span class="line">func main() &#123;</span><br><span class="line">    for i := 0; i &lt; 10; i++ &#123;</span><br><span class="line">        fmt.Println(rand.Intn(100)) //返回[0,100)的随机整数</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这样使用是可以产生随机数，但是程序重启后，产生的随机数和上次一样。是因为程序使用了相同的种子 1。可以使用rand.Seed(seed)来设置一个不同的种子值。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">package main</span><br><span class="line">import (</span><br><span class="line">    &quot;fmt&quot;</span><br><span class="line">    &quot;math/rand&quot;</span><br><span class="line">    &quot;time&quot;</span><br><span class="line">)</span><br><span class="line">func main() &#123;</span><br><span class="line">    rand.Seed(time.Now().UnixNano()) //利用当前时间的UNIX时间戳初始化rand包</span><br><span class="line">    for i := 0; i &lt; 10; i++ &#123;</span><br><span class="line">        x := rand.Intn(100)</span><br><span class="line">        fmt.Println(x)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>产生指定数字范围内的随机数</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">package main</span><br><span class="line">import (</span><br><span class="line">    &quot;fmt&quot;</span><br><span class="line">    &quot;math/rand&quot;</span><br><span class="line">    &quot;time&quot;</span><br><span class="line">)</span><br><span class="line">func main() &#123;</span><br><span class="line">    for i := 0; i &lt; 10; i++ &#123;</span><br><span class="line">        x := randInt(100，999)</span><br><span class="line">        fmt.Println(x)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">func randInt(min int , max int) int &#123;</span><br><span class="line">	rand.Seed(time.Now().UnixNano())</span><br><span class="line">	return min + rand.Intn(max-min)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://zhanghongtong.github.io/2018/05/14/Golang：使用HTML模板发送邮件/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="张奇怪">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="张奇怪的blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/05/14/Golang：使用HTML模板发送邮件/" itemprop="url">Golang：使用HTML模板发送邮件</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-05-14T15:28:48+08:00">
+                2018-05-14
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/golang/" itemprop="url" rel="index">
+                    <span itemprop="name">golang</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>创建HTML模板</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">&lt;!DOCTYPE html PUBLIC &quot;-//W3C//DTD XHTML 1.0 Transitional//EN&quot; &quot;http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd&quot;&gt;</span><br><span class="line">&lt;html xmlns=&quot;http://www.w3.org/1999/xhtml&quot;&gt;</span><br><span class="line">　&lt;head&gt;</span><br><span class="line">    　　&lt;meta http-equiv=&quot;Content-Type&quot; content=&quot;text/html; charset=UTF-8&quot; /&gt;</span><br><span class="line">    　　&lt;title&gt;&#123;&#123;.SUBJECT&#125;&#125;&#125;&lt;/title&gt;</span><br><span class="line">    　　&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;/&gt;</span><br><span class="line">    　&lt;/head&gt;</span><br><span class="line">    &lt;body style=&quot;margin: 0; padding: 0;&quot;&gt;</span><br><span class="line">    	&lt;img style=&apos;float:left;margin-bottom:20px&apos; src=&apos;https://initiranking-system.oss-cn-hangzhou.aliyuncs.com/logo.png&apos;&gt;</span><br><span class="line">       &lt;table style=&apos;&apos; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; width=&quot;100%&quot;&gt;</span><br><span class="line">            &lt;tr&gt;</span><br><span class="line">             &lt;td style=&apos;font-size:18px&apos;&gt; Hi, &#123;&#123;.TO&#125;&#125;&#125;&lt;/td&gt;</span><br><span class="line">            &lt;/tr&gt;</span><br><span class="line">              &lt;tr&gt;</span><br><span class="line">                  &lt;td style=&apos;color:#ccc&apos;&gt; your code is &#123;&#123;.CODE&#125;&#125;&lt;/td&gt;</span><br><span class="line">              &lt;/tr&gt;</span><br><span class="line">        &lt;/table&gt;</span><br><span class="line">      &lt;div style=&apos;margin-top:20px&apos;&gt;</span><br><span class="line">          &lt;div style=&apos;display: inline-block;</span><br><span class="line">                              width: 30px;</span><br><span class="line">                              height: 5px;</span><br><span class="line">                              border-top:1px #000 solid&apos;&gt;</span><br><span class="line">          &lt;/div&gt;</span><br><span class="line">          &lt;p style=&apos;display: inline-block;&apos;&gt;</span><br><span class="line">              Nodress www.noderess.com</span><br><span class="line">          &lt;/p&gt;</span><br><span class="line">      &lt;/div&gt;</span><br><span class="line">    &lt;/body&gt;</span><br><span class="line">&lt;/html&gt;</span><br></pre></td></tr></table></figure>
+<p>读取模板并导入数据</p>
+<p>首先通过解析 html 来创建一个模板，然后把它存储在一个变量 t 中（稍后再用）。然后声明一个 bytes.Buffer 用于保存 email 的 主题、header 和正文（自定义 html）。我发现使用 bytes.Buffer 类型比在其他在线解决方案中使用的其他类型更加灵活。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line">func SendVerCode() error &#123;</span><br><span class="line">	subject := &quot;Nodress Verification Code&quot;	//邮件主题</span><br><span class="line">	to := &quot;test@qq.com&quot;	//发送目标</span><br><span class="line">	</span><br><span class="line">	//由服务商提供</span><br><span class="line">	host := &quot;smtpdm.aliyun.com:25&quot;</span><br><span class="line">	user := &quot;service@sendemail.nodress67.com&quot;</span><br><span class="line">	password := &quot;NoDress6767&quot;</span><br><span class="line"></span><br><span class="line">	//自己重写的的stmp的登录，详见《Go语言使用SMTP的发送邮件报错unencrypted connection的解决方案》</span><br><span class="line">	auth := LoginAuth(user, password)	</span><br><span class="line"></span><br><span class="line">	//读取HTML</span><br><span class="line">	t, err := template.ParseFiles(&quot;view/emailTemplate/verificationCode.html&quot;)</span><br><span class="line">	if err != nil&#123;</span><br><span class="line">		return err</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	//声明一个 bytes.Buffer 用于保存 email 的 主题、header 和正文（自定义 html）</span><br><span class="line">	var b bytes.Buffer</span><br><span class="line">	headers := &quot;Content-Type: text/html; charset=UTF-8&quot;</span><br><span class="line">	b.Write([]byte(&quot;To: &quot; + to + &quot;\r\nFrom: &quot; + user + &quot;\r\nSubject: &quot; + subject + &quot;\r\n&quot; + headers + &quot;\r\n\r\n&quot;))</span><br><span class="line"></span><br><span class="line">	t.Execute(&amp;b, struct &#123;</span><br><span class="line">		SUBJECT string</span><br><span class="line">		TO string</span><br><span class="line">		CODE string</span><br><span class="line">	&#125;&#123;</span><br><span class="line">		SUBJECT:subject,</span><br><span class="line">		TO:to,</span><br><span class="line">		CODE:code,</span><br><span class="line">	&#125;)</span><br><span class="line">	send_to := strings.Split(to, &quot;;&quot;)</span><br><span class="line">	</span><br><span class="line">	//发送邮件</span><br><span class="line">	err = smtp.SendMail(host, auth, user, send_to, b.Bytes())</span><br><span class="line">	if err != nil &#123;</span><br><span class="line">		return err</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	return nil</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="https://zhanghongtong.github.io/2018/05/14/Go语言使用SMTP的发送邮件报错unencrypted connection的解决方案/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -891,7 +1326,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-count">16</span>
                 <span class="site-state-item-name">posts</span>
               </a>
             </div>
