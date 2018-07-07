@@ -94,18 +94,18 @@
 
 
 
-<meta name="description" content="使用rand包 12345678910package mainimport (    &amp;quot;fmt&amp;quot;    &amp;quot;math/rand&amp;quot;)func main() &amp;#123;    for i := 0; i &amp;lt; 10; i++ &amp;#123;        fmt.Println(rand.Intn(100)) //返回[0,100)的随机整数    &amp;#125">
+<meta name="description" content="1234567891011121314151617181920212223242526272829303132var (   randSeek = int64(1)   l        sync.Mutex)//获取指定长度的随机字符串//@params num int 生成的随机字符串的长度//@params str string 可选，指定随机的字符串func GetRandomSring(">
 <meta name="keywords" content="golang,go">
 <meta property="og:type" content="article">
-<meta property="og:title" content="GOLANG随机数生成方法">
-<meta property="og:url" content="https://zhanghongtong.github.io/2018/05/14/GOLANG随机数生成方法/index.html">
+<meta property="og:title" content="golang 生成随机数，时间种子改进型">
+<meta property="og:url" content="https://zhanghongtong.github.io/2018/07/07/golang-生成随机数，时间种子改进型/index.html">
 <meta property="og:site_name" content="张奇怪的blog">
-<meta property="og:description" content="使用rand包 12345678910package mainimport (    &amp;quot;fmt&amp;quot;    &amp;quot;math/rand&amp;quot;)func main() &amp;#123;    for i := 0; i &amp;lt; 10; i++ &amp;#123;        fmt.Println(rand.Intn(100)) //返回[0,100)的随机整数    &amp;#125">
+<meta property="og:description" content="1234567891011121314151617181920212223242526272829303132var (   randSeek = int64(1)   l        sync.Mutex)//获取指定长度的随机字符串//@params num int 生成的随机字符串的长度//@params str string 可选，指定随机的字符串func GetRandomSring(">
 <meta property="og:locale" content="简体中文">
-<meta property="og:updated_time" content="2018-05-14T07:32:00.779Z">
+<meta property="og:updated_time" content="2018-07-07T09:31:59.214Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="GOLANG随机数生成方法">
-<meta name="twitter:description" content="使用rand包 12345678910package mainimport (    &amp;quot;fmt&amp;quot;    &amp;quot;math/rand&amp;quot;)func main() &amp;#123;    for i := 0; i &amp;lt; 10; i++ &amp;#123;        fmt.Println(rand.Intn(100)) //返回[0,100)的随机整数    &amp;#125">
+<meta name="twitter:title" content="golang 生成随机数，时间种子改进型">
+<meta name="twitter:description" content="1234567891011121314151617181920212223242526272829303132var (   randSeek = int64(1)   l        sync.Mutex)//获取指定长度的随机字符串//@params num int 生成的随机字符串的长度//@params str string 可选，指定随机的字符串func GetRandomSring(">
 
 
 
@@ -134,13 +134,13 @@
 
 
 
-  <link rel="canonical" href="https://zhanghongtong.github.io/2018/05/14/GOLANG随机数生成方法/"/>
+  <link rel="canonical" href="https://zhanghongtong.github.io/2018/07/07/golang-生成随机数，时间种子改进型/"/>
 
 
 
 
 
-  <title>GOLANG随机数生成方法 | 张奇怪的blog</title>
+  <title>golang 生成随机数，时间种子改进型 | 张奇怪的blog</title>
   
 
 
@@ -273,7 +273,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://zhanghongtong.github.io/2018/05/14/GOLANG随机数生成方法/">
+    <link itemprop="mainEntityOfPage" href="https://zhanghongtong.github.io/2018/07/07/golang-生成随机数，时间种子改进型/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="张奇怪">
@@ -290,7 +290,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">GOLANG随机数生成方法</h1>
+          <h1 class="post-title" itemprop="name headline">golang 生成随机数，时间种子改进型</h1>
         
 
         <div class="post-meta">
@@ -302,8 +302,8 @@
               
                 <span class="post-meta-item-text">Posted on</span>
               
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-05-14T15:31:24+08:00">
-                2018-05-14
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-07-07T17:29:55+08:00">
+                2018-07-07
               </time>
             
 
@@ -362,13 +362,7 @@
       
 
       
-        <p>使用rand包</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">package main</span><br><span class="line">import (</span><br><span class="line">    &quot;fmt&quot;</span><br><span class="line">    &quot;math/rand&quot;</span><br><span class="line">)</span><br><span class="line">func main() &#123;</span><br><span class="line">    for i := 0; i &lt; 10; i++ &#123;</span><br><span class="line">        fmt.Println(rand.Intn(100)) //返回[0,100)的随机整数</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>这样使用是可以产生随机数，但是程序重启后，产生的随机数和上次一样。是因为程序使用了相同的种子 1。可以使用rand.Seed(seed)来设置一个不同的种子值。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">package main</span><br><span class="line">import (</span><br><span class="line">    &quot;fmt&quot;</span><br><span class="line">    &quot;math/rand&quot;</span><br><span class="line">    &quot;time&quot;</span><br><span class="line">)</span><br><span class="line">func main() &#123;</span><br><span class="line">    rand.Seed(time.Now().UnixNano()) //利用当前时间的UNIX时间戳初始化rand包</span><br><span class="line">    for i := 0; i &lt; 10; i++ &#123;</span><br><span class="line">        x := rand.Intn(100)</span><br><span class="line">        fmt.Println(x)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>产生指定数字范围内的随机数</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">package main</span><br><span class="line">import (</span><br><span class="line">    &quot;fmt&quot;</span><br><span class="line">    &quot;math/rand&quot;</span><br><span class="line">    &quot;time&quot;</span><br><span class="line">)</span><br><span class="line">func main() &#123;</span><br><span class="line">    for i := 0; i &lt; 10; i++ &#123;</span><br><span class="line">        x := randInt(100，999)</span><br><span class="line">        fmt.Println(x)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">func randInt(min int , max int) int &#123;</span><br><span class="line">	rand.Seed(time.Now().UnixNano())</span><br><span class="line">	return min + rand.Intn(max-min)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
+        <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">var (</span><br><span class="line">   randSeek = int64(1)</span><br><span class="line">   l        sync.Mutex</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line">//获取指定长度的随机字符串</span><br><span class="line">//@params num int 生成的随机字符串的长度</span><br><span class="line">//@params str string 可选，指定随机的字符串</span><br><span class="line">func GetRandomSring(num int, str ...string) string &#123;</span><br><span class="line">   s := &quot;abcdefghijklmnopqrstuvwxyz0123456789&quot;</span><br><span class="line">   if len(str) &gt; 0 &#123;</span><br><span class="line">      s = str[0]</span><br><span class="line">   &#125;</span><br><span class="line">   l := len(s)</span><br><span class="line">   r := rand.New(rand.NewSource(getRandSeek()))</span><br><span class="line">   var buf bytes.Buffer</span><br><span class="line">   for i := 0; i &lt; num; i++ &#123;</span><br><span class="line">      x := r.Intn(l)</span><br><span class="line">      buf.WriteString(s[x : x+1])</span><br><span class="line">   &#125;</span><br><span class="line">   return buf.String()</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">func getRandSeek() int64 &#123;</span><br><span class="line">   l.Lock()</span><br><span class="line">   if randSeek &gt;= 100000000 &#123;</span><br><span class="line">      randSeek = 1</span><br><span class="line">   &#125;</span><br><span class="line">   randSeek++</span><br><span class="line">   l.Unlock()</span><br><span class="line">   return time.Now().UnixNano() + randSeek</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
       
     </div>
     
@@ -400,8 +394,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2018/05/14/Golang：使用HTML模板发送邮件/" rel="next" title="Golang：使用HTML模板发送邮件">
-                <i class="fa fa-chevron-left"></i> Golang：使用HTML模板发送邮件
+              <a href="/2018/07/04/golang-map数据结构不能并发读写问题-fatal-error-concurrent-map-writes/" rel="next" title="golang map数据结构不能并发读写问题 fatal error: concurrent map writes">
+                <i class="fa fa-chevron-left"></i> golang map数据结构不能并发读写问题 fatal error: concurrent map writes
               </a>
             
           </div>
@@ -409,10 +403,6 @@
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
-            
-              <a href="/2018/05/14/go语言获取文件名、后缀/" rel="prev" title="go语言获取文件名、后缀">
-                go语言获取文件名、后缀 <i class="fa fa-chevron-right"></i>
-              </a>
             
           </div>
         </div>
