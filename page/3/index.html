@@ -270,6 +270,303 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://zhanghongtong.github.io/2018/05/14/Golang：使用HTML模板发送邮件/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="张奇怪">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="张奇怪的blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/05/14/Golang：使用HTML模板发送邮件/" itemprop="url">Golang：使用HTML模板发送邮件</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-05-14T15:28:48+08:00">
+                2018-05-14
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/golang/" itemprop="url" rel="index">
+                    <span itemprop="name">golang</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>创建HTML模板</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">&lt;!DOCTYPE html PUBLIC &quot;-//W3C//DTD XHTML 1.0 Transitional//EN&quot; &quot;http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd&quot;&gt;</span><br><span class="line">&lt;html xmlns=&quot;http://www.w3.org/1999/xhtml&quot;&gt;</span><br><span class="line">　&lt;head&gt;</span><br><span class="line">    　　&lt;meta http-equiv=&quot;Content-Type&quot; content=&quot;text/html; charset=UTF-8&quot; /&gt;</span><br><span class="line">    　　&lt;title&gt;&#123;&#123;.SUBJECT&#125;&#125;&#125;&lt;/title&gt;</span><br><span class="line">    　　&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;/&gt;</span><br><span class="line">    　&lt;/head&gt;</span><br><span class="line">    &lt;body style=&quot;margin: 0; padding: 0;&quot;&gt;</span><br><span class="line">    	&lt;img style=&apos;float:left;margin-bottom:20px&apos; src=&apos;https://initiranking-system.oss-cn-hangzhou.aliyuncs.com/logo.png&apos;&gt;</span><br><span class="line">       &lt;table style=&apos;&apos; border=&quot;0&quot; cellpadding=&quot;0&quot; cellspacing=&quot;0&quot; width=&quot;100%&quot;&gt;</span><br><span class="line">            &lt;tr&gt;</span><br><span class="line">             &lt;td style=&apos;font-size:18px&apos;&gt; Hi, &#123;&#123;.TO&#125;&#125;&#125;&lt;/td&gt;</span><br><span class="line">            &lt;/tr&gt;</span><br><span class="line">              &lt;tr&gt;</span><br><span class="line">                  &lt;td style=&apos;color:#ccc&apos;&gt; your code is &#123;&#123;.CODE&#125;&#125;&lt;/td&gt;</span><br><span class="line">              &lt;/tr&gt;</span><br><span class="line">        &lt;/table&gt;</span><br><span class="line">      &lt;div style=&apos;margin-top:20px&apos;&gt;</span><br><span class="line">          &lt;div style=&apos;display: inline-block;</span><br><span class="line">                              width: 30px;</span><br><span class="line">                              height: 5px;</span><br><span class="line">                              border-top:1px #000 solid&apos;&gt;</span><br><span class="line">          &lt;/div&gt;</span><br><span class="line">          &lt;p style=&apos;display: inline-block;&apos;&gt;</span><br><span class="line">              Nodress www.noderess.com</span><br><span class="line">          &lt;/p&gt;</span><br><span class="line">      &lt;/div&gt;</span><br><span class="line">    &lt;/body&gt;</span><br><span class="line">&lt;/html&gt;</span><br></pre></td></tr></table></figure>
+<p>读取模板并导入数据</p>
+<p>首先通过解析 html 来创建一个模板，然后把它存储在一个变量 t 中（稍后再用）。然后声明一个 bytes.Buffer 用于保存 email 的 主题、header 和正文（自定义 html）。我发现使用 bytes.Buffer 类型比在其他在线解决方案中使用的其他类型更加灵活。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line">func SendVerCode() error &#123;</span><br><span class="line">	subject := &quot;Nodress Verification Code&quot;	//邮件主题</span><br><span class="line">	to := &quot;test@qq.com&quot;	//发送目标</span><br><span class="line">	</span><br><span class="line">	//由服务商提供</span><br><span class="line">	host := &quot;smtpdm.aliyun.com:25&quot;</span><br><span class="line">	user := &quot;service@sendemail.nodress67.com&quot;</span><br><span class="line">	password := &quot;NoDress6767&quot;</span><br><span class="line"></span><br><span class="line">	//自己重写的的stmp的登录，详见《Go语言使用SMTP的发送邮件报错unencrypted connection的解决方案》</span><br><span class="line">	auth := LoginAuth(user, password)	</span><br><span class="line"></span><br><span class="line">	//读取HTML</span><br><span class="line">	t, err := template.ParseFiles(&quot;view/emailTemplate/verificationCode.html&quot;)</span><br><span class="line">	if err != nil&#123;</span><br><span class="line">		return err</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	//声明一个 bytes.Buffer 用于保存 email 的 主题、header 和正文（自定义 html）</span><br><span class="line">	var b bytes.Buffer</span><br><span class="line">	headers := &quot;Content-Type: text/html; charset=UTF-8&quot;</span><br><span class="line">	b.Write([]byte(&quot;To: &quot; + to + &quot;\r\nFrom: &quot; + user + &quot;\r\nSubject: &quot; + subject + &quot;\r\n&quot; + headers + &quot;\r\n\r\n&quot;))</span><br><span class="line"></span><br><span class="line">	t.Execute(&amp;b, struct &#123;</span><br><span class="line">		SUBJECT string</span><br><span class="line">		TO string</span><br><span class="line">		CODE string</span><br><span class="line">	&#125;&#123;</span><br><span class="line">		SUBJECT:subject,</span><br><span class="line">		TO:to,</span><br><span class="line">		CODE:code,</span><br><span class="line">	&#125;)</span><br><span class="line">	send_to := strings.Split(to, &quot;;&quot;)</span><br><span class="line">	</span><br><span class="line">	//发送邮件</span><br><span class="line">	err = smtp.SendMail(host, auth, user, send_to, b.Bytes())</span><br><span class="line">	if err != nil &#123;</span><br><span class="line">		return err</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	return nil</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://zhanghongtong.github.io/2018/05/14/Go语言使用SMTP的发送邮件报错unencrypted connection的解决方案/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="张奇怪">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="张奇怪的blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/05/14/Go语言使用SMTP的发送邮件报错unencrypted connection的解决方案/" itemprop="url">Go语言使用SMTP的发送邮件报错unencrypted connection的解决方案</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-05-14T15:24:25+08:00">
+                2018-05-14
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/golang/" itemprop="url" rel="index">
+                    <span itemprop="name">golang</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>转自：<a href="http://www.kuqin.com/shuoit/20140303/338368.html" target="_blank" rel="noopener">http://www.kuqin.com/shuoit/20140303/338368.html</a></p>
+<p>山坡网需要能够每周给注册用户发送一封名为“本周最热书籍”的邮件，而之前一直使用的腾讯企业邮箱罢工了，提示说发送请求太多太密集。</p>
+<p>一番寻找之后发现了大家口碑不错的搜狐SendCloud服务，看了看文档，价格实惠用起来也方便，于是准备使用它做邮件发送服务器。按照文档的配置一步步走下来发现在发送邮件的时候竟然出错了，错误提示是“unencrypted connection”，奇怪了。</p>
+<p>由于用的是smtp包的PLAIN认证方式，所以打开源代码看了看（SublimeText3+GoSublime里ctrl+. ctrl+a输入包名和结构名直接查看源代码，谁用谁喜欢），发现这里要求使用加密连接，否则就会出上述错误。恩，也能理解，毕竟这里明文发送密码了。关键代码如下。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">auth := smtp.PlainAuth(&quot;&quot;, Config.Username, Config.Password, Config.Host)</span><br><span class="line">smtp.SendMail(addr, auth, from, to, []byte(self.String()))</span><br></pre></td></tr></table></figure>
+<p>问题明白之后思路也出来了，自己写一个不需要加密链接的PLAIN认证就好了。直接把标准库中PLAIN的实现拿过来，删除其中需要加密函数的部分，照着写了一个LoginAuth。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">package sendMail</span><br><span class="line"></span><br><span class="line">import &quot;net/smtp&quot;</span><br><span class="line"></span><br><span class="line">type loginAuth struct &#123;</span><br><span class="line">	username, password string</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">func LoginAuth(username, password string) smtp.Auth &#123;</span><br><span class="line">	return &amp;loginAuth&#123;username, password&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">func (a *loginAuth) Start(server *smtp.ServerInfo) (string, []byte, error) &#123;</span><br><span class="line">	return &quot;LOGIN&quot;, []byte(a.username), nil</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">func (a *loginAuth) Next(fromServer []byte, more bool) ([]byte, error) &#123;</span><br><span class="line">	if more &#123;</span><br><span class="line">		switch string(fromServer) &#123;</span><br><span class="line">		case &quot;Username:&quot;:</span><br><span class="line">			return []byte(a.username), nil</span><br><span class="line">		case &quot;Password:&quot;:</span><br><span class="line">			return []byte(a.password), nil</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	return nil, nil</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>把发送邮件的代码改成下面这样。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">auth := LoginAuth(user, password)</span><br><span class="line">smtp.SendMail(addr, auth, from, to, []byte(self.String()))</span><br></pre></td></tr></table></figure>
+<p>搞定</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="https://zhanghongtong.github.io/2018/05/14/go-ini中文手册/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -740,7 +1037,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">22</span>
+                <span class="site-state-item-count">24</span>
                 <span class="site-state-item-name">posts</span>
               </a>
             </div>
@@ -762,7 +1059,7 @@
             
             <div class="site-state-item site-state-tags">
               <a href="/tags/index.html">
-                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-count">14</span>
                 <span class="site-state-item-name">tags</span>
               </a>
             </div>
