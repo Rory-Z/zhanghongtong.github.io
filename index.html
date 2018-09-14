@@ -270,6 +270,548 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://zhanghongtong.github.io/2018/09/14/Docker-空间使用分析与清理/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="张奇怪">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="张奇怪的blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/09/14/Docker-空间使用分析与清理/" itemprop="url">Docker 空间使用分析与清理</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-09-14T17:04:45+08:00">
+                2018-09-14
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/docker/" itemprop="url" rel="index">
+                    <span itemprop="name">docker</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>用户在使用 Docker 部署业务一段时间后，可能会发现宿主节点的磁盘容量持续增长，甚至将磁盘空间耗尽进而引发宿主机异常，进而对业务造成影响。 本文先对 Docker 的空间分析与清理进行说明，然后对容器的磁盘容量限制与使用建议做简要说明。</p>
+<h1 id="典型问题场景"><a href="#典型问题场景" class="headerlink" title="典型问题场景"></a>典型问题场景</h1><p>用户发现 Docker 宿主机的磁盘空间使用率非常高。通过 du 逐层分析，发现是 Volume 或 overlay2 等目录占用了过高空间。示例如下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span> 根据使用的存储驱动的不同，相应目录会有所不同：</span><br><span class="line">[root@node3 docker]# du -h --max-depth=1 |sort</span><br><span class="line">104K    ./network</span><br><span class="line">13M    ./image</span><br><span class="line">20K    ./plugins</span><br><span class="line">24G    ./overlay2   # 这个目录占用了非常高的磁盘磁盘空间</span><br><span class="line">25G    .</span><br><span class="line">283M    ./volumes</span><br><span class="line">4.0K    ./swarm</span><br><span class="line">4.0K    ./tmp</span><br><span class="line">4.0K    ./trust</span><br><span class="line">518M    ./containers</span><br></pre></td></tr></table></figure>
+<h1 id="空间使用分析"><a href="#空间使用分析" class="headerlink" title="空间使用分析"></a>空间使用分析</h1><p>遇到此类问题，可以参阅如下步骤进行空间分析，定位占用过高空间的业务来源。</p>
+<h2 id="分析-Docker-空间分布"><a href="#分析-Docker-空间分布" class="headerlink" title="分析 Docker 空间分布"></a>分析 Docker 空间分布</h2><p>Docker 的内置 CLI 指令 docker system df ，可用于查询镜像（Images）、容器（Containers）和本地卷（Local Volumes）等空间使用大户的空间占用情况。 示例输出如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[root@node3 docker]# docker system df</span><br><span class="line">TYPE                TOTAL               ACTIVE              SIZE                RECLAIMABLE</span><br><span class="line">Images              17                  12                  2.713 GB            1.144 GB (42%)</span><br><span class="line">Containers          15                  12                  10.75 GB            0 B (0%)</span><br><span class="line">Local Volumes       8                   4                   282.9 MB            241.8 MB (85%)</span><br></pre></td></tr></table></figure>
+<h2 id="查看空间占用细节"><a href="#查看空间占用细节" class="headerlink" title="查看空间占用细节"></a>查看空间占用细节</h2><p>可以进一步通过 -v 参数查看空间占用细节，以确定具体是哪个镜像、容器或本地卷占用了过高空间。示例输出如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">[root@node3 docker]# docker system df -v</span><br><span class="line"># 镜像的空间使用情况</span><br><span class="line">Images space usage:</span><br><span class="line"></span><br><span class="line">REPOSITORY                                                   TAG                 IMAGE ID            CREATED             SIZE                SHARED SIZE         UNIQUE SIZE         CONTAINERS</span><br><span class="line">busybox                                                      latest              6ad733544a63        5 days ago          1.129 MB            0 B                 1.129 MB            1</span><br><span class="line">nginx                                                        latest              b8efb18f159b        3 months ago        107.5 MB            107.5 MB            0 B                 4</span><br><span class="line">ubuntu                                                       latest              14f60031763d        3 months ago        119.5 MB            0 B                 119.5 MB            0</span><br><span class="line">alpine                                                       3.3                 606fed0878ec        4 months ago        4.809 MB            0 B                 4.809 MB            0</span><br><span class="line">tutum/curl                                                   latest              01176385d84a        3 years ago         224.4 MB            0 B                 224.4 MB            1</span><br><span class="line"></span><br><span class="line"># 容器的空间使用情况</span><br><span class="line">Containers space usage:</span><br><span class="line"></span><br><span class="line">CONTAINER ID        IMAGE                                                                    COMMAND                  LOCAL VOLUMES       SIZE                CREATED             STATUS                     NAMES</span><br><span class="line">d1da451ceeab        busybox                                                                  &quot;ping 127.0.0.1&quot;         0                   10.7 GB             About an hour ago   Up About an hour           dstest</span><br><span class="line">956ae1d241e8        nginx:latest                                                             &quot;nginx -g &apos;daemon ...&quot;   0                   26 B                3 months ago        Up 3 months                localTest_restserver_2</span><br><span class="line">74973d237a06        nginx:latest                                                             &quot;nginx -g &apos;daemon ...&quot;   0                   2 B                 3 months ago        Up 3 months                </span><br><span class="line"></span><br><span class="line"># 本地卷的空间使用情况</span><br><span class="line">Local Volumes space usage:</span><br><span class="line"></span><br><span class="line">VOLUME NAME                                                        LINKS               SIZE</span><br><span class="line">83ba8747f4172a3c02a15f85b71e1565affca59f01352b4a94e0d28e65c26d1c   0                   830 B</span><br><span class="line">a479c303b278f1442f66644f694a554aac630e72b7a27065a11ef85c4d87b648   0                   22.16 MB</span><br><span class="line">79a25b6376e0d6587d8f4f24e08f9467981f04daad14bf3353a12d727d065503   1                   18.83 MB</span><br></pre></td></tr></table></figure></p>
+<h1 id="空间清理"><a href="#空间清理" class="headerlink" title="空间清理"></a>空间清理</h1><h2 id="自动清理"><a href="#自动清理" class="headerlink" title="自动清理"></a>自动清理</h2><p>可以通过 Docker 内置的 CLI 指令 docker system prune 来进行自动空间清理。</p>
+<blockquote>
+<p>  <strong>Tips</strong> ：</p>
+<p>  <strong>不同状态的镜像</strong></p>
+<p>  已使用镜像（used image）： 指所有已被容器（包括已停止的）关联的镜像。即 docker ps -a 看到的所有容器使用的镜像。</p>
+<p>  未引用镜像（unreferenced image）：没有被分配或使用在容器中的镜像，但它有 Tag 信息。</p>
+<p>  悬空镜像（dangling image）：未配置任何 Tag （也就无法被引用）的镜像，所以悬空。这通常是由于镜像 build 的时候没有指定 -t 参数配置 Tag 导致的。比如:<br>  <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&gt;   REPOSITORY                                                   TAG                 IMAGE ID            CREATED             SIZE</span><br><span class="line">&gt;   &lt;none&gt;                                                      &lt;none&gt;              6ad733544a63        5 days ago          1.13 MB   # 悬空镜像（dangling image）</span><br><span class="line">&gt;</span><br></pre></td></tr></table></figure></p>
+</blockquote>
+<blockquote>
+<p>  <strong>挂起的卷（dangling Volume)</strong></p>
+<p>  类似的，dangling=true 的 Volume 表示没有被任何容器引用的卷。</p>
+</blockquote>
+<h3 id="docker-system-prune-自动清理说明："><a href="#docker-system-prune-自动清理说明：" class="headerlink" title="docker system prune 自动清理说明："></a>docker system prune 自动清理说明：</h3><ul>
+<li><p>该指令默认会清除所有如下资源：</p>
+<ul>
+<li>已停止的容器（container）</li>
+<li>未被任何容器所使用的卷（volume）</li>
+<li>未被任何容器所关联的网络（network）</li>
+<li>所有悬空镜像（image）。</li>
+</ul>
+</li>
+<li><p>该指令默认只会清除悬空镜像，未被使用的镜像不会被删除。</p>
+</li>
+<li>添加 -a 或 –all 参数后，可以一并清除所有未使用的镜像和悬空镜像。</li>
+<li>可以添加 -f 或 –force 参数用以忽略相关告警确认信息。</li>
+<li>指令结尾处会显示总计清理释放的空间大小。</li>
+</ul>
+<p>操作示例：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line">[root@node3 docker]# docker system prune --help</span><br><span class="line"></span><br><span class="line">Usage:    docker system prune [OPTIONS]</span><br><span class="line"></span><br><span class="line">Remove unused data</span><br><span class="line"></span><br><span class="line">Options:</span><br><span class="line">  -a, --all     Remove all unused images not just dangling ones</span><br><span class="line">  -f, --force   Do not prompt for confirmation</span><br><span class="line">      --help    Print usage</span><br><span class="line">[root@node3 docker]# docker system prune -a</span><br><span class="line">WARNING! This will remove:</span><br><span class="line">    - all stopped containers</span><br><span class="line">    - all volumes not used by at least one container</span><br><span class="line">    - all networks not used by at least one container</span><br><span class="line">    - all images without at least one container associated to them</span><br><span class="line">Are you sure you want to continue? [y/N] y</span><br><span class="line">Deleted Containers:</span><br><span class="line">c09c31c49491ee7f2324160e43947917940221b4e6cc1274906def640a7a631f</span><br><span class="line">2aa0180e1a0f4c2c64349a6ed969651052373e7a9471050dce9015701cf1b957</span><br><span class="line">6d18003b06823c5d76d807a319387b06680fc93d0a32bc29c1cea4c07e8d515d</span><br><span class="line"></span><br><span class="line">Deleted Volumes:</span><br><span class="line">a479c303b278f1442f66644f694a554aac630e72b7a27065a11ef85c4d87b648</span><br><span class="line">79a25b6376e0d6587d8f4f24e08f9467981f04daad14bf3353a12d727d065503</span><br><span class="line"></span><br><span class="line">Deleted Images:</span><br><span class="line">untagged: tutum/curl:latest</span><br><span class="line">untagged: tutum/curl@sha256:b6f16e88387acd4e6326176b212b3dae63f5b2134e69560d0b0673cfb0fb976f</span><br><span class="line">deleted: sha256:01176385d84aeb1d40ed18c6d3f952abf40d2d2b4aa98fcf0a8a4b01010fb9a9</span><br><span class="line">deleted: sha256:c84f85637212412c1d46d1dd50f789df2c3b44678ee3fee6a820888e734f9b5a</span><br><span class="line">untagged: test:lastest</span><br><span class="line">deleted: sha256:794ff09332586a091514eb3d1c44990244e57e34adc71d4b4334c0674a1377e9</span><br><span class="line">deleted: sha256:636a1e7769d2242556243e9a21fb96bb878ab5b94c41ff485667252c968b375e</span><br><span class="line"></span><br><span class="line">Total reclaimed space: 1.565 GB</span><br></pre></td></tr></table></figure>
+<h2 id="手动清理"><a href="#手动清理" class="headerlink" title="手动清理"></a>手动清理</h2><h3 id="网络清理"><a href="#网络清理" class="headerlink" title="网络清理"></a>网络清理</h3><p>网络配置通常占用的空间非常低，略过。</p>
+<h3 id="镜像清理"><a href="#镜像清理" class="headerlink" title="镜像清理"></a>镜像清理</h3><p>如果通过 docker system df 分析，是镜像占用了过高空间。则可以根据业务情况，评估相关镜像的使用情况。对于悬空和未使用的镜像， 可以使用如下指令手工清理：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span> 删除所有悬空镜像，但不会删除未使用镜像：</span><br><span class="line">docker rmi $(docker images -f "dangling=true" -q)</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span> 删除所有未使用镜像和悬空镜像。</span><br><span class="line"><span class="meta">#</span> 【说明】：轮询到还在被使用的镜像时，会有类似"image is being used by xxx container"的告警信息，所以相关镜像不会被删除，忽略即可。</span><br><span class="line">docker rmi $(docker images-q)</span><br></pre></td></tr></table></figure>
+<h3 id="卷清理"><a href="#卷清理" class="headerlink" title="卷清理"></a>卷清理</h3><p>如果通过 docker system df 分析，是卷占用了过高空间。则可以根据业务情况，评估相关卷的使用情况。对于未被任何容器调用的卷（-v 结果信息中，”LINKS” 显示为 0），可以使用如下指令手工清理：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span> 删除所有未被任何容器关联引用的卷：</span><br><span class="line">docker volume rm $(docker volume ls -qf dangling=true)</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span> 也可以直接使用如下指令，删除所有未被任何容器关联引用的卷（但建议使用上面的方式）</span><br><span class="line"><span class="meta">#</span> 【说明】轮询到还在使用的卷时，会有类似"volume is in use"的告警信息，所以相关卷不会被删除，忽略即可。</span><br><span class="line">docker volume rm $(docker volume ls -q)</span><br></pre></td></tr></table></figure>
+<h3 id="容器清理"><a href="#容器清理" class="headerlink" title="容器清理"></a>容器清理</h3><p>如果通过 docker system df 分析，是某个容器占用了过高空间。则可以根据业务情况，评估相关容器的业务归属并进行处理。对于已停止或其它异常状态的容器，可以结合  -f 或 –filter 筛选器，使用类似如下指令来手工清理：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span> 删除所有已退出的容器</span><br><span class="line">docker rm -v $(docker ps -aq -f status=exited)</span><br><span class="line"><span class="meta">#</span> 删除所有状态为 dead 的容器</span><br><span class="line">docker rm -v $(docker ps -aq -f status=dead)</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>更多关于 ps 指令支持的筛选器信息，可以参阅<a href="https://docs.docker-cn.com/engine/reference/commandline/ps/#filtering" target="_blank" rel="noopener">官方文档</a>。</p>
+</blockquote>
+<h1 id="在用空间资源分析"><a href="#在用空间资源分析" class="headerlink" title="在用空间资源分析"></a>在用空间资源分析</h1><p>对于还在使用的空间资源，可以参阅如下说明做进一步排查分析。</p>
+<h2 id="镜像空间分析"><a href="#镜像空间分析" class="headerlink" title="镜像空间分析"></a>镜像空间分析</h2><p>如果某个镜像占用了过高空间，则可以通过如下方式做进一步空间分析：</p>
+<ol>
+<li>通过 docker system df 获取占用过高空间的镜像信息。</li>
+<li>基于相应镜像创建测试容器。</li>
+<li>exec 进入容器后，结合 du 等 shell 指令做进一步空间分析，定位出占用最高空间的目录或文件。</li>
+<li>结合业务情况做进一步处理，重新 build 镜像。</li>
+</ol>
+<p>示例：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">[root@node3]# docker exec -it dstest sh</span><br><span class="line">/ # du -h | head</span><br><span class="line">8.0K    ./root</span><br><span class="line">32.0K    ./etc</span><br><span class="line">4.0K    ./usr/sbin</span><br><span class="line">8.0K    ./usr</span><br><span class="line">10.0G    ./home/java/logs</span><br><span class="line">10.0G    ./home/java</span><br><span class="line">10.0G    ./home</span><br><span class="line">1.1M    ./bin</span><br><span class="line">0    ./dev/shm</span><br><span class="line">0    ./dev/mqueue</span><br></pre></td></tr></table></figure></p>
+<h2 id="容器空间分析"><a href="#容器空间分析" class="headerlink" title="容器空间分析"></a>容器空间分析</h2><p>如果某个运行中的容器占用了过高空间，则可以通过如下方式做进一步空间分析：</p>
+<blockquote>
+<p>  <strong>Tips</strong> ：</p>
+<p>  <strong>容器的只读层与镜像层的空间占用情况</strong></p>
+<p>  一个容器的占用的总空间，包含其最顶层的读写层（writable layer）和底部的只读镜像层（base image layer，read-only）。更多相关说明，可以参阅<a href="https://docs.docker-cn.com/engine/userguide/storagedriver/imagesandcontainers/?spm=a2c4e.11153940.blogcont272173.14.4a6d22130uX2V6#container-and-layers" target="_blank" rel="noopener">官方文档</a>。</p>
+<p>  可以通过 docker ps 的 -s 参数来分别显示二者的空间占用情况，进而判断相应容器的空间占用主要是来自原始镜像，还是运行中产生。</p>
+<p>  <img src="../images/82ce6b220fe5aef04c051db37c20460d.png" alt=""></p>
+<p>  示例<br>  <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">&gt;   # 如下容器的原始镜像占用了 422MB 空间，实际运行过程中只占用了 2B 空间：</span><br><span class="line">&gt;   CONTAINER ID    IMAGE                                           COMMAND                 CREATED         STATUS      PORTS                   NAMES       SIZE</span><br><span class="line">&gt;   ac39128ccbc0    registry.aliyuncs.com/acs-sample/wordpress:4.6  &quot;/entrypoint.sh ap...&quot;  3 months ago    Up 11 days  0.0.0.0:32779-&gt;80/tcp   Web_web_4   2 B (virtual 422 MB)</span><br><span class="line"></span><br><span class="line">## 容器空间占用的分析步骤：</span><br><span class="line"></span><br><span class="line">1.  通过 docker system df 获取占用过高空间的容器信息。</span><br><span class="line">2.  通过前述 -s 参数确认到底是底层镜像，还是运行过程中产生的数据占用了过高空间。</span><br><span class="line">3.  exec 进入容器，结合 du 等 shell 指令做进一步空间分析，定位出占用最高空间的目录或文件。</span><br><span class="line">4.  结合业务情况做进一步处理。</span><br><span class="line"></span><br><span class="line"># 引申：Docker 磁盘空间限制与使用建议</span><br><span class="line"></span><br><span class="line">## 磁盘空间限制</span><br><span class="line"></span><br><span class="line">### 使用 Device Mapper 存储驱动限制容器磁盘空间</span><br><span class="line"></span><br><span class="line">如果使用 Device Mapper 作为底层存储驱动，则可以通过 Docker daemon 的如下参数来全局限制单个容器占用空间的大小：</span><br><span class="line"></span><br><span class="line">+ --storage-opt dm.basesize=20G 表示限制单个容器最多占用 20G 空间，将应用于任何新建容器。</span><br><span class="line"></span><br><span class="line">更多关于 Device Mapper 存储驱动的说明，可以参阅[官方文档](https://docs.docker-cn.com/engine/userguide/storagedriver/device-mapper-driver/)。</span><br><span class="line"></span><br><span class="line">### 使用 btrfs 存储驱动限制容器磁盘空间</span><br><span class="line"></span><br><span class="line">btrfs 驱动主要使用 btrfs 所提供的 subvolume 功能来实现。一个容器会对应一个 subvolume。针对容器对应的 subvolume 启用并配置 quota 即可限制其磁盘空间。示例配置：</span><br></pre></td></tr></table></figure></p>
+</blockquote>
+<p>btrfs qgroup limit -e 50G /var/lib/docker/btrfs/subvolumes/&lt;CONTAINER_ID&gt;<br><code>`</code><br>btrfs 还有其它很好的特性，比如可以在线扩容（在线加入一块新的块设备，来扩充整个文件系统的大小）。更多关于 btrfs 存储驱动的说明，可以参阅<a href="https://docs.docker-cn.com/engine/userguide/storagedriver/btrfs-driver/" target="_blank" rel="noopener">官方文档</a>。</p>
+<h3 id="外挂-LVM-卷"><a href="#外挂-LVM-卷" class="headerlink" title="外挂 LVM 卷"></a>外挂 LVM 卷</h3><p>如果使用的是其它不支持对单个容器的磁盘容量进行限制的存储驱动，则可以考虑如下通用方案：</p>
+<ul>
+<li>通过 LVM 方式创建一个指定容量的卷,然后挂载到宿主操作系统上特定目录。最后通过 –volume 参数来让容器来挂载使用相应目录。</li>
+</ul>
+<p><strong>注意</strong>：该方案的前提条件是，容器中所有落盘操作要全部落到上述 “–volume” 参数指定的卷中，否则容器还会占用默认 aufs 所在盘的空间,进而造成统计不准。</p>
+<h3 id="Docker-存储使用建议"><a href="#Docker-存储使用建议" class="headerlink" title="Docker 存储使用建议"></a>Docker 存储使用建议</h3><p>细化的存储使用最佳实践与采用的存储驱动（storage driver）类型强相关，您可以参阅官方文档做相关了解，本文不做进一步细化说明。</p>
+<p>通用的存储使用建议如下：</p>
+<ul>
+<li>容器内的业务日志务必配置轮询覆写，或者使用日志驱动将日志输出到外部存储。避免日志文件持续增长，占用过高磁盘空间。</li>
+<li>结合外部监控对宿主机的磁盘空间使用情况进行监控和告警。</li>
+<li>可以参阅文档 <a href="https://yq.aliyun.com/articles/53313?spm=a2c4e.11153940.blogcont272173.18.4a6d2213tOtBnG" target="_blank" rel="noopener">如何给容器服务的Docker增加数据盘</a>来扩容默认 Docker 存储空间。</li>
+</ul>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://zhanghongtong.github.io/2018/09/13/linux命令之-sed命令用于处理文本文件如修改配置文件/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="张奇怪">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="张奇怪的blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/09/13/linux命令之-sed命令用于处理文本文件如修改配置文件/" itemprop="url">linux命令之 sed命令用于处理文本文件如修改配置文件</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-09-13T10:51:31+08:00">
+                2018-09-13
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/服务器/" itemprop="url" rel="index">
+                    <span itemprop="name">服务器</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="1、sed命令作用"><a href="#1、sed命令作用" class="headerlink" title="1、sed命令作用"></a>1、sed命令作用</h1><p>Linux sed命令是利用script来处理文本文件。</p>
+<p>sed可依照script的指令，来处理、编辑文本文件。</p>
+<p>Sed主要用来自动编辑一个或多个文件；简化对文件的反复操作；编写转换程序等。</p>
+<h1 id="2、sed语法"><a href="#2、sed语法" class="headerlink" title="2、sed语法"></a>2、sed语法</h1><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sed [-hnV][-e&lt;script&gt;][-f&lt;script文件&gt;][文本文件]</span><br></pre></td></tr></table></figure>
+<h2 id="常用选项："><a href="#常用选项：" class="headerlink" title="常用选项："></a>常用选项：</h2><ul>
+<li>-n∶使用安静(silent)模式。在一般 sed 的用法中，所有来自 STDIN的资料一般都会被列出到萤幕上。但如果加上 -n 参数后，则只有经过sed 特殊处理的那一行(或者动作)才会被列出来。</li>
+<li>-e∶直接在指令列模式上进行 sed 的动作编辑；</li>
+<li>-f∶直接将 sed 的动作写在一个档案内， -f filename 则可以执行 filename 内的sed 动作；</li>
+<li>-r∶sed 的动作支援的是延伸型正规表示法的语法。(预设是基础正规表示法语法)</li>
+<li>-i∶直接修改读取的档案内容，而不是由萤幕输出。       </li>
+</ul>
+<h2 id="常用命令："><a href="#常用命令：" class="headerlink" title="常用命令："></a>常用命令：</h2><ul>
+<li>a   ∶新增， a 的后面可以接字串，而这些字串会在新的一行出现(目前的下一行)～</li>
+<li>c   ∶取代， c 的后面可以接字串，这些字串可以取代 n1,n2 之间的行！</li>
+<li>d   ∶删除，因为是删除啊，所以 d 后面通常不接任何咚咚；</li>
+<li>i   ∶插入， i 的后面可以接字串，而这些字串会在新的一行出现(目前的上一行)；</li>
+<li>p  ∶列印，亦即将某个选择的资料印出。通常 p 会与参数 sed -n 一起运作～</li>
+<li>s  ∶取代，可以直接进行取代的工作哩！通常这个 s 的动作可以搭配正规表示法！例如 1,20s/old/new/g 就是啦！</li>
+</ul>
+<h1 id="3、sed案例"><a href="#3、sed案例" class="headerlink" title="3、sed案例"></a>3、sed案例</h1><ol>
+<li><p>删除某行</p>
+<p> 删除第一行: <code>sed &#39;1d&#39;  a.txt</code></p>
+<p> 删除最后一行: <code>sed &#39;$d&#39; a.txt</code></p>
+<p> 删除第一行到第二行: <code>sed &#39;1,2d&#39; a.txt</code></p>
+</li>
+<li><p>增加一行或多行字符串</p>
+<p> 第一行到第三行后增加字符串”drink tea”: <code>sed &#39;1,3a drink tea&#39; a.txt</code></p>
+</li>
+<li><p>代替一行或多行</p>
+<p> 第一行到第二行代替为Hi: <code>sed &#39;1,2c Hi&#39; ab</code></p>
+</li>
+<li><p>数据的搜寻并替换</p>
+<p> sed ‘s/要被取代的字串/新的字串/g’</p>
+ <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">root@sdap#</span><span class="bash"> /bin/ifconfig eth0 | grep <span class="string">'inet addr'</span> | sed <span class="string">'s/^.*addr://g'</span> 只显示inet addr 一行，并且将 IP 前面的部分予以删除显示</span></span><br><span class="line">192.168.0.22  Bcast:192.1680.255  Mask:255.255.255.</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>数据的搜寻并执行命令<br> 搜索/etc/passwd,找到root对应的行，执行后面花括号中的一组命令，每个命令之间用分号分隔，这里把bash替换为blueshell，再输出这行</p>
+ <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nl /etc/passwd | sed -n '/root/&#123;s/bash/blueshell/;p&#125;'</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<h1 id="4、脚本案例"><a href="#4、脚本案例" class="headerlink" title="4、脚本案例"></a>4、脚本案例</h1><p>判断目录是否正确并修改配置文件的字段属性<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash">!/bin/bash</span></span><br><span class="line"></span><br><span class="line">CurDir=`pwd`</span><br><span class="line"></span><br><span class="line">A="console"</span><br><span class="line">B="analysis"</span><br><span class="line">displayIP="192.168.2.11" </span><br><span class="line">analysisIP="192.168.2.13"</span><br><span class="line">echo "----Please  check that the following information is correct!-----"</span><br><span class="line">echo "Dispalyip:$displayIP"</span><br><span class="line">echo "analysisIP:$analysisIP" </span><br><span class="line"><span class="meta">#</span><span class="bash">console  </span></span><br><span class="line">if [[ $CurDir =~ $display ]]</span><br><span class="line">then</span><br><span class="line">    sed -i "s/&lt;smap ip=\".*/&lt;smap ip=\"$displayIP\" port=\"10000\" version=\"V3\"\&gt;/g" ../sysfile/config.xml</span><br><span class="line">elif [[ $CurDir =~ $alarm ]]</span><br><span class="line">then</span><br><span class="line">    sed -i "s/&lt;smap ip=\".*/&lt;smap ip=\"$displayIP\" port=\"10000\" version=\"V3\"\&gt;/g" ../sysfile/config.xml</span><br><span class="line">else</span><br><span class="line">    echo "无需要配置的文件！"</span><br><span class="line">fi</span><br></pre></td></tr></table></figure></p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://zhanghongtong.github.io/2018/09/13/Linux下-shell获取本机ip地址/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="张奇怪">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="张奇怪的blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/09/13/Linux下-shell获取本机ip地址/" itemprop="url">Linux下 shell获取本机ip地址</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-09-13T10:30:17+08:00">
+                2018-09-13
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/服务器/" itemprop="url" rel="index">
+                    <span itemprop="name">服务器</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>获取所有的网卡地址<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/sbin/ifconfig -a|grep inet|grep -v 127.0.0.1|grep -v inet6 | awk &apos;&#123;print $2&#125;&apos; | tr -d &quot;addr:&quot;</span><br></pre></td></tr></table></figure></p>
+<p>假设网卡名为 <code>eth0</code> , 获取本机ip地址地址，并保存到变量中<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">arg=ifconfig eth0 |grep &quot;inet addr&quot;| cut -f 2 -d &quot;:&quot;|cut -f 1 -d &quot; &quot; </span><br><span class="line">ipaddr=$arg</span><br><span class="line"></span><br><span class="line">echo $ipadd</span><br></pre></td></tr></table></figure></p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="https://zhanghongtong.github.io/2018/09/05/Ubuntu-16-04-Java8-安装/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1344,459 +1886,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://zhanghongtong.github.io/2018/07/07/golang-生成随机数，时间种子改进型/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="张奇怪">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="张奇怪的blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/07/07/golang-生成随机数，时间种子改进型/" itemprop="url">golang 生成随机数，时间种子改进型</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">Posted on</span>
-              
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-07-07T17:29:55+08:00">
-                2018-07-07
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">In</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/golang/" itemprop="url" rel="index">
-                    <span itemprop="name">golang</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">var (</span><br><span class="line">   randSeek = int64(1)</span><br><span class="line">   l        sync.Mutex</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line">//获取指定长度的随机字符串</span><br><span class="line">//@params num int 生成的随机字符串的长度</span><br><span class="line">//@params str string 可选，指定随机的字符串</span><br><span class="line">func GetRandomSring(num int, str ...string) string &#123;</span><br><span class="line">   s := &quot;abcdefghijklmnopqrstuvwxyz0123456789&quot;</span><br><span class="line">   if len(str) &gt; 0 &#123;</span><br><span class="line">      s = str[0]</span><br><span class="line">   &#125;</span><br><span class="line">   l := len(s)</span><br><span class="line">   r := rand.New(rand.NewSource(getRandSeek()))</span><br><span class="line">   var buf bytes.Buffer</span><br><span class="line">   for i := 0; i &lt; num; i++ &#123;</span><br><span class="line">      x := r.Intn(l)</span><br><span class="line">      buf.WriteString(s[x : x+1])</span><br><span class="line">   &#125;</span><br><span class="line">   return buf.String()</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">func getRandSeek() int64 &#123;</span><br><span class="line">   l.Lock()</span><br><span class="line">   if randSeek &gt;= 100000000 &#123;</span><br><span class="line">      randSeek = 1</span><br><span class="line">   &#125;</span><br><span class="line">   randSeek++</span><br><span class="line">   l.Unlock()</span><br><span class="line">   return time.Now().UnixNano() + randSeek</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://zhanghongtong.github.io/2018/07/04/golang-map数据结构不能并发读写问题-fatal-error-concurrent-map-writes/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="张奇怪">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="张奇怪的blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/07/04/golang-map数据结构不能并发读写问题-fatal-error-concurrent-map-writes/" itemprop="url">golang map数据结构不能并发读写问题 fatal error: concurrent map writes</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">Posted on</span>
-              
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-07-04T14:46:35+08:00">
-                2018-07-04
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">In</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/golang/" itemprop="url" rel="index">
-                    <span itemprop="name">golang</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>go提供了一种叫map的数据结构，可以翻译成映射，对应于其他语言的字典、哈希表。借助map，可以定义一个键和值，然后可以从map中获取、设置和删除这个值，尤其适合数据查找的场景。但是map的使用有一定的限制，如果是在单个协程中读写map，那么不会存在什么问题，如果是多个协程并发访问一个map，有可能会导致程序退出，并打印下面错误信息：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">fatal error: concurrent map read and map write</span><br></pre></td></tr></table></figure>
-<p>上面的这个错误不是每次都会遇到的，如果并发访问的协程数不大，遇到的可能性就更小了。例如下面的程序：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">package main</span><br><span class="line"></span><br><span class="line">func main() &#123;</span><br><span class="line">    Map := make(map[int]int)</span><br><span class="line"></span><br><span class="line">    for i := 0; i &lt; 10; i++ &#123;</span><br><span class="line">        go writeMap(Map, i, i)</span><br><span class="line">        go readMap(Map, i)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">func readMap(Map map[int]int, key int) int &#123;</span><br><span class="line">    return Map[key]</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">func writeMap(Map map[int]int, key int, value int) &#123;</span><br><span class="line">    Map[key] = value</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>只循环了10次，产生了20个协程并发访问map，程序基本不会出错，但是如果将循环次数变大，比如10万，运行下面程序基本每次都会出错：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">package main</span><br><span class="line"></span><br><span class="line">func main() &#123;</span><br><span class="line">    Map := make(map[int]int)</span><br><span class="line"></span><br><span class="line">    for i := 0; i &lt; 100000; i++ &#123;</span><br><span class="line">        go writeMap(Map, i, i)</span><br><span class="line">        go readMap(Map, i)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">func readMap(Map map[int]int, key int) int &#123;</span><br><span class="line">    return Map[key]</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">func writeMap(Map map[int]int, key int, value int) &#123;</span><br><span class="line">    Map[key] = value</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p><a href="https://link.jianshu.com?t=https://blog.golang.org/go-maps-in-action" target="_blank" rel="noopener">go官方博客</a>有如下说明：</p>
-<blockquote>
-<p>Maps are not safe for concurrent use: it’s not defined what happens when you read and write to them simultaneously. If you need to read from and write to a map from concurrently executing goroutines, the accesses must be mediated by some kind of synchronization mechanism. One common way to protect maps is with sync.RWMutex.</p>
-</blockquote>
-<p><a href="https://link.jianshu.com?t=https://golang.org/doc/faq#atomic_maps" target="_blank" rel="noopener">go FAQ</a>解释如下：</p>
-<blockquote>
-<p>After long discussion it was decided that the typical use of maps did not require safe access from multiple goroutines, and in those cases where it did, the map was probably part of some larger data structure or computation that was already synchronized. Therefore requiring that all map operations grab a mutex would slow down most programs and add safety to few. This was not an easy decision, however, since it means uncontrolled map access can crash the program.</p>
-</blockquote>
-<p>大致意思就是说，并发访问map是不安全的，会出现未定义行为，导致程序退出。所以如果希望在多协程中并发访问map，必须提供某种同步机制，一般情况下通过读写锁sync.RWMutex实现对map的并发访问控制，将map和sync.RWMutex封装一下，可以实现对map的安全并发访问，示例代码如下：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line">package main</span><br><span class="line"></span><br><span class="line">import &quot;sync&quot;</span><br><span class="line"></span><br><span class="line">type SafeMap struct &#123;</span><br><span class="line">    sync.RWMutex</span><br><span class="line">    Map map[int]int</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">func main() &#123;</span><br><span class="line">    safeMap := newSafeMap(10)</span><br><span class="line"></span><br><span class="line">    for i := 0; i &lt; 100000; i++ &#123;</span><br><span class="line">        go safeMap.writeMap(i, i)</span><br><span class="line">        go safeMap.readMap(i)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">func newSafeMap(size int) *SafeMap &#123;</span><br><span class="line">    sm := new(SafeMap)</span><br><span class="line">    sm.Map = make(map[int]int)</span><br><span class="line">    return sm</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">func (sm *SafeMap) readMap(key int) int &#123;</span><br><span class="line">    sm.RLock()</span><br><span class="line">    value := sm.Map[key]</span><br><span class="line">    sm.RUnlock()</span><br><span class="line">    return value</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">func (sm *SafeMap) writeMap(key int, value int) &#123;</span><br><span class="line">    sm.Lock()</span><br><span class="line">    sm.Map[key] = value</span><br><span class="line">    sm.Unlock()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>但是通过读写锁控制map的并发访问时，会导致一定的性能问题，不过能保证程序的安全运行，牺牲点性能问题是可以的。</p>
-<p>本文来自：<a href="https://www.jianshu.com/p/10a998089486" target="_blank" rel="noopener">go语言坑之并发访问map</a>，感谢作者：<a href="https://www.jianshu.com/u/b2075cf393f8" target="_blank" rel="noopener">songleo</a></p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://zhanghongtong.github.io/2018/07/04/golang基础-互斥锁、读写锁/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="张奇怪">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="张奇怪的blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/07/04/golang基础-互斥锁、读写锁/" itemprop="url">golang基础-互斥锁、读写锁</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">Posted on</span>
-              
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-07-04T14:37:06+08:00">
-                2018-07-04
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">In</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/golang/" itemprop="url" rel="index">
-                    <span itemprop="name">golang</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h4 id="互斥锁"><a href="#互斥锁" class="headerlink" title="互斥锁"></a><strong>互斥锁</strong></h4><p>其中Mutex为互斥锁，Lock()加锁，Unlock()解锁，使用Lock()加锁后，便不能再次对其进行加锁，直到利用Unlock()解锁对其解锁后，才能再次加锁．<strong>适用于读写不确定场景，即读写次数没有明显的区别，并且只允许只有一个读或者写的场景，所以该锁叶叫做全局锁。</strong><br>func (m *Mutex) Unlock()用于解锁m，如果在使用Unlock()前未加锁，就会引起一个运行错误．已经锁定的Mutex并不与特定的goroutine相关联，这样可以利用一个goroutine对其加锁，再利用其他goroutine对其解锁。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line">package main</span><br><span class="line"></span><br><span class="line">import(</span><br><span class="line">    &quot;fmt&quot;</span><br><span class="line">    &quot;time&quot;</span><br><span class="line">    &quot;sync&quot;</span><br><span class="line">    &quot;math/rand&quot;</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line">var lock sync.Mutex</span><br><span class="line"></span><br><span class="line">func main() &#123;</span><br><span class="line"></span><br><span class="line">    testMap()</span><br><span class="line">&#125;</span><br><span class="line">func testMap() &#123;</span><br><span class="line">    var a map[int]int</span><br><span class="line">    a = make(map[int]int, 5)</span><br><span class="line"></span><br><span class="line">    a[8] = 10</span><br><span class="line">    a[3] = 10</span><br><span class="line">    a[2] = 10</span><br><span class="line">    a[1] = 10</span><br><span class="line">    a[18] = 10</span><br><span class="line"></span><br><span class="line">    for i := 0; i &lt; 2; i++ &#123;</span><br><span class="line">        go func(b map[int]int) &#123;</span><br><span class="line">            lock.Lock()</span><br><span class="line">            b[8] = rand.Intn(100)</span><br><span class="line">            lock.Unlock()</span><br><span class="line">        &#125;(a)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    lock.Lock()</span><br><span class="line">    fmt.Println(a)</span><br><span class="line">    lock.Unlock()</span><br><span class="line"></span><br><span class="line">    time.Sleep(time.Second)</span><br><span class="line">    fmt.Println(a)</span><br><span class="line">&#125;12345678910111213141516171819202122232425262728293031323334353637383940</span><br></pre></td></tr></table></figure>
-<p>输出如下：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">PS E:\golang\go_pro\src\safly&gt; go run demo.go</span><br><span class="line">map[3:10 2:10 1:10 18:10 8:10]</span><br><span class="line">map[2:10 1:10 18:10 8:87 3:10]</span><br><span class="line">PS E:\golang\go_pro\src\safly&gt;1234</span><br></pre></td></tr></table></figure>
-<p>我们利用了time.Sleep(time.Second)这个进行的延迟，goroute执行完毕，就进行输出，结果是进行了map的修改</p>
-<h4 id="读写锁"><a href="#读写锁" class="headerlink" title="读写锁"></a><strong>读写锁</strong></h4><p>读写锁实际是一种特殊的自旋锁，它把对共享资源的访问者划分成读者和写者，读者只对共享资源进行读访问，写者则需要对共享资源进行写操作<strong>。这种锁相对于自旋锁而言，能提高并发性，</strong>因为在多处理器系统中，它允许同时有多个读者来访问共享资源，最大可能的读者数为实际的逻辑CPU数。<strong>写者是排他性的，一个读写锁同时只能有一个写者或多个读者（与CPU数相关），但不能同时既有读者又有写者。</strong></p>
-<p>1、可以随便读，多个goroutine同时读</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">package main</span><br><span class="line"></span><br><span class="line">import(</span><br><span class="line">    // &quot;fmt&quot;</span><br><span class="line">    &quot;time&quot;</span><br><span class="line">    &quot;sync&quot;</span><br><span class="line"></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line">var m *sync.RWMutex</span><br><span class="line"></span><br><span class="line">func main() &#123;</span><br><span class="line">    m = new(sync.RWMutex)</span><br><span class="line"></span><br><span class="line">    // 多个同时读</span><br><span class="line">    go read(1)</span><br><span class="line">    go read(2)</span><br><span class="line"></span><br><span class="line">    time.Sleep(2*time.Second)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">func read(i int) &#123;</span><br><span class="line">    println(i,&quot;read start&quot;)</span><br><span class="line"></span><br><span class="line">    m.RLock()</span><br><span class="line">    println(i,&quot;reading&quot;)</span><br><span class="line">    time.Sleep(1*time.Second)</span><br><span class="line">    m.RUnlock()    </span><br><span class="line"></span><br><span class="line">    println(i,&quot;read over&quot;)</span><br><span class="line">&#125;12345678910111213141516171819202122232425262728293031</span><br></pre></td></tr></table></figure>
-<p>输出如下：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">PS E:\golang\go_pro\src\safly&gt; go run demo.go</span><br><span class="line">1 read start</span><br><span class="line">1 reading</span><br><span class="line">1 read over</span><br><span class="line">2 read start</span><br><span class="line">2 reading</span><br><span class="line">2 read over1234567</span><br></pre></td></tr></table></figure>
-<p>可以看出1 读还没有结束，2已经在读</p>
-<p>本文来自：<a href="https://blog.csdn.net/u013210620/article/details/78357995" target="_blank" rel="noopener">golang基础-互斥锁、读写锁</a>，感谢作者：<a href="https://blog.csdn.net/u013210620" target="_blank" rel="noopener">Safly</a></p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -1847,7 +1936,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">24</span>
+                <span class="site-state-item-count">27</span>
                 <span class="site-state-item-name">posts</span>
               </a>
             </div>

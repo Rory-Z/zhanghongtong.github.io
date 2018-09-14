@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="简体中文">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="linux,服务器,docker," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="用户在使用 Docker 部署业务一段时间后，可能会发现宿主节点的磁盘容量持续增长，甚至将磁盘空间耗尽进而引发宿主机异常，进而对业务造成影响。 本文先对 Docker 的空间分析与清理进行说明，然后对容器的磁盘容量限制与使用建议做简要说明。 典型问题场景用户发现 Docker 宿主机的磁盘空间使用率非常高。通过 du 逐层分析，发现是 Volume 或 overlay2 等目录占用了过高空间。示例">
+<meta name="keywords" content="linux,服务器,docker">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Docker 空间使用分析与清理">
+<meta property="og:url" content="https://zhanghongtong.github.io/2018/09/14/Docker-空间使用分析与清理/index.html">
+<meta property="og:site_name" content="张奇怪的blog">
+<meta property="og:description" content="用户在使用 Docker 部署业务一段时间后，可能会发现宿主节点的磁盘容量持续增长，甚至将磁盘空间耗尽进而引发宿主机异常，进而对业务造成影响。 本文先对 Docker 的空间分析与清理进行说明，然后对容器的磁盘容量限制与使用建议做简要说明。 典型问题场景用户发现 Docker 宿主机的磁盘空间使用率非常高。通过 du 逐层分析，发现是 Volume 或 overlay2 等目录占用了过高空间。示例">
+<meta property="og:locale" content="简体中文">
+<meta property="og:image" content="https://zhanghongtong.github.io/2018/09/14/images/82ce6b220fe5aef04c051db37c20460d.png">
+<meta property="og:updated_time" content="2018-09-14T09:49:03.126Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Docker 空间使用分析与清理">
+<meta name="twitter:description" content="用户在使用 Docker 部署业务一段时间后，可能会发现宿主节点的磁盘容量持续增长，甚至将磁盘空间耗尽进而引发宿主机异常，进而对业务造成影响。 本文先对 Docker 的空间分析与清理进行说明，然后对容器的磁盘容量限制与使用建议做简要说明。 典型问题场景用户发现 Docker 宿主机的磁盘空间使用率非常高。通过 du 逐层分析，发现是 Volume 或 overlay2 等目录占用了过高空间。示例">
+<meta name="twitter:image" content="https://zhanghongtong.github.io/2018/09/14/images/82ce6b220fe5aef04c051db37c20460d.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://zhanghongtong.github.io/2018/09/14/Docker-空间使用分析与清理/"/>
+
+
+
+
+
+  <title>Docker 空间使用分析与清理 | 张奇怪的blog</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="简体中文">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">张奇怪的blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://zhanghongtong.github.io/2018/09/14/Docker-空间使用分析与清理/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="张奇怪">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="张奇怪的blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Docker 空间使用分析与清理</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-09-14T17:04:45+08:00">
+                2018-09-14
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/docker/" itemprop="url" rel="index">
+                    <span itemprop="name">docker</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>用户在使用 Docker 部署业务一段时间后，可能会发现宿主节点的磁盘容量持续增长，甚至将磁盘空间耗尽进而引发宿主机异常，进而对业务造成影响。 本文先对 Docker 的空间分析与清理进行说明，然后对容器的磁盘容量限制与使用建议做简要说明。</p>
+<h1 id="典型问题场景"><a href="#典型问题场景" class="headerlink" title="典型问题场景"></a>典型问题场景</h1><p>用户发现 Docker 宿主机的磁盘空间使用率非常高。通过 du 逐层分析，发现是 Volume 或 overlay2 等目录占用了过高空间。示例如下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span> 根据使用的存储驱动的不同，相应目录会有所不同：</span><br><span class="line">[root@node3 docker]# du -h --max-depth=1 |sort</span><br><span class="line">104K    ./network</span><br><span class="line">13M    ./image</span><br><span class="line">20K    ./plugins</span><br><span class="line">24G    ./overlay2   # 这个目录占用了非常高的磁盘磁盘空间</span><br><span class="line">25G    .</span><br><span class="line">283M    ./volumes</span><br><span class="line">4.0K    ./swarm</span><br><span class="line">4.0K    ./tmp</span><br><span class="line">4.0K    ./trust</span><br><span class="line">518M    ./containers</span><br></pre></td></tr></table></figure>
+<h1 id="空间使用分析"><a href="#空间使用分析" class="headerlink" title="空间使用分析"></a>空间使用分析</h1><p>遇到此类问题，可以参阅如下步骤进行空间分析，定位占用过高空间的业务来源。</p>
+<h2 id="分析-Docker-空间分布"><a href="#分析-Docker-空间分布" class="headerlink" title="分析 Docker 空间分布"></a>分析 Docker 空间分布</h2><p>Docker 的内置 CLI 指令 docker system df ，可用于查询镜像（Images）、容器（Containers）和本地卷（Local Volumes）等空间使用大户的空间占用情况。 示例输出如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[root@node3 docker]# docker system df</span><br><span class="line">TYPE                TOTAL               ACTIVE              SIZE                RECLAIMABLE</span><br><span class="line">Images              17                  12                  2.713 GB            1.144 GB (42%)</span><br><span class="line">Containers          15                  12                  10.75 GB            0 B (0%)</span><br><span class="line">Local Volumes       8                   4                   282.9 MB            241.8 MB (85%)</span><br></pre></td></tr></table></figure>
+<h2 id="查看空间占用细节"><a href="#查看空间占用细节" class="headerlink" title="查看空间占用细节"></a>查看空间占用细节</h2><p>可以进一步通过 -v 参数查看空间占用细节，以确定具体是哪个镜像、容器或本地卷占用了过高空间。示例输出如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">[root@node3 docker]# docker system df -v</span><br><span class="line"># 镜像的空间使用情况</span><br><span class="line">Images space usage:</span><br><span class="line"></span><br><span class="line">REPOSITORY                                                   TAG                 IMAGE ID            CREATED             SIZE                SHARED SIZE         UNIQUE SIZE         CONTAINERS</span><br><span class="line">busybox                                                      latest              6ad733544a63        5 days ago          1.129 MB            0 B                 1.129 MB            1</span><br><span class="line">nginx                                                        latest              b8efb18f159b        3 months ago        107.5 MB            107.5 MB            0 B                 4</span><br><span class="line">ubuntu                                                       latest              14f60031763d        3 months ago        119.5 MB            0 B                 119.5 MB            0</span><br><span class="line">alpine                                                       3.3                 606fed0878ec        4 months ago        4.809 MB            0 B                 4.809 MB            0</span><br><span class="line">tutum/curl                                                   latest              01176385d84a        3 years ago         224.4 MB            0 B                 224.4 MB            1</span><br><span class="line"></span><br><span class="line"># 容器的空间使用情况</span><br><span class="line">Containers space usage:</span><br><span class="line"></span><br><span class="line">CONTAINER ID        IMAGE                                                                    COMMAND                  LOCAL VOLUMES       SIZE                CREATED             STATUS                     NAMES</span><br><span class="line">d1da451ceeab        busybox                                                                  &quot;ping 127.0.0.1&quot;         0                   10.7 GB             About an hour ago   Up About an hour           dstest</span><br><span class="line">956ae1d241e8        nginx:latest                                                             &quot;nginx -g &apos;daemon ...&quot;   0                   26 B                3 months ago        Up 3 months                localTest_restserver_2</span><br><span class="line">74973d237a06        nginx:latest                                                             &quot;nginx -g &apos;daemon ...&quot;   0                   2 B                 3 months ago        Up 3 months                </span><br><span class="line"></span><br><span class="line"># 本地卷的空间使用情况</span><br><span class="line">Local Volumes space usage:</span><br><span class="line"></span><br><span class="line">VOLUME NAME                                                        LINKS               SIZE</span><br><span class="line">83ba8747f4172a3c02a15f85b71e1565affca59f01352b4a94e0d28e65c26d1c   0                   830 B</span><br><span class="line">a479c303b278f1442f66644f694a554aac630e72b7a27065a11ef85c4d87b648   0                   22.16 MB</span><br><span class="line">79a25b6376e0d6587d8f4f24e08f9467981f04daad14bf3353a12d727d065503   1                   18.83 MB</span><br></pre></td></tr></table></figure></p>
+<h1 id="空间清理"><a href="#空间清理" class="headerlink" title="空间清理"></a>空间清理</h1><h2 id="自动清理"><a href="#自动清理" class="headerlink" title="自动清理"></a>自动清理</h2><p>可以通过 Docker 内置的 CLI 指令 docker system prune 来进行自动空间清理。</p>
+<blockquote>
+<p>  <strong>Tips</strong> ：</p>
+<p>  <strong>不同状态的镜像</strong></p>
+<p>  已使用镜像（used image）： 指所有已被容器（包括已停止的）关联的镜像。即 docker ps -a 看到的所有容器使用的镜像。</p>
+<p>  未引用镜像（unreferenced image）：没有被分配或使用在容器中的镜像，但它有 Tag 信息。</p>
+<p>  悬空镜像（dangling image）：未配置任何 Tag （也就无法被引用）的镜像，所以悬空。这通常是由于镜像 build 的时候没有指定 -t 参数配置 Tag 导致的。比如:<br>  <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&gt;   REPOSITORY                                                   TAG                 IMAGE ID            CREATED             SIZE</span><br><span class="line">&gt;   &lt;none&gt;                                                      &lt;none&gt;              6ad733544a63        5 days ago          1.13 MB   # 悬空镜像（dangling image）</span><br><span class="line">&gt;</span><br></pre></td></tr></table></figure></p>
+</blockquote>
+<blockquote>
+<p>  <strong>挂起的卷（dangling Volume)</strong></p>
+<p>  类似的，dangling=true 的 Volume 表示没有被任何容器引用的卷。</p>
+</blockquote>
+<h3 id="docker-system-prune-自动清理说明："><a href="#docker-system-prune-自动清理说明：" class="headerlink" title="docker system prune 自动清理说明："></a>docker system prune 自动清理说明：</h3><ul>
+<li><p>该指令默认会清除所有如下资源：</p>
+<ul>
+<li>已停止的容器（container）</li>
+<li>未被任何容器所使用的卷（volume）</li>
+<li>未被任何容器所关联的网络（network）</li>
+<li>所有悬空镜像（image）。</li>
+</ul>
+</li>
+<li><p>该指令默认只会清除悬空镜像，未被使用的镜像不会被删除。</p>
+</li>
+<li>添加 -a 或 –all 参数后，可以一并清除所有未使用的镜像和悬空镜像。</li>
+<li>可以添加 -f 或 –force 参数用以忽略相关告警确认信息。</li>
+<li>指令结尾处会显示总计清理释放的空间大小。</li>
+</ul>
+<p>操作示例：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line">[root@node3 docker]# docker system prune --help</span><br><span class="line"></span><br><span class="line">Usage:    docker system prune [OPTIONS]</span><br><span class="line"></span><br><span class="line">Remove unused data</span><br><span class="line"></span><br><span class="line">Options:</span><br><span class="line">  -a, --all     Remove all unused images not just dangling ones</span><br><span class="line">  -f, --force   Do not prompt for confirmation</span><br><span class="line">      --help    Print usage</span><br><span class="line">[root@node3 docker]# docker system prune -a</span><br><span class="line">WARNING! This will remove:</span><br><span class="line">    - all stopped containers</span><br><span class="line">    - all volumes not used by at least one container</span><br><span class="line">    - all networks not used by at least one container</span><br><span class="line">    - all images without at least one container associated to them</span><br><span class="line">Are you sure you want to continue? [y/N] y</span><br><span class="line">Deleted Containers:</span><br><span class="line">c09c31c49491ee7f2324160e43947917940221b4e6cc1274906def640a7a631f</span><br><span class="line">2aa0180e1a0f4c2c64349a6ed969651052373e7a9471050dce9015701cf1b957</span><br><span class="line">6d18003b06823c5d76d807a319387b06680fc93d0a32bc29c1cea4c07e8d515d</span><br><span class="line"></span><br><span class="line">Deleted Volumes:</span><br><span class="line">a479c303b278f1442f66644f694a554aac630e72b7a27065a11ef85c4d87b648</span><br><span class="line">79a25b6376e0d6587d8f4f24e08f9467981f04daad14bf3353a12d727d065503</span><br><span class="line"></span><br><span class="line">Deleted Images:</span><br><span class="line">untagged: tutum/curl:latest</span><br><span class="line">untagged: tutum/curl@sha256:b6f16e88387acd4e6326176b212b3dae63f5b2134e69560d0b0673cfb0fb976f</span><br><span class="line">deleted: sha256:01176385d84aeb1d40ed18c6d3f952abf40d2d2b4aa98fcf0a8a4b01010fb9a9</span><br><span class="line">deleted: sha256:c84f85637212412c1d46d1dd50f789df2c3b44678ee3fee6a820888e734f9b5a</span><br><span class="line">untagged: test:lastest</span><br><span class="line">deleted: sha256:794ff09332586a091514eb3d1c44990244e57e34adc71d4b4334c0674a1377e9</span><br><span class="line">deleted: sha256:636a1e7769d2242556243e9a21fb96bb878ab5b94c41ff485667252c968b375e</span><br><span class="line"></span><br><span class="line">Total reclaimed space: 1.565 GB</span><br></pre></td></tr></table></figure>
+<h2 id="手动清理"><a href="#手动清理" class="headerlink" title="手动清理"></a>手动清理</h2><h3 id="网络清理"><a href="#网络清理" class="headerlink" title="网络清理"></a>网络清理</h3><p>网络配置通常占用的空间非常低，略过。</p>
+<h3 id="镜像清理"><a href="#镜像清理" class="headerlink" title="镜像清理"></a>镜像清理</h3><p>如果通过 docker system df 分析，是镜像占用了过高空间。则可以根据业务情况，评估相关镜像的使用情况。对于悬空和未使用的镜像， 可以使用如下指令手工清理：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span> 删除所有悬空镜像，但不会删除未使用镜像：</span><br><span class="line">docker rmi $(docker images -f "dangling=true" -q)</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span> 删除所有未使用镜像和悬空镜像。</span><br><span class="line"><span class="meta">#</span> 【说明】：轮询到还在被使用的镜像时，会有类似"image is being used by xxx container"的告警信息，所以相关镜像不会被删除，忽略即可。</span><br><span class="line">docker rmi $(docker images-q)</span><br></pre></td></tr></table></figure>
+<h3 id="卷清理"><a href="#卷清理" class="headerlink" title="卷清理"></a>卷清理</h3><p>如果通过 docker system df 分析，是卷占用了过高空间。则可以根据业务情况，评估相关卷的使用情况。对于未被任何容器调用的卷（-v 结果信息中，”LINKS” 显示为 0），可以使用如下指令手工清理：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span> 删除所有未被任何容器关联引用的卷：</span><br><span class="line">docker volume rm $(docker volume ls -qf dangling=true)</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span> 也可以直接使用如下指令，删除所有未被任何容器关联引用的卷（但建议使用上面的方式）</span><br><span class="line"><span class="meta">#</span> 【说明】轮询到还在使用的卷时，会有类似"volume is in use"的告警信息，所以相关卷不会被删除，忽略即可。</span><br><span class="line">docker volume rm $(docker volume ls -q)</span><br></pre></td></tr></table></figure>
+<h3 id="容器清理"><a href="#容器清理" class="headerlink" title="容器清理"></a>容器清理</h3><p>如果通过 docker system df 分析，是某个容器占用了过高空间。则可以根据业务情况，评估相关容器的业务归属并进行处理。对于已停止或其它异常状态的容器，可以结合  -f 或 –filter 筛选器，使用类似如下指令来手工清理：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span> 删除所有已退出的容器</span><br><span class="line">docker rm -v $(docker ps -aq -f status=exited)</span><br><span class="line"><span class="meta">#</span> 删除所有状态为 dead 的容器</span><br><span class="line">docker rm -v $(docker ps -aq -f status=dead)</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>更多关于 ps 指令支持的筛选器信息，可以参阅<a href="https://docs.docker-cn.com/engine/reference/commandline/ps/#filtering" target="_blank" rel="noopener">官方文档</a>。</p>
+</blockquote>
+<h1 id="在用空间资源分析"><a href="#在用空间资源分析" class="headerlink" title="在用空间资源分析"></a>在用空间资源分析</h1><p>对于还在使用的空间资源，可以参阅如下说明做进一步排查分析。</p>
+<h2 id="镜像空间分析"><a href="#镜像空间分析" class="headerlink" title="镜像空间分析"></a>镜像空间分析</h2><p>如果某个镜像占用了过高空间，则可以通过如下方式做进一步空间分析：</p>
+<ol>
+<li>通过 docker system df 获取占用过高空间的镜像信息。</li>
+<li>基于相应镜像创建测试容器。</li>
+<li>exec 进入容器后，结合 du 等 shell 指令做进一步空间分析，定位出占用最高空间的目录或文件。</li>
+<li>结合业务情况做进一步处理，重新 build 镜像。</li>
+</ol>
+<p>示例：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">[root@node3]# docker exec -it dstest sh</span><br><span class="line">/ # du -h | head</span><br><span class="line">8.0K    ./root</span><br><span class="line">32.0K    ./etc</span><br><span class="line">4.0K    ./usr/sbin</span><br><span class="line">8.0K    ./usr</span><br><span class="line">10.0G    ./home/java/logs</span><br><span class="line">10.0G    ./home/java</span><br><span class="line">10.0G    ./home</span><br><span class="line">1.1M    ./bin</span><br><span class="line">0    ./dev/shm</span><br><span class="line">0    ./dev/mqueue</span><br></pre></td></tr></table></figure></p>
+<h2 id="容器空间分析"><a href="#容器空间分析" class="headerlink" title="容器空间分析"></a>容器空间分析</h2><p>如果某个运行中的容器占用了过高空间，则可以通过如下方式做进一步空间分析：</p>
+<blockquote>
+<p>  <strong>Tips</strong> ：</p>
+<p>  <strong>容器的只读层与镜像层的空间占用情况</strong></p>
+<p>  一个容器的占用的总空间，包含其最顶层的读写层（writable layer）和底部的只读镜像层（base image layer，read-only）。更多相关说明，可以参阅<a href="https://docs.docker-cn.com/engine/userguide/storagedriver/imagesandcontainers/?spm=a2c4e.11153940.blogcont272173.14.4a6d22130uX2V6#container-and-layers" target="_blank" rel="noopener">官方文档</a>。</p>
+<p>  可以通过 docker ps 的 -s 参数来分别显示二者的空间占用情况，进而判断相应容器的空间占用主要是来自原始镜像，还是运行中产生。</p>
+<p>  <img src="../images/82ce6b220fe5aef04c051db37c20460d.png" alt=""></p>
+<p>  示例<br>  <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">&gt;   # 如下容器的原始镜像占用了 422MB 空间，实际运行过程中只占用了 2B 空间：</span><br><span class="line">&gt;   CONTAINER ID    IMAGE                                           COMMAND                 CREATED         STATUS      PORTS                   NAMES       SIZE</span><br><span class="line">&gt;   ac39128ccbc0    registry.aliyuncs.com/acs-sample/wordpress:4.6  &quot;/entrypoint.sh ap...&quot;  3 months ago    Up 11 days  0.0.0.0:32779-&gt;80/tcp   Web_web_4   2 B (virtual 422 MB)</span><br><span class="line"></span><br><span class="line">## 容器空间占用的分析步骤：</span><br><span class="line"></span><br><span class="line">1.  通过 docker system df 获取占用过高空间的容器信息。</span><br><span class="line">2.  通过前述 -s 参数确认到底是底层镜像，还是运行过程中产生的数据占用了过高空间。</span><br><span class="line">3.  exec 进入容器，结合 du 等 shell 指令做进一步空间分析，定位出占用最高空间的目录或文件。</span><br><span class="line">4.  结合业务情况做进一步处理。</span><br><span class="line"></span><br><span class="line"># 引申：Docker 磁盘空间限制与使用建议</span><br><span class="line"></span><br><span class="line">## 磁盘空间限制</span><br><span class="line"></span><br><span class="line">### 使用 Device Mapper 存储驱动限制容器磁盘空间</span><br><span class="line"></span><br><span class="line">如果使用 Device Mapper 作为底层存储驱动，则可以通过 Docker daemon 的如下参数来全局限制单个容器占用空间的大小：</span><br><span class="line"></span><br><span class="line">+ --storage-opt dm.basesize=20G 表示限制单个容器最多占用 20G 空间，将应用于任何新建容器。</span><br><span class="line"></span><br><span class="line">更多关于 Device Mapper 存储驱动的说明，可以参阅[官方文档](https://docs.docker-cn.com/engine/userguide/storagedriver/device-mapper-driver/)。</span><br><span class="line"></span><br><span class="line">### 使用 btrfs 存储驱动限制容器磁盘空间</span><br><span class="line"></span><br><span class="line">btrfs 驱动主要使用 btrfs 所提供的 subvolume 功能来实现。一个容器会对应一个 subvolume。针对容器对应的 subvolume 启用并配置 quota 即可限制其磁盘空间。示例配置：</span><br></pre></td></tr></table></figure></p>
+</blockquote>
+<p>btrfs qgroup limit -e 50G /var/lib/docker/btrfs/subvolumes/&lt;CONTAINER_ID&gt;<br><code>`</code><br>btrfs 还有其它很好的特性，比如可以在线扩容（在线加入一块新的块设备，来扩充整个文件系统的大小）。更多关于 btrfs 存储驱动的说明，可以参阅<a href="https://docs.docker-cn.com/engine/userguide/storagedriver/btrfs-driver/" target="_blank" rel="noopener">官方文档</a>。</p>
+<h3 id="外挂-LVM-卷"><a href="#外挂-LVM-卷" class="headerlink" title="外挂 LVM 卷"></a>外挂 LVM 卷</h3><p>如果使用的是其它不支持对单个容器的磁盘容量进行限制的存储驱动，则可以考虑如下通用方案：</p>
+<ul>
+<li>通过 LVM 方式创建一个指定容量的卷,然后挂载到宿主操作系统上特定目录。最后通过 –volume 参数来让容器来挂载使用相应目录。</li>
+</ul>
+<p><strong>注意</strong>：该方案的前提条件是，容器中所有落盘操作要全部落到上述 “–volume” 参数指定的卷中，否则容器还会占用默认 aufs 所在盘的空间,进而造成统计不准。</p>
+<h3 id="Docker-存储使用建议"><a href="#Docker-存储使用建议" class="headerlink" title="Docker 存储使用建议"></a>Docker 存储使用建议</h3><p>细化的存储使用最佳实践与采用的存储驱动（storage driver）类型强相关，您可以参阅官方文档做相关了解，本文不做进一步细化说明。</p>
+<p>通用的存储使用建议如下：</p>
+<ul>
+<li>容器内的业务日志务必配置轮询覆写，或者使用日志驱动将日志输出到外部存储。避免日志文件持续增长，占用过高磁盘空间。</li>
+<li>结合外部监控对宿主机的磁盘空间使用情况进行监控和告警。</li>
+<li>可以参阅文档 <a href="https://yq.aliyun.com/articles/53313?spm=a2c4e.11153940.blogcont272173.18.4a6d2213tOtBnG" target="_blank" rel="noopener">如何给容器服务的Docker增加数据盘</a>来扩容默认 Docker 存储空间。</li>
+</ul>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/linux/" rel="tag"># linux</a>
+          
+            <a href="/tags/服务器/" rel="tag"># 服务器</a>
+          
+            <a href="/tags/docker/" rel="tag"># docker</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/09/13/linux命令之-sed命令用于处理文本文件如修改配置文件/" rel="next" title="linux命令之 sed命令用于处理文本文件如修改配置文件">
+                <i class="fa fa-chevron-left"></i> linux命令之 sed命令用于处理文本文件如修改配置文件
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="张奇怪" />
+          <p class="site-author-name" itemprop="name">张奇怪</p>
+           
+              <p class="site-description motion-element" itemprop="description"></p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">27</span>
+                <span class="site-state-item-name">posts</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">3</span>
+                <span class="site-state-item-name">categories</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">14</span>
+                <span class="site-state-item-name">tags</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#典型问题场景"><span class="nav-number">1.</span> <span class="nav-text">典型问题场景</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#空间使用分析"><span class="nav-number">2.</span> <span class="nav-text">空间使用分析</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#分析-Docker-空间分布"><span class="nav-number">2.1.</span> <span class="nav-text">分析 Docker 空间分布</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#查看空间占用细节"><span class="nav-number">2.2.</span> <span class="nav-text">查看空间占用细节</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#空间清理"><span class="nav-number">3.</span> <span class="nav-text">空间清理</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#自动清理"><span class="nav-number">3.1.</span> <span class="nav-text">自动清理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#docker-system-prune-自动清理说明："><span class="nav-number">3.1.1.</span> <span class="nav-text">docker system prune 自动清理说明：</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#手动清理"><span class="nav-number">3.2.</span> <span class="nav-text">手动清理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#网络清理"><span class="nav-number">3.2.1.</span> <span class="nav-text">网络清理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#镜像清理"><span class="nav-number">3.2.2.</span> <span class="nav-text">镜像清理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#卷清理"><span class="nav-number">3.2.3.</span> <span class="nav-text">卷清理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#容器清理"><span class="nav-number">3.2.4.</span> <span class="nav-text">容器清理</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#在用空间资源分析"><span class="nav-number">4.</span> <span class="nav-text">在用空间资源分析</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#镜像空间分析"><span class="nav-number">4.1.</span> <span class="nav-text">镜像空间分析</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#容器空间分析"><span class="nav-number">4.2.</span> <span class="nav-text">容器空间分析</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#外挂-LVM-卷"><span class="nav-number">4.2.1.</span> <span class="nav-text">外挂 LVM 卷</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Docker-存储使用建议"><span class="nav-number">4.2.2.</span> <span class="nav-text">Docker 存储使用建议</span></a></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">张奇怪</span>
+</div>
+
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="https://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
