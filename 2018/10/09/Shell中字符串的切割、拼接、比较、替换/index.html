@@ -78,7 +78,7 @@
 <link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
 
 
-  <meta name="keywords" content="linux,服务器,shell," />
+  <meta name="keywords" content="linux,服务器," />
 
 
 
@@ -94,18 +94,18 @@
 
 
 
-<meta name="description" content="1、sed命令作用Linux sed命令是利用script来处理文本文件。 sed可依照script的指令，来处理、编辑文本文件。 Sed主要用来自动编辑一个或多个文件；简化对文件的反复操作；编写转换程序等。 2、sed语法1sed [-hnV][-e&amp;lt;script&amp;gt;][-f&amp;lt;script文件&amp;gt;][文本文件] 常用选项： -n∶使用安静(silent)模式。在一般 sed">
-<meta name="keywords" content="linux,服务器,shell">
+<meta name="description" content="截取shell 截取字符变量的前8位，有方法如下：123456expr substr “$a” 1 8echo $a|awk ‘&amp;#123;print substr(,1,8)&amp;#125;’echo $a|cut -c1-8echo $expr $a : ‘(.\).*’echo $a|dd bs=1 count=8 2&amp;gt;/dev/null 按指定的字符串截取第一种方法:123456789$">
+<meta name="keywords" content="linux,服务器">
 <meta property="og:type" content="article">
-<meta property="og:title" content="linux命令之 sed命令用于处理文本文件如修改配置文件">
-<meta property="og:url" content="https://zhanghongtong.github.io/2018/09/13/linux命令之-sed命令用于处理文本文件如修改配置文件/index.html">
+<meta property="og:title" content="Shell中字符串的切割、拼接、比较、替换">
+<meta property="og:url" content="https://zhanghongtong.github.io/2018/10/09/Shell中字符串的切割、拼接、比较、替换/index.html">
 <meta property="og:site_name" content="张奇怪的blog">
-<meta property="og:description" content="1、sed命令作用Linux sed命令是利用script来处理文本文件。 sed可依照script的指令，来处理、编辑文本文件。 Sed主要用来自动编辑一个或多个文件；简化对文件的反复操作；编写转换程序等。 2、sed语法1sed [-hnV][-e&amp;lt;script&amp;gt;][-f&amp;lt;script文件&amp;gt;][文本文件] 常用选项： -n∶使用安静(silent)模式。在一般 sed">
+<meta property="og:description" content="截取shell 截取字符变量的前8位，有方法如下：123456expr substr “$a” 1 8echo $a|awk ‘&amp;#123;print substr(,1,8)&amp;#125;’echo $a|cut -c1-8echo $expr $a : ‘(.\).*’echo $a|dd bs=1 count=8 2&amp;gt;/dev/null 按指定的字符串截取第一种方法:123456789$">
 <meta property="og:locale" content="简体中文">
-<meta property="og:updated_time" content="2018-09-13T02:55:59.492Z">
+<meta property="og:updated_time" content="2018-10-09T09:06:07.789Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="linux命令之 sed命令用于处理文本文件如修改配置文件">
-<meta name="twitter:description" content="1、sed命令作用Linux sed命令是利用script来处理文本文件。 sed可依照script的指令，来处理、编辑文本文件。 Sed主要用来自动编辑一个或多个文件；简化对文件的反复操作；编写转换程序等。 2、sed语法1sed [-hnV][-e&amp;lt;script&amp;gt;][-f&amp;lt;script文件&amp;gt;][文本文件] 常用选项： -n∶使用安静(silent)模式。在一般 sed">
+<meta name="twitter:title" content="Shell中字符串的切割、拼接、比较、替换">
+<meta name="twitter:description" content="截取shell 截取字符变量的前8位，有方法如下：123456expr substr “$a” 1 8echo $a|awk ‘&amp;#123;print substr(,1,8)&amp;#125;’echo $a|cut -c1-8echo $expr $a : ‘(.\).*’echo $a|dd bs=1 count=8 2&amp;gt;/dev/null 按指定的字符串截取第一种方法:123456789$">
 
 
 
@@ -134,13 +134,13 @@
 
 
 
-  <link rel="canonical" href="https://zhanghongtong.github.io/2018/09/13/linux命令之-sed命令用于处理文本文件如修改配置文件/"/>
+  <link rel="canonical" href="https://zhanghongtong.github.io/2018/10/09/Shell中字符串的切割、拼接、比较、替换/"/>
 
 
 
 
 
-  <title>linux命令之 sed命令用于处理文本文件如修改配置文件 | 张奇怪的blog</title>
+  <title>Shell中字符串的切割、拼接、比较、替换 | 张奇怪的blog</title>
   
 
 
@@ -273,7 +273,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://zhanghongtong.github.io/2018/09/13/linux命令之-sed命令用于处理文本文件如修改配置文件/">
+    <link itemprop="mainEntityOfPage" href="https://zhanghongtong.github.io/2018/10/09/Shell中字符串的切割、拼接、比较、替换/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="张奇怪">
@@ -290,7 +290,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">linux命令之 sed命令用于处理文本文件如修改配置文件</h1>
+          <h1 class="post-title" itemprop="name headline">Shell中字符串的切割、拼接、比较、替换</h1>
         
 
         <div class="post-meta">
@@ -302,8 +302,8 @@
               
                 <span class="post-meta-item-text">Posted on</span>
               
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-09-13T10:51:31+08:00">
-                2018-09-13
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-10-09T11:20:35+08:00">
+                2018-10-09
               </time>
             
 
@@ -362,46 +362,19 @@
       
 
       
-        <h1 id="1、sed命令作用"><a href="#1、sed命令作用" class="headerlink" title="1、sed命令作用"></a>1、sed命令作用</h1><p>Linux sed命令是利用script来处理文本文件。</p>
-<p>sed可依照script的指令，来处理、编辑文本文件。</p>
-<p>Sed主要用来自动编辑一个或多个文件；简化对文件的反复操作；编写转换程序等。</p>
-<h1 id="2、sed语法"><a href="#2、sed语法" class="headerlink" title="2、sed语法"></a>2、sed语法</h1><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sed [-hnV][-e&lt;script&gt;][-f&lt;script文件&gt;][文本文件]</span><br></pre></td></tr></table></figure>
-<h2 id="常用选项："><a href="#常用选项：" class="headerlink" title="常用选项："></a>常用选项：</h2><ul>
-<li>-n∶使用安静(silent)模式。在一般 sed 的用法中，所有来自 STDIN的资料一般都会被列出到萤幕上。但如果加上 -n 参数后，则只有经过sed 特殊处理的那一行(或者动作)才会被列出来。</li>
-<li>-e∶直接在指令列模式上进行 sed 的动作编辑；</li>
-<li>-f∶直接将 sed 的动作写在一个档案内， -f filename 则可以执行 filename 内的sed 动作；</li>
-<li>-r∶sed 的动作支援的是延伸型正规表示法的语法。(预设是基础正规表示法语法)</li>
-<li>-i∶直接修改读取的档案内容，而不是由萤幕输出。       </li>
-</ul>
-<h2 id="常用命令："><a href="#常用命令：" class="headerlink" title="常用命令："></a>常用命令：</h2><ul>
-<li>a   ∶新增， a 的后面可以接字串，而这些字串会在新的一行出现(目前的下一行)～</li>
-<li>c   ∶取代， c 的后面可以接字串，这些字串可以取代 n1,n2 之间的行！</li>
-<li>d   ∶删除，因为是删除啊，所以 d 后面通常不接任何咚咚；</li>
-<li>i   ∶插入， i 的后面可以接字串，而这些字串会在新的一行出现(目前的上一行)；</li>
-<li>p  ∶列印，亦即将某个选择的资料印出。通常 p 会与参数 sed -n 一起运作～</li>
-<li>s  ∶取代，可以直接进行取代的工作哩！通常这个 s 的动作可以搭配正规表示法！例如 1,20s/old/new/g 就是啦！</li>
-</ul>
-<h1 id="3、sed案例"><a href="#3、sed案例" class="headerlink" title="3、sed案例"></a>3、sed案例</h1><ol>
-<li><p>删除某行</p>
-<p> 删除第一行: <code>sed &#39;1d&#39;  a.txt</code></p>
-<p> 删除最后一行: <code>sed &#39;$d&#39; a.txt</code></p>
-<p> 删除第一行到第二行: <code>sed &#39;1,2d&#39; a.txt</code></p>
-</li>
-<li><p>增加一行或多行字符串</p>
-<p> 第一行到第三行后增加字符串”drink tea”: <code>sed &#39;1,3a drink tea&#39; a.txt</code></p>
-</li>
-<li><p>代替一行或多行</p>
-<p> 第一行到第二行代替为Hi: <code>sed &#39;1,2c Hi&#39; ab</code></p>
-</li>
-<li><p>数据的搜寻并替换</p>
-<p> sed ‘s/要被取代的字串/新的字串/g’</p>
- <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">root@sdap#</span><span class="bash"> /bin/ifconfig eth0 | grep <span class="string">'inet addr'</span> | sed <span class="string">'s/^.*addr://g'</span> 只显示inet addr 一行，并且将 IP 前面的部分予以删除显示</span></span><br><span class="line">192.168.0.22  Bcast:192.1680.255  Mask:255.255.255.</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>数据的搜寻并执行命令<br> 搜索/etc/passwd,找到root对应的行，执行后面花括号中的一组命令，每个命令之间用分号分隔，这里把bash替换为blueshell，再输出这行</p>
- <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nl /etc/passwd | sed -n '/root/&#123;s/bash/blueshell/;p&#125;'</span><br></pre></td></tr></table></figure>
-</li>
-</ol>
-<h1 id="4、脚本案例"><a href="#4、脚本案例" class="headerlink" title="4、脚本案例"></a>4、脚本案例</h1><p>判断目录是否正确并修改配置文件的字段属性<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash">!/bin/bash</span></span><br><span class="line"></span><br><span class="line">CurDir=`pwd`</span><br><span class="line"></span><br><span class="line">A="console"</span><br><span class="line">B="analysis"</span><br><span class="line">displayIP="192.168.2.11" </span><br><span class="line">analysisIP="192.168.2.13"</span><br><span class="line">echo "----Please  check that the following information is correct!-----"</span><br><span class="line">echo "Dispalyip:$displayIP"</span><br><span class="line">echo "analysisIP:$analysisIP" </span><br><span class="line"><span class="meta">#</span><span class="bash">console  </span></span><br><span class="line">if [[ $CurDir =~ $display ]]</span><br><span class="line">then</span><br><span class="line">    sed -i "s/&lt;smap ip=\".*/&lt;smap ip=\"$displayIP\" port=\"10000\" version=\"V3\"\&gt;/g" ../sysfile/config.xml</span><br><span class="line">elif [[ $CurDir =~ $alarm ]]</span><br><span class="line">then</span><br><span class="line">    sed -i "s/&lt;smap ip=\".*/&lt;smap ip=\"$displayIP\" port=\"10000\" version=\"V3\"\&gt;/g" ../sysfile/config.xml</span><br><span class="line">else</span><br><span class="line">    echo "无需要配置的文件！"</span><br><span class="line">fi</span><br></pre></td></tr></table></figure></p>
+        <h2 id="截取"><a href="#截取" class="headerlink" title="截取"></a>截取</h2><h3 id="shell-截取字符变量的前8位，有方法如下："><a href="#shell-截取字符变量的前8位，有方法如下：" class="headerlink" title="shell 截取字符变量的前8位，有方法如下："></a>shell 截取字符变量的前8位，有方法如下：</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">expr substr “$a” 1 8</span><br><span class="line">echo $a|awk ‘&#123;print substr(,1,8)&#125;’</span><br><span class="line">echo $a|cut -c1-8</span><br><span class="line">echo $</span><br><span class="line">expr $a : ‘(.\).*’</span><br><span class="line">echo $a|dd bs=1 count=8 2&gt;/dev/null</span><br></pre></td></tr></table></figure>
+<h3 id="按指定的字符串截取"><a href="#按指定的字符串截取" class="headerlink" title="按指定的字符串截取"></a>按指定的字符串截取</h3><p>第一种方法:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">$&#123;varible##*string&#125; 从左向右截取最后一个string后的字符串</span><br><span class="line"></span><br><span class="line">$&#123;varible#*string&#125;从左向右截取第一个string后的字符串</span><br><span class="line"></span><br><span class="line">$&#123;varible%%string*&#125;从右向左截取最后一个string后的字符串</span><br><span class="line"></span><br><span class="line">$&#123;varible%string*&#125;从右向左截取第一个string后的字符串</span><br><span class="line"></span><br><span class="line">“*”只是一个通配符可以不要</span><br></pre></td></tr></table></figure></p>
+<p>例子：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ MYVAR=foodforthought.jpg</span><br><span class="line">$ echo $&#123;MYVAR##*fo&#125;</span><br><span class="line">rthought.jpg</span><br><span class="line">$ echo $&#123;MYVAR#*fo&#125;</span><br><span class="line">odforthought.jpg</span><br></pre></td></tr></table></figure></p>
+<p>第二种方法：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$&#123;varible:n1:n2&#125;:截取变量varible从n1到n2之间的字符串</span><br></pre></td></tr></table></figure></p>
+<p>可以根据特定字符偏移和长度，使用另一种形式的变量扩展，来选择特定子字符串。试着在 bash 中输入以下行：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ EXCLAIM=cowabunga</span><br><span class="line">$ echo $&#123;EXCLAIM:0:3&#125;</span><br><span class="line">cow</span><br><span class="line">$ echo $&#123;EXCLAIM:3:7&#125;</span><br><span class="line">abunga</span><br></pre></td></tr></table></figure>
+<p>这种形式的字符串截断非常简便，只需用冒号分开来指定起始字符和子字符串长度。</p>
+<p>第三种方法：<br>按照指定要求分割：<br>比如获取后缀名</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ls -al | cut -d “.” -f2</span><br></pre></td></tr></table></figure>
+<h2 id="拼接"><a href="#拼接" class="headerlink" title="拼接"></a>拼接</h2><h3 id="拼接字符"><a href="#拼接字符" class="headerlink" title="拼接字符"></a>拼接字符</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$value1=home</span><br><span class="line">$value2=$&#123;value1&#125;&quot;=&quot;</span><br><span class="line">echo $value2</span><br></pre></td></tr></table></figure>
+<h3 id="拼接字符串"><a href="#拼接字符串" class="headerlink" title="拼接字符串"></a>拼接字符串</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[root@localhost sh]# var1=/etc/</span><br><span class="line">[root@localhost sh]# var2=yum.repos.d/</span><br><span class="line">[root@localhost sh]# var3=$&#123;var1&#125;$&#123;var2&#125;</span><br><span class="line">[root@localhost sh]# echo $var3</span><br><span class="line">/etc/yum.repos.d/</span><br></pre></td></tr></table></figure>
+<h2 id="替换"><a href="#替换" class="headerlink" title="替换"></a>替换</h2><p>替换命令：<code>${变量/查找/替换值}  一个&#39;/&#39;表示替换第一个&#39;//&#39;表示替换所有，当查找出中出现了：&quot;/&quot;需要转移成&quot;\/&quot;</code></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[chengmo@localhost ~]$ test=&apos;c:/windows/boot.ini&apos;</span><br><span class="line">[chengmo@localhost ~]$ echo $&#123;test/\//\\&#125;</span><br><span class="line">c:\windows/boot.ini</span><br><span class="line">[chengmo@localhost ~]$ echo $&#123;test//\//\\&#125;</span><br><span class="line">c:\windows\boot.ini</span><br></pre></td></tr></table></figure>
 
       
     </div>
@@ -423,8 +396,6 @@
           
             <a href="/tags/服务器/" rel="tag"># 服务器</a>
           
-            <a href="/tags/shell/" rel="tag"># shell</a>
-          
         </div>
       
 
@@ -436,8 +407,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2018/09/13/Linux下-shell获取本机ip地址/" rel="next" title="Linux下 shell获取本机ip地址">
-                <i class="fa fa-chevron-left"></i> Linux下 shell获取本机ip地址
+              <a href="/2018/09/17/Linux-基础：如何在Ubuntu上检查一个软件包是否安装/" rel="next" title="Linux 基础：如何在Ubuntu上检查一个软件包是否安装">
+                <i class="fa fa-chevron-left"></i> Linux 基础：如何在Ubuntu上检查一个软件包是否安装
               </a>
             
           </div>
@@ -446,8 +417,8 @@
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2018/09/14/Docker-空间使用分析与清理/" rel="prev" title="Docker 空间使用分析与清理">
-                Docker 空间使用分析与清理 <i class="fa fa-chevron-right"></i>
+              <a href="/2018/10/09/ubuntu-使用kubeadm安装kubernetes/" rel="prev" title="ubuntu 使用kubeadm安装kubernetes">
+                ubuntu 使用kubeadm安装kubernetes <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
@@ -582,7 +553,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1、sed命令作用"><span class="nav-number">1.</span> <span class="nav-text">1、sed命令作用</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2、sed语法"><span class="nav-number">2.</span> <span class="nav-text">2、sed语法</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#常用选项："><span class="nav-number">2.1.</span> <span class="nav-text">常用选项：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#常用命令："><span class="nav-number">2.2.</span> <span class="nav-text">常用命令：</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3、sed案例"><span class="nav-number">3.</span> <span class="nav-text">3、sed案例</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4、脚本案例"><span class="nav-number">4.</span> <span class="nav-text">4、脚本案例</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#截取"><span class="nav-number">1.</span> <span class="nav-text">截取</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#shell-截取字符变量的前8位，有方法如下："><span class="nav-number">1.1.</span> <span class="nav-text">shell 截取字符变量的前8位，有方法如下：</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#按指定的字符串截取"><span class="nav-number">1.2.</span> <span class="nav-text">按指定的字符串截取</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#拼接"><span class="nav-number">2.</span> <span class="nav-text">拼接</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#拼接字符"><span class="nav-number">2.1.</span> <span class="nav-text">拼接字符</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#拼接字符串"><span class="nav-number">2.2.</span> <span class="nav-text">拼接字符串</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#替换"><span class="nav-number">3.</span> <span class="nav-text">替换</span></a></li></ol></div>
             
 
           </div>

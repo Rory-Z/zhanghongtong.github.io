@@ -270,6 +270,349 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://zhanghongtong.github.io/2018/10/09/ubuntu-使用kubeadm安装kubernetes/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="张奇怪">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="张奇怪的blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/10/09/ubuntu-使用kubeadm安装kubernetes/" itemprop="url">ubuntu 使用kubeadm安装kubernetes</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-10-09T15:01:38+08:00">
+                2018-10-09
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/k8s/" itemprop="url" rel="index">
+                    <span itemprop="name">k8s</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h2 id="准备工作"><a href="#准备工作" class="headerlink" title="准备工作"></a>准备工作</h2><ol>
+<li>本文所用的环境：</li>
+</ol>
+<ul>
+<li>虚拟机软件：VirtualBox</li>
+<li>操作系统：ubuntu 16.04 minimal 安装</li>
+<li>网络规划：<ul>
+<li>k8s-mastert：192.168.33.14</li>
+<li>k8s-worker：192.168.33.15</li>
+</ul>
+</li>
+</ul>
+<ol start="2">
+<li><p>(安装docker)[<a href="https://docs.docker.com/install/linux/docker-ce/ubuntu/#install-docker-ce-1]" target="_blank" rel="noopener">https://docs.docker.com/install/linux/docker-ce/ubuntu/#install-docker-ce-1]</a> </p>
+</li>
+<li><p>设置国内下载源</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">apt-get update &amp;&amp; apt-get install -y apt-transport-https</span><br><span class="line">curl https://mirrors.aliyun.com/kubernetes/apt/doc/apt-key.gpg | apt-key add - </span><br><span class="line">cat &lt;&lt;EOF &gt;/etc/apt/sources.list.d/kubernetes.list</span><br><span class="line">deb https://mirrors.aliyun.com/kubernetes/apt/ kubernetes-xenial main</span><br><span class="line">EOF  </span><br><span class="line">apt-get update</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>安装 kubeadm、kubectl、kubelet</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">apt-get install -y kubelet kubeadm=1.12.0-00 kubectl</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>本次实验指定 kubeadm 的版本为 1.12.0，可以使用 <code>apt-cache madison kubeadm</code> 命令查看可用的 kubeadm 版本</p>
+<h2 id="配置master节点"><a href="#配置master节点" class="headerlink" title="配置master节点"></a>配置master节点</h2><p>因为国内没办法访问Google的镜像源，变通的方法是从其他镜像源下载后，修改tag。执行下面这个Shell脚本即可。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">#!/bin/bash</span><br><span class="line"></span><br><span class="line">images=(k8s.gcr.io/kube-apiserver:v1.12.0</span><br><span class="line">        k8s.gcr.io/kube-controller-manager:v1.12.0</span><br><span class="line">        k8s.gcr.io/kube-scheduler:v1.12.0</span><br><span class="line">        k8s.gcr.io/kube-proxy:v1.12.0</span><br><span class="line">        k8s.gcr.io/pause:3.1</span><br><span class="line">        k8s.gcr.io/etcd:3.2.24</span><br><span class="line">        k8s.gcr.io/coredns:1.2.2)</span><br><span class="line"></span><br><span class="line">for var in $&#123;images[@]&#125;;do</span><br><span class="line">        image=$&#123;var/k8s.gcr.io\//anjia0532\/google-containers.&#125;</span><br><span class="line">        docker pull $&#123;image&#125;</span><br><span class="line">        docker tag $&#123;image&#125; $&#123;var&#125;</span><br><span class="line">done</span><br><span class="line"></span><br><span class="line">docker pull coredns/coredns:1.2.2</span><br><span class="line">docker tag coredns/coredns:1.2.2 k8s.gcr.io/coredns:1.2.2</span><br></pre></td></tr></table></figure></p>
+<p>PS: 如果是其他的kubeadm的版本，可以执行 <code>kubeadm config image list</code> 命令查看所需要的镜像，然后下载相应的镜像即可。（该命令可能需要翻墙）</p>
+<p>接下来执行Master节点的初始化，需要指定apiserver的监听地址。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br></pre></td><td class="code"><pre><span class="line">$ sudo kubeadm init --kubernetes-version=v1.12.0 --feature-gates=CoreDNS=true --pod-network-cidr=192.168.0.0/16 --apiserver-advertise-address=192.168.34.14</span><br><span class="line"></span><br><span class="line">[init] using Kubernetes version: v1.11.0</span><br><span class="line">[preflight] running pre-flight checks</span><br><span class="line">I0724 08:36:35.636931    3409 kernel_validator.go:81] Validating kernel version</span><br><span class="line">I0724 08:36:35.637052    3409 kernel_validator.go:96] Validating kernel config</span><br><span class="line">	[WARNING Hostname]: hostname &quot;devops-101&quot; could not be reached</span><br><span class="line">	[WARNING Hostname]: hostname &quot;devops-101&quot; lookup devops-101 on 172.20.10.1:53: no such host</span><br><span class="line">	[WARNING Service-Kubelet]: kubelet service is not enabled, please run &apos;systemctl enable kubelet.service&apos;</span><br><span class="line">[preflight/images] Pulling images required for setting up a Kubernetes cluster</span><br><span class="line">[preflight/images] This might take a minute or two, depending on the speed of your internet connection</span><br><span class="line">[preflight/images] You can also perform this action in beforehand using &apos;kubeadm config images pull&apos;</span><br><span class="line">[kubelet] Writing kubelet environment file with flags to file &quot;/var/lib/kubelet/kubeadm-flags.env&quot;</span><br><span class="line">[kubelet] Writing kubelet configuration to file &quot;/var/lib/kubelet/config.yaml&quot;</span><br><span class="line">[preflight] Activating the kubelet service</span><br><span class="line">[certificates] Generated ca certificate and key.</span><br><span class="line">[certificates] Generated apiserver certificate and key.</span><br><span class="line">[certificates] apiserver serving cert is signed for DNS names [devops-101 kubernetes kubernetes.default kubernetes.default.svc kubernetes.default.svc.cluster.local] and IPs [10.96.0.1 192.168.0.101]</span><br><span class="line">[certificates] Generated apiserver-kubelet-client certificate and key.</span><br><span class="line">[certificates] Generated sa key and public key.</span><br><span class="line">[certificates] Generated front-proxy-ca certificate and key.</span><br><span class="line">[certificates] Generated front-proxy-client certificate and key.</span><br><span class="line">[certificates] Generated etcd/ca certificate and key.</span><br><span class="line">[certificates] Generated etcd/server certificate and key.</span><br><span class="line">[certificates] etcd/server serving cert is signed for DNS names [devops-101 localhost] and IPs [127.0.0.1 ::1]</span><br><span class="line">[certificates] Generated etcd/peer certificate and key.</span><br><span class="line">[certificates] etcd/peer serving cert is signed for DNS names [devops-101 localhost] and IPs [192.168.0.101 127.0.0.1 ::1]</span><br><span class="line">[certificates] Generated etcd/healthcheck-client certificate and key.</span><br><span class="line">[certificates] Generated apiserver-etcd-client certificate and key.</span><br><span class="line">[certificates] valid certificates and keys now exist in &quot;/etc/kubernetes/pki&quot;</span><br><span class="line">[kubeconfig] Wrote KubeConfig file to disk: &quot;/etc/kubernetes/admin.conf&quot;</span><br><span class="line">[kubeconfig] Wrote KubeConfig file to disk: &quot;/etc/kubernetes/kubelet.conf&quot;</span><br><span class="line">[kubeconfig] Wrote KubeConfig file to disk: &quot;/etc/kubernetes/controller-manager.conf&quot;</span><br><span class="line">[kubeconfig] Wrote KubeConfig file to disk: &quot;/etc/kubernetes/scheduler.conf&quot;</span><br><span class="line">[controlplane] wrote Static Pod manifest for component kube-apiserver to &quot;/etc/kubernetes/manifests/kube-apiserver.yaml&quot;</span><br><span class="line">[controlplane] wrote Static Pod manifest for component kube-controller-manager to &quot;/etc/kubernetes/manifests/kube-controller-manager.yaml&quot;</span><br><span class="line">[controlplane] wrote Static Pod manifest for component kube-scheduler to &quot;/etc/kubernetes/manifests/kube-scheduler.yaml&quot;</span><br><span class="line">[etcd] Wrote Static Pod manifest for a local etcd instance to &quot;/etc/kubernetes/manifests/etcd.yaml&quot;</span><br><span class="line">[init] waiting for the kubelet to boot up the control plane as Static Pods from directory &quot;/etc/kubernetes/manifests&quot; </span><br><span class="line">[init] this might take a minute or longer if the control plane images have to be pulled</span><br><span class="line">[apiclient] All control plane components are healthy after 46.002877 seconds</span><br><span class="line">[uploadconfig] storing the configuration used in ConfigMap &quot;kubeadm-config&quot; in the &quot;kube-system&quot; Namespace</span><br><span class="line">[kubelet] Creating a ConfigMap &quot;kubelet-config-1.11&quot; in namespace kube-system with the configuration for the kubelets in the cluster</span><br><span class="line">[markmaster] Marking the node devops-101 as master by adding the label &quot;node-role.kubernetes.io/master=&apos;&apos;&quot;</span><br><span class="line">[markmaster] Marking the node devops-101 as master by adding the taints [node-role.kubernetes.io/master:NoSchedule]</span><br><span class="line">[patchnode] Uploading the CRI Socket information &quot;/var/run/dockershim.sock&quot; to the Node API object &quot;devops-101&quot; as an annotation</span><br><span class="line">[bootstraptoken] using token: wkj0bo.pzibll6rd9gyi5z8</span><br><span class="line">[bootstraptoken] configured RBAC rules to allow Node Bootstrap tokens to post CSRs in order for nodes to get long term certificate credentials</span><br><span class="line">[bootstraptoken] configured RBAC rules to allow the csrapprover controller automatically approve CSRs from a Node Bootstrap Token</span><br><span class="line">[bootstraptoken] configured RBAC rules to allow certificate rotation for all node client certificates in the cluster</span><br><span class="line">[bootstraptoken] creating the &quot;cluster-info&quot; ConfigMap in the &quot;kube-public&quot; namespace</span><br><span class="line">[addons] Applied essential addon: CoreDNS</span><br><span class="line">[addons] Applied essential addon: kube-proxy</span><br><span class="line"></span><br><span class="line">Your Kubernetes master has initialized successfully!</span><br><span class="line"></span><br><span class="line">To start using your cluster, you need to run the following as a regular user:</span><br><span class="line"></span><br><span class="line">  mkdir -p $HOME/.kube</span><br><span class="line">  sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config</span><br><span class="line">  sudo chown $(id -u):$(id -g) $HOME/.kube/config</span><br><span class="line"></span><br><span class="line">You should now deploy a pod network to the cluster.</span><br><span class="line">Run &quot;kubectl apply -f [podnetwork].yaml&quot; with one of the options listed at:</span><br><span class="line">  https://kubernetes.io/docs/concepts/cluster-administration/addons/</span><br><span class="line"></span><br><span class="line">You can now join any number of machines by running the following on each node</span><br><span class="line">as root:</span><br><span class="line"></span><br><span class="line">  kubeadm join 192.168.34.14:6443 --token rje1gq.9zohjsh8mjxp90oj --discovery-token-ca-cert-hash sha256:54ad5605a76cf7818443d5db849e0da9a076bed7e1a367d54b4019166e930285</span><br></pre></td></tr></table></figure></p>
+<p>看到以上信息表示Master节点已经初始化成功了，按照提示配置 kubectl<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ mkdir -p $HOME/.kube</span><br><span class="line">$ sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config</span><br><span class="line">$ sudo chown $(id -u):$(id -g) $HOME/.kube/config</span><br></pre></td></tr></table></figure></p>
+<p>查看k8s状态<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl get nodes</span><br><span class="line">NAME         STATUS     ROLES    AGE   VERSION</span><br><span class="line">k8s-master   NotReady   master   72s   v1.12.1 </span><br><span class="line"></span><br><span class="line">$ kubectl get pods --all-namespaces -o wide</span><br><span class="line">NAMESPACE     NAME                                 READY   STATUS    RESTARTS   AGE   IP          NODE         NOMINATED NODE</span><br><span class="line">kube-system   coredns-576cbf47c7-9x6s5             0/1     Pending   0          78s   &lt;none&gt;      &lt;none&gt;       &lt;none&gt;</span><br><span class="line">kube-system   coredns-576cbf47c7-tw6fm             0/1     Pending   0          78s   &lt;none&gt;      &lt;none&gt;       &lt;none&gt;</span><br><span class="line">kube-system   etcd-k8s-master                      1/1     Running   0          36s   10.0.2.15   k8s-master   &lt;none&gt;</span><br><span class="line">kube-system   kube-apiserver-k8s-master            1/1     Running   0          14s   10.0.2.15   k8s-master   &lt;none&gt;</span><br><span class="line">kube-system   kube-controller-manager-k8s-master   1/1     Running   0          42s   10.0.2.15   k8s-master   &lt;none&gt;</span><br><span class="line">kube-system   kube-proxy-w9p22                     1/1     Running   0          78s   10.0.2.15   k8s-master   &lt;none&gt;</span><br><span class="line">kube-system   kube-scheduler-k8s-master            1/1     Running   0          21s   10.0.2.15   k8s-master   &lt;none&gt;</span><br></pre></td></tr></table></figure></p>
+<p>可以看到节点还没有Ready，dns的两个pod也没不正常，还需要安装网络配置。这里我们选用了weave的方案<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl apply -f https://git.io/weave-kube-1.6</span><br><span class="line"></span><br><span class="line">serviceaccount/weave-net created</span><br><span class="line">clusterrole.rbac.authorization.k8s.io/weave-net created</span><br><span class="line">clusterrolebinding.rbac.authorization.k8s.io/weave-net created</span><br><span class="line">role.rbac.authorization.k8s.io/weave-net created</span><br><span class="line">rolebinding.rbac.authorization.k8s.io/weave-net created</span><br><span class="line">daemonset.extensions/weave-net created</span><br></pre></td></tr></table></figure></p>
+<p>执行成功后，Master并不能马上变成Ready状态，稍等几分钟，就可以看到所有状态都正常了。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl get pods --all-namespaces -o wide</span><br><span class="line">NAMESPACE     NAME                                 READY   STATUS    RESTARTS   AGE   IP          NODE         NOMINATED NODE</span><br><span class="line">kube-system   coredns-576cbf47c7-9x6s5             1/1     Running   0          2m    10.32.0.2   k8s-master   &lt;none&gt;</span><br><span class="line">kube-system   coredns-576cbf47c7-tw6fm             1/1     Running   0          2m    10.32.0.3   k8s-master   &lt;none&gt;</span><br><span class="line">kube-system   etcd-k8s-master                      1/1     Running   0          78s   10.0.2.15   k8s-master   &lt;none&gt;</span><br><span class="line">kube-system   kube-apiserver-k8s-master            1/1     Running   0          56s   10.0.2.15   k8s-master   &lt;none&gt;</span><br><span class="line">kube-system   kube-controller-manager-k8s-master   1/1     Running   0          84s   10.0.2.15   k8s-master   &lt;none&gt;</span><br><span class="line">kube-system   kube-proxy-w9p22                     1/1     Running   0          2m    10.0.2.15   k8s-master   &lt;none&gt;</span><br><span class="line">kube-system   kube-scheduler-k8s-master            1/1     Running   0          63s   10.0.2.15   k8s-master   &lt;none&gt;</span><br><span class="line">kube-system   weave-net-ks42w                      2/2     Running   0          22s   10.0.2.15   k8s-master   &lt;none&gt;</span><br><span class="line">$ kubectl get nodes</span><br><span class="line">NAME         STATUS   ROLES    AGE     VERSION</span><br><span class="line">k8s-master   Ready    master   2m39s   v1.12.1</span><br></pre></td></tr></table></figure></p>
+<p>至此，k8s的master节点初始化完毕</p>
+<h2 id="配置worker节点"><a href="#配置worker节点" class="headerlink" title="配置worker节点"></a>配置worker节点</h2><p>worker节点参照本文前期的准备工作安装好 kubectl、kubeadm、kubelet, 并下载镜像（worker节点只需要下载 k8s.gcr.io/pause:3.1和 k8s.gcr.io/kube-proxy:v1.12.0 即可）。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">#!/bin/bash</span><br><span class="line"></span><br><span class="line">images=(k8s.gcr.io/kube-proxy:v1.12.0</span><br><span class="line">        k8s.gcr.io/pause:3.1)</span><br><span class="line"></span><br><span class="line">for var in $&#123;images[@]&#125;;do</span><br><span class="line">        image=$&#123;var/k8s.gcr.io\//anjia0532\/google-containers.&#125;</span><br><span class="line">        docker pull $&#123;image&#125;</span><br><span class="line">        docker tag $&#123;image&#125; $&#123;var&#125;</span><br><span class="line">done</span><br></pre></td></tr></table></figure></p>
+<p>根据Master节点的提示加入集群。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">$sudo kubeadm join 192.168.34.14:6443 --token rje1gq.9zohjsh8mjxp90oj --discovery-token-ca-cert-hash </span><br><span class="line"></span><br><span class="line">sha256:54ad5605a76cf7818443d5db849e0da9a076bed7e1a367d54b4019166e930285</span><br><span class="line">[preflight] running pre-flight checks</span><br><span class="line">	[WARNING RequiredIPVSKernelModulesAvailable]: the IPVS proxier will not be used, because the following required kernel modules are not loaded: [ip_vs ip_vs_rr ip_vs_wrr ip_vs_sh] or no builtin kernel ipvs support: map[ip_vs:&#123;&#125; ip_vs_rr:&#123;&#125; ip_vs_wrr:&#123;&#125; ip_vs_sh:&#123;&#125; nf_conntrack_ipv4:&#123;&#125;]</span><br><span class="line">you can solve this problem with following methods:</span><br><span class="line"> 1. Run &apos;modprobe -- &apos; to load missing kernel modules;</span><br><span class="line">2. Provide the missing builtin kernel ipvs support</span><br><span class="line"></span><br><span class="line">[discovery] Trying to connect to API Server &quot;192.168.34.14:6443&quot;</span><br><span class="line">[discovery] Created cluster-info discovery client, requesting info from &quot;https://192.168.34.14:6443&quot;</span><br><span class="line">[discovery] Requesting info from &quot;https://192.168.34.14:6443&quot; again to validate TLS against the pinned public key</span><br><span class="line">[discovery] Cluster info signature and contents are valid and TLS certificate validates against pinned roots, will use API Server &quot;192.168.34.14:6443&quot;</span><br><span class="line">[discovery] Successfully established connection with API Server &quot;192.168.34.14:6443&quot;</span><br><span class="line">[kubelet] Downloading configuration for the kubelet from the &quot;kubelet-config-1.12&quot; ConfigMap in the kube-system namespace</span><br><span class="line">[kubelet] Writing kubelet configuration to file &quot;/var/lib/kubelet/config.yaml&quot;</span><br><span class="line">[kubelet] Writing kubelet environment file with flags to file &quot;/var/lib/kubelet/kubeadm-flags.env&quot;</span><br><span class="line">[preflight] Activating the kubelet service</span><br><span class="line">[tlsbootstrap] Waiting for the kubelet to perform the TLS Bootstrap...</span><br><span class="line">[patchnode] Uploading the CRI Socket information &quot;/var/run/dockershim.sock&quot; to the Node API object &quot;k8s-worker&quot; as an annotation</span><br><span class="line"></span><br><span class="line">This node has joined the cluster:</span><br><span class="line">* Certificate signing request was sent to apiserver and a response was received.</span><br><span class="line">* The Kubelet was informed of the new secure connection details.</span><br><span class="line"></span><br><span class="line">Run &apos;kubectl get nodes&apos; on the master to see this node join the cluster.</span><br></pre></td></tr></table></figure></p>
+<p>节点的启动也需要一点时间，稍后再到Master上查看状态<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">kubectl get pods --all-namespaces -o wide</span><br><span class="line">NAMESPACE     NAME                                 READY   STATUS    RESTARTS   AGE     IP          NODE         NOMINATED NODE</span><br><span class="line">kube-system   coredns-576cbf47c7-m7gnw             1/1     Running   0          16m     10.32.0.3   k8s-master   &lt;none&gt;</span><br><span class="line">kube-system   coredns-576cbf47c7-nbzxs             1/1     Running   0          16m     10.32.0.4   k8s-master   &lt;none&gt;</span><br><span class="line">kube-system   etcd-k8s-master                      1/1     Running   0          15m     10.0.2.15   k8s-master   &lt;none&gt;</span><br><span class="line">kube-system   kube-apiserver-k8s-master            1/1     Running   0          15m     10.0.2.15   k8s-master   &lt;none&gt;</span><br><span class="line">kube-system   kube-controller-manager-k8s-master   1/1     Running   0          15m     10.0.2.15   k8s-master   &lt;none&gt;</span><br><span class="line">kube-system   kube-proxy-lmh4t                     1/1     Running   0          16m     10.0.2.15   k8s-master   &lt;none&gt;</span><br><span class="line">kube-system   kube-proxy-v8hm5                     1/1     Running   0          7m17s   10.0.2.15   k8s-worker   &lt;none&gt;</span><br><span class="line">kube-system   kube-scheduler-k8s-master            1/1     Running   0          15m     10.0.2.15   k8s-master   &lt;none&gt;</span><br><span class="line">kube-system   weave-net-cbtst                      2/2     Running   0          7m17s   10.0.2.15   k8s-worker   &lt;none&gt;</span><br><span class="line">kube-system   weave-net-zkpg8                      2/2     Running   0          13m     10.0.2.15   k8s-master   &lt;none&gt;</span><br><span class="line"></span><br><span class="line">kubectl get nodes</span><br><span class="line">NAME         STATUS   ROLES    AGE     VERSION</span><br><span class="line">k8s-master   Ready    master   16m     v1.12.1</span><br><span class="line">k8s-worker   Ready    &lt;none&gt;   7m33s   v1.12.1</span><br></pre></td></tr></table></figure></p>
+<p>至此，k8s集群创建完毕。</p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
+<li><a href="http://blog.51cto.com/355665/2178181" target="_blank" rel="noopener">kubeadm安装踩坑</a></li>
+<li><a href="https://www.cnblogs.com/cocowool/p/kubeadm_install_kubernetes.html" target="_blank" rel="noopener">kubeadm安装kubernetes V1.11.1 集群</a></li>
+<li><a href="https://www.cnblogs.com/RainingNight/p/using-kubeadm-to-create-a-cluster.html" target="_blank" rel="noopener">使用kubeadm搭建Kubernetes(1.10.2)集群（国内环境）</a></li>
+</ul>
+<h2 id="一些坑"><a href="#一些坑" class="headerlink" title="一些坑"></a>一些坑</h2><ol>
+<li>安装 kubeadm 或 kubelet 的时候可能会遇到 <code>kubelet : Depends: kubernetes-cni (= 0.6.0) but 0.6.0-02 is to be installed</code> 的错误<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">$ sudo apt install kubelet </span><br><span class="line">Reading package lists... Done</span><br><span class="line">Building dependency tree       </span><br><span class="line">Reading state information... Done</span><br><span class="line">Some packages could not be installed. This may mean that you have</span><br><span class="line">requested an impossible situation or if you are using the unstable</span><br><span class="line">distribution that some required packages have not yet been created</span><br><span class="line">or been moved out of Incoming.</span><br><span class="line">The following information may help to resolve the situation:</span><br><span class="line"></span><br><span class="line">The following packages have unmet dependencies:</span><br><span class="line"> kubelet : Depends: kubernetes-cni (= 0.6.0) but 0.6.0-02 is to be installed</span><br><span class="line">E: Unable to correct problems, you have held broken packages.</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>可以配置 <code>/etc/apt/preferences.d/k8s.pref</code> 作为临时的解决办法<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"># cat /etc/apt/preferences.d/k8s.pref</span><br><span class="line">Package: kubernetes-cni</span><br><span class="line">Pin: version 0.6.0-02*</span><br><span class="line">Pin-Priority: 900</span><br></pre></td></tr></table></figure></p>
+<ol start="2">
+<li>k8s的网络配置除了 weave 之外还有 Calico, Canal, Flannel, Kube-router, Romana, Weave Net等，详细的网络列表可参考<a href="https://kubernetes.io/docs/concepts/cluster-administration/addons/" target="_blank" rel="noopener">插件页面</a>。</li>
+</ol>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://zhanghongtong.github.io/2018/10/09/Shell中字符串的切割、拼接、比较、替换/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="张奇怪">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="张奇怪的blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/10/09/Shell中字符串的切割、拼接、比较、替换/" itemprop="url">Shell中字符串的切割、拼接、比较、替换</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-10-09T11:20:35+08:00">
+                2018-10-09
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/服务器/" itemprop="url" rel="index">
+                    <span itemprop="name">服务器</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h2 id="截取"><a href="#截取" class="headerlink" title="截取"></a>截取</h2><h3 id="shell-截取字符变量的前8位，有方法如下："><a href="#shell-截取字符变量的前8位，有方法如下：" class="headerlink" title="shell 截取字符变量的前8位，有方法如下："></a>shell 截取字符变量的前8位，有方法如下：</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">expr substr “$a” 1 8</span><br><span class="line">echo $a|awk ‘&#123;print substr(,1,8)&#125;’</span><br><span class="line">echo $a|cut -c1-8</span><br><span class="line">echo $</span><br><span class="line">expr $a : ‘(.\).*’</span><br><span class="line">echo $a|dd bs=1 count=8 2&gt;/dev/null</span><br></pre></td></tr></table></figure>
+<h3 id="按指定的字符串截取"><a href="#按指定的字符串截取" class="headerlink" title="按指定的字符串截取"></a>按指定的字符串截取</h3><p>第一种方法:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">$&#123;varible##*string&#125; 从左向右截取最后一个string后的字符串</span><br><span class="line"></span><br><span class="line">$&#123;varible#*string&#125;从左向右截取第一个string后的字符串</span><br><span class="line"></span><br><span class="line">$&#123;varible%%string*&#125;从右向左截取最后一个string后的字符串</span><br><span class="line"></span><br><span class="line">$&#123;varible%string*&#125;从右向左截取第一个string后的字符串</span><br><span class="line"></span><br><span class="line">“*”只是一个通配符可以不要</span><br></pre></td></tr></table></figure></p>
+<p>例子：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ MYVAR=foodforthought.jpg</span><br><span class="line">$ echo $&#123;MYVAR##*fo&#125;</span><br><span class="line">rthought.jpg</span><br><span class="line">$ echo $&#123;MYVAR#*fo&#125;</span><br><span class="line">odforthought.jpg</span><br></pre></td></tr></table></figure></p>
+<p>第二种方法：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$&#123;varible:n1:n2&#125;:截取变量varible从n1到n2之间的字符串</span><br></pre></td></tr></table></figure></p>
+<p>可以根据特定字符偏移和长度，使用另一种形式的变量扩展，来选择特定子字符串。试着在 bash 中输入以下行：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ EXCLAIM=cowabunga</span><br><span class="line">$ echo $&#123;EXCLAIM:0:3&#125;</span><br><span class="line">cow</span><br><span class="line">$ echo $&#123;EXCLAIM:3:7&#125;</span><br><span class="line">abunga</span><br></pre></td></tr></table></figure>
+<p>这种形式的字符串截断非常简便，只需用冒号分开来指定起始字符和子字符串长度。</p>
+<p>第三种方法：<br>按照指定要求分割：<br>比如获取后缀名</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ls -al | cut -d “.” -f2</span><br></pre></td></tr></table></figure>
+<h2 id="拼接"><a href="#拼接" class="headerlink" title="拼接"></a>拼接</h2><h3 id="拼接字符"><a href="#拼接字符" class="headerlink" title="拼接字符"></a>拼接字符</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$value1=home</span><br><span class="line">$value2=$&#123;value1&#125;&quot;=&quot;</span><br><span class="line">echo $value2</span><br></pre></td></tr></table></figure>
+<h3 id="拼接字符串"><a href="#拼接字符串" class="headerlink" title="拼接字符串"></a>拼接字符串</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[root@localhost sh]# var1=/etc/</span><br><span class="line">[root@localhost sh]# var2=yum.repos.d/</span><br><span class="line">[root@localhost sh]# var3=$&#123;var1&#125;$&#123;var2&#125;</span><br><span class="line">[root@localhost sh]# echo $var3</span><br><span class="line">/etc/yum.repos.d/</span><br></pre></td></tr></table></figure>
+<h2 id="替换"><a href="#替换" class="headerlink" title="替换"></a>替换</h2><p>替换命令：<code>${变量/查找/替换值}  一个&#39;/&#39;表示替换第一个&#39;//&#39;表示替换所有，当查找出中出现了：&quot;/&quot;需要转移成&quot;\/&quot;</code></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[chengmo@localhost ~]$ test=&apos;c:/windows/boot.ini&apos;</span><br><span class="line">[chengmo@localhost ~]$ echo $&#123;test/\//\\&#125;</span><br><span class="line">c:\windows/boot.ini</span><br><span class="line">[chengmo@localhost ~]$ echo $&#123;test//\//\\&#125;</span><br><span class="line">c:\windows\boot.ini</span><br></pre></td></tr></table></figure>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="https://zhanghongtong.github.io/2018/09/17/Linux-基础：如何在Ubuntu上检查一个软件包是否安装/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -523,7 +866,7 @@
           
             <p>用户在使用 Docker 部署业务一段时间后，可能会发现宿主节点的磁盘容量持续增长，甚至将磁盘空间耗尽进而引发宿主机异常，进而对业务造成影响。 本文先对 Docker 的空间分析与清理进行说明，然后对容器的磁盘容量限制与使用建议做简要说明。</p>
 <h1 id="典型问题场景"><a href="#典型问题场景" class="headerlink" title="典型问题场景"></a>典型问题场景</h1><p>用户发现 Docker 宿主机的磁盘空间使用率非常高。通过 du 逐层分析，发现是 Volume 或 overlay2 等目录占用了过高空间。示例如下：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span> 根据使用的存储驱动的不同，相应目录会有所不同：</span><br><span class="line">[root@node3 docker]# du -h --max-depth=1 |sort</span><br><span class="line">104K    ./network</span><br><span class="line">13M    ./image</span><br><span class="line">20K    ./plugins</span><br><span class="line">24G    ./overlay2   # 这个目录占用了非常高的磁盘磁盘空间</span><br><span class="line">25G    .</span><br><span class="line">283M    ./volumes</span><br><span class="line">4.0K    ./swarm</span><br><span class="line">4.0K    ./tmp</span><br><span class="line">4.0K    ./trust</span><br><span class="line">518M    ./containers</span><br></pre></td></tr></table></figure>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 根据使用的存储驱动的不同，相应目录会有所不同：</span></span><br><span class="line">[root@node3 docker]# du -h --max-depth=1 |sort</span><br><span class="line">104K    ./network</span><br><span class="line">13M    ./image</span><br><span class="line">20K    ./plugins</span><br><span class="line">24G    ./overlay2   # 这个目录占用了非常高的磁盘磁盘空间</span><br><span class="line">25G    .</span><br><span class="line">283M    ./volumes</span><br><span class="line">4.0K    ./swarm</span><br><span class="line">4.0K    ./tmp</span><br><span class="line">4.0K    ./trust</span><br><span class="line">518M    ./containers</span><br></pre></td></tr></table></figure>
 <h1 id="空间使用分析"><a href="#空间使用分析" class="headerlink" title="空间使用分析"></a>空间使用分析</h1><p>遇到此类问题，可以参阅如下步骤进行空间分析，定位占用过高空间的业务来源。</p>
 <h2 id="分析-Docker-空间分布"><a href="#分析-Docker-空间分布" class="headerlink" title="分析 Docker 空间分布"></a>分析 Docker 空间分布</h2><p>Docker 的内置 CLI 指令 docker system df ，可用于查询镜像（Images）、容器（Containers）和本地卷（Local Volumes）等空间使用大户的空间占用情况。 示例输出如下：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[root@node3 docker]# docker system df</span><br><span class="line">TYPE                TOTAL               ACTIVE              SIZE                RECLAIMABLE</span><br><span class="line">Images              17                  12                  2.713 GB            1.144 GB (42%)</span><br><span class="line">Containers          15                  12                  10.75 GB            0 B (0%)</span><br><span class="line">Local Volumes       8                   4                   282.9 MB            241.8 MB (85%)</span><br></pre></td></tr></table></figure>
@@ -559,11 +902,11 @@
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line">[root@node3 docker]# docker system prune --help</span><br><span class="line"></span><br><span class="line">Usage:    docker system prune [OPTIONS]</span><br><span class="line"></span><br><span class="line">Remove unused data</span><br><span class="line"></span><br><span class="line">Options:</span><br><span class="line">  -a, --all     Remove all unused images not just dangling ones</span><br><span class="line">  -f, --force   Do not prompt for confirmation</span><br><span class="line">      --help    Print usage</span><br><span class="line">[root@node3 docker]# docker system prune -a</span><br><span class="line">WARNING! This will remove:</span><br><span class="line">    - all stopped containers</span><br><span class="line">    - all volumes not used by at least one container</span><br><span class="line">    - all networks not used by at least one container</span><br><span class="line">    - all images without at least one container associated to them</span><br><span class="line">Are you sure you want to continue? [y/N] y</span><br><span class="line">Deleted Containers:</span><br><span class="line">c09c31c49491ee7f2324160e43947917940221b4e6cc1274906def640a7a631f</span><br><span class="line">2aa0180e1a0f4c2c64349a6ed969651052373e7a9471050dce9015701cf1b957</span><br><span class="line">6d18003b06823c5d76d807a319387b06680fc93d0a32bc29c1cea4c07e8d515d</span><br><span class="line"></span><br><span class="line">Deleted Volumes:</span><br><span class="line">a479c303b278f1442f66644f694a554aac630e72b7a27065a11ef85c4d87b648</span><br><span class="line">79a25b6376e0d6587d8f4f24e08f9467981f04daad14bf3353a12d727d065503</span><br><span class="line"></span><br><span class="line">Deleted Images:</span><br><span class="line">untagged: tutum/curl:latest</span><br><span class="line">untagged: tutum/curl@sha256:b6f16e88387acd4e6326176b212b3dae63f5b2134e69560d0b0673cfb0fb976f</span><br><span class="line">deleted: sha256:01176385d84aeb1d40ed18c6d3f952abf40d2d2b4aa98fcf0a8a4b01010fb9a9</span><br><span class="line">deleted: sha256:c84f85637212412c1d46d1dd50f789df2c3b44678ee3fee6a820888e734f9b5a</span><br><span class="line">untagged: test:lastest</span><br><span class="line">deleted: sha256:794ff09332586a091514eb3d1c44990244e57e34adc71d4b4334c0674a1377e9</span><br><span class="line">deleted: sha256:636a1e7769d2242556243e9a21fb96bb878ab5b94c41ff485667252c968b375e</span><br><span class="line"></span><br><span class="line">Total reclaimed space: 1.565 GB</span><br></pre></td></tr></table></figure>
 <h2 id="手动清理"><a href="#手动清理" class="headerlink" title="手动清理"></a>手动清理</h2><h3 id="网络清理"><a href="#网络清理" class="headerlink" title="网络清理"></a>网络清理</h3><p>网络配置通常占用的空间非常低，略过。</p>
 <h3 id="镜像清理"><a href="#镜像清理" class="headerlink" title="镜像清理"></a>镜像清理</h3><p>如果通过 docker system df 分析，是镜像占用了过高空间。则可以根据业务情况，评估相关镜像的使用情况。对于悬空和未使用的镜像， 可以使用如下指令手工清理：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span> 删除所有悬空镜像，但不会删除未使用镜像：</span><br><span class="line">docker rmi $(docker images -f "dangling=true" -q)</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span> 删除所有未使用镜像和悬空镜像。</span><br><span class="line"><span class="meta">#</span> 【说明】：轮询到还在被使用的镜像时，会有类似"image is being used by xxx container"的告警信息，所以相关镜像不会被删除，忽略即可。</span><br><span class="line">docker rmi $(docker images-q)</span><br></pre></td></tr></table></figure>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 删除所有悬空镜像，但不会删除未使用镜像：</span></span><br><span class="line">docker rmi $(docker images -f "dangling=true" -q)</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> 删除所有未使用镜像和悬空镜像。</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 【说明】：轮询到还在被使用的镜像时，会有类似<span class="string">"image is being used by xxx container"</span>的告警信息，所以相关镜像不会被删除，忽略即可。</span></span><br><span class="line">docker rmi $(docker images-q)</span><br></pre></td></tr></table></figure>
 <h3 id="卷清理"><a href="#卷清理" class="headerlink" title="卷清理"></a>卷清理</h3><p>如果通过 docker system df 分析，是卷占用了过高空间。则可以根据业务情况，评估相关卷的使用情况。对于未被任何容器调用的卷（-v 结果信息中，”LINKS” 显示为 0），可以使用如下指令手工清理：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span> 删除所有未被任何容器关联引用的卷：</span><br><span class="line">docker volume rm $(docker volume ls -qf dangling=true)</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span> 也可以直接使用如下指令，删除所有未被任何容器关联引用的卷（但建议使用上面的方式）</span><br><span class="line"><span class="meta">#</span> 【说明】轮询到还在使用的卷时，会有类似"volume is in use"的告警信息，所以相关卷不会被删除，忽略即可。</span><br><span class="line">docker volume rm $(docker volume ls -q)</span><br></pre></td></tr></table></figure>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 删除所有未被任何容器关联引用的卷：</span></span><br><span class="line">docker volume rm $(docker volume ls -qf dangling=true)</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> 也可以直接使用如下指令，删除所有未被任何容器关联引用的卷（但建议使用上面的方式）</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 【说明】轮询到还在使用的卷时，会有类似<span class="string">"volume is in use"</span>的告警信息，所以相关卷不会被删除，忽略即可。</span></span><br><span class="line">docker volume rm $(docker volume ls -q)</span><br></pre></td></tr></table></figure>
 <h3 id="容器清理"><a href="#容器清理" class="headerlink" title="容器清理"></a>容器清理</h3><p>如果通过 docker system df 分析，是某个容器占用了过高空间。则可以根据业务情况，评估相关容器的业务归属并进行处理。对于已停止或其它异常状态的容器，可以结合  -f 或 –filter 筛选器，使用类似如下指令来手工清理：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span> 删除所有已退出的容器</span><br><span class="line">docker rm -v $(docker ps -aq -f status=exited)</span><br><span class="line"><span class="meta">#</span> 删除所有状态为 dead 的容器</span><br><span class="line">docker rm -v $(docker ps -aq -f status=dead)</span><br></pre></td></tr></table></figure>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 删除所有已退出的容器</span></span><br><span class="line">docker rm -v $(docker ps -aq -f status=exited)</span><br><span class="line"><span class="meta">#</span><span class="bash"> 删除所有状态为 dead 的容器</span></span><br><span class="line">docker rm -v $(docker ps -aq -f status=dead)</span><br></pre></td></tr></table></figure>
 <blockquote>
 <p>更多关于 ps 指令支持的筛选器信息，可以参阅<a href="https://docs.docker-cn.com/engine/reference/commandline/ps/#filtering" target="_blank" rel="noopener">官方文档</a>。</p>
 </blockquote>
@@ -1592,311 +1935,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://zhanghongtong.github.io/2018/07/26/Dockerfile-CMD-和-ENTRYPOINT-的区别/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="张奇怪">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="张奇怪的blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/07/26/Dockerfile-CMD-和-ENTRYPOINT-的区别/" itemprop="url">Dockerfile CMD 和 ENTRYPOINT 的区别</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">Posted on</span>
-              
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-07-26T09:50:05+08:00">
-                2018-07-26
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">In</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/docker/" itemprop="url" rel="index">
-                    <span itemprop="name">docker</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h2 id="CMD："><a href="#CMD：" class="headerlink" title="CMD："></a>CMD：</h2><ul>
-<li>是容器启动时默认执行的命令</li>
-<li>如果docker run 指定了其他的命令，比如 docker run -it image /bin/bah，则CMD会被忽略掉</li>
-<li>如果定义了多个CMD，只有最后一个会执行。</li>
-</ul>
-<h2 id="ENTRYPOINT"><a href="#ENTRYPOINT" class="headerlink" title="ENTRYPOINT"></a>ENTRYPOINT</h2><ul>
-<li>让容器以服务或者应用程序的形式执行</li>
-<li>不会被忽略，一定会执行</li>
-</ul>
-<h2 id="最佳实践："><a href="#最佳实践：" class="headerlink" title="最佳实践："></a>最佳实践：</h2><p>可以使用ENTRYPOINT[“/bin/echo”] + CMD [] 的形式使容器运行的时候可以接受传进来的参数</p>
-<p>构建 <code>Dockerfile</code></p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">FROM ubuntu</span><br><span class="line">ENTRYPOINT [&quot;/bin/echo&quot;]</span><br><span class="line">CMD []</span><br></pre></td></tr></table></figure>
-<p>编译成 <code>docker image</code> 之后使用 <code>docekr run</code>  命令运行</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">$ docker build -t test .</span><br><span class="line">$ docker images</span><br><span class="line">REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE</span><br><span class="line">test                latest              41a276a4c650        2 minutes ago       82.4MB</span><br><span class="line"></span><br><span class="line">$ docker run -it test &quot;hello&quot;</span><br><span class="line">hello</span><br></pre></td></tr></table></figure>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://zhanghongtong.github.io/2018/07/25/创建一个足够小的golang应用的Dockerfile/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="张奇怪">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="张奇怪的blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/07/25/创建一个足够小的golang应用的Dockerfile/" itemprop="url">创建一个足够小的golang应用的Dockerfile</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">Posted on</span>
-              
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-07-25T17:27:04+08:00">
-                2018-07-25
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">In</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/docker/" itemprop="url" rel="index">
-                    <span itemprop="name">docker</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>之前创建go的docker image时使用的base image是 golang:latest，编译完的image有800+M，太大了，可以在宿主机上先将go编译成可执行文件，然后使用scratch做base image将可执行文件编译成docker image</p>
-<h1 id="关于scratch"><a href="#关于scratch" class="headerlink" title="关于scratch"></a>关于scratch</h1><p><a href="https://hub.docker.com/_/scratch/" target="_blank" rel="noopener">scratch</a> 是一非常特别的镜像，这个镜像很有意思的是他是一个空镜像。<br>也就是说大小几乎是 0 。<br>但是不能单独跑起来，只能做基础镜像，然后把main 程序放上去。<br>说白就是是一个线程了，这样有个非常好的优势，镜像小，没有依赖。</p>
-<h1 id="开始实验"><a href="#开始实验" class="headerlink" title="开始实验"></a>开始实验</h1><h3 id="创建go程序"><a href="#创建go程序" class="headerlink" title="创建go程序"></a>创建go程序</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">package main</span><br><span class="line"></span><br><span class="line">import &quot;fmt&quot;</span><br><span class="line"></span><br><span class="line">func main()  &#123;</span><br><span class="line">	fmt.Println(&quot;hello small docker image&quot;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>使用<code>GOOS=linux GOARCH=amd64 go build .</code>编译成可执行文件</p>
-<h3 id="编写Dockerfile"><a href="#编写Dockerfile" class="headerlink" title="编写Dockerfile"></a>编写Dockerfile</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">#使用scratch做base images</span><br><span class="line">FROM scratch</span><br><span class="line"></span><br><span class="line">#添加可执行文件</span><br><span class="line">ADD main /</span><br><span class="line"></span><br><span class="line">#运行可执行文件</span><br><span class="line">CMD [ &quot;./main&quot; ]</span><br></pre></td></tr></table></figure>
-<p>使用<code>docker build -t test .</code> 命令将Dockerfile编译成docker image</p>
-<h3 id="查看docker-image"><a href="#查看docker-image" class="headerlink" title="查看docker image"></a>查看docker image</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"># docker images</span><br><span class="line">REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE</span><br><span class="line">test                latest              3359eedebdad        4 minutes ago       2.03MB</span><br></pre></td></tr></table></figure>
-<p>可以看到docker image只有2M多</p>
-<h3 id="运行容器"><a href="#运行容器" class="headerlink" title="运行容器"></a>运行容器</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># docker run test</span><br><span class="line">hello small docker image</span><br></pre></td></tr></table></figure>
-<h3 id="Done"><a href="#Done" class="headerlink" title="Done"></a>Done</h3>
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -1947,7 +1985,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">28</span>
+                <span class="site-state-item-count">30</span>
                 <span class="site-state-item-name">posts</span>
               </a>
             </div>
@@ -1958,7 +1996,7 @@
             
             <div class="site-state-item site-state-categories">
               <a href="/categories/index.html">
-                <span class="site-state-item-count">3</span>
+                <span class="site-state-item-count">4</span>
                 <span class="site-state-item-name">categories</span>
               </a>
             </div>
@@ -1969,7 +2007,7 @@
             
             <div class="site-state-item site-state-tags">
               <a href="/tags/index.html">
-                <span class="site-state-item-count">14</span>
+                <span class="site-state-item-count">15</span>
                 <span class="site-state-item-name">tags</span>
               </a>
             </div>
