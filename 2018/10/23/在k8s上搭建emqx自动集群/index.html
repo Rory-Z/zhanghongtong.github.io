@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="简体中文">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="linux,服务器,docker,k8s,emqx," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="Emqx 支持通过Kubernetes 服务自动集群。在ubuntu 使用kubeadm安装kubernetes中使用kubeadm搭建了一个三台节点的k8s集群，接来下在这个集群中使用Emqx的自动集群功能搭建一个emqx集群。 本文需要对k8s集群的资源如pods、services等有基本的概念，可以阅读官方文档来了解。 实验环境 公有云环境：AWS EC2 操作系统：ubuntu 1">
+<meta name="keywords" content="linux,服务器,docker,k8s,emqx">
+<meta property="og:type" content="article">
+<meta property="og:title" content="在k8s上搭建emqx自动集群">
+<meta property="og:url" content="https://zhanghongtong.github.io/2018/10/23/在k8s上搭建emqx自动集群/index.html">
+<meta property="og:site_name" content="张奇怪的blog">
+<meta property="og:description" content="Emqx 支持通过Kubernetes 服务自动集群。在ubuntu 使用kubeadm安装kubernetes中使用kubeadm搭建了一个三台节点的k8s集群，接来下在这个集群中使用Emqx的自动集群功能搭建一个emqx集群。 本文需要对k8s集群的资源如pods、services等有基本的概念，可以阅读官方文档来了解。 实验环境 公有云环境：AWS EC2 操作系统：ubuntu 1">
+<meta property="og:locale" content="简体中文">
+<meta property="og:updated_time" content="2018-10-25T07:11:54.178Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="在k8s上搭建emqx自动集群">
+<meta name="twitter:description" content="Emqx 支持通过Kubernetes 服务自动集群。在ubuntu 使用kubeadm安装kubernetes中使用kubeadm搭建了一个三台节点的k8s集群，接来下在这个集群中使用Emqx的自动集群功能搭建一个emqx集群。 本文需要对k8s集群的资源如pods、services等有基本的概念，可以阅读官方文档来了解。 实验环境 公有云环境：AWS EC2 操作系统：ubuntu 1">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://zhanghongtong.github.io/2018/10/23/在k8s上搭建emqx自动集群/"/>
+
+
+
+
+
+  <title>在k8s上搭建emqx自动集群 | 张奇怪的blog</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="简体中文">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">张奇怪的blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://zhanghongtong.github.io/2018/10/23/在k8s上搭建emqx自动集群/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="张奇怪">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="张奇怪的blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">在k8s上搭建emqx自动集群</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-10-23T10:20:42+08:00">
+                2018-10-23
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/kubernetes/" itemprop="url" rel="index">
+                    <span itemprop="name">kubernetes</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>Emqx 支持通过Kubernetes 服务自动集群。在<a href="https://zhanghongtong.github.io/2018/10/09/ubuntu-%E4%BD%BF%E7%94%A8kubeadm%E5%AE%89%E8%A3%85kubernetes/">ubuntu 使用kubeadm安装kubernetes</a>中使用kubeadm搭建了一个三台节点的k8s集群，接来下在这个集群中使用Emqx的自动集群功能搭建一个emqx集群。</p>
+<p>本文需要对k8s集群的资源如pods、services等有基本的概念，可以阅读<a href="https://kubernetes.io/docs/concepts/workloads/" target="_blank" rel="noopener">官方文档</a>来了解。</p>
+<h2 id="实验环境"><a href="#实验环境" class="headerlink" title="实验环境"></a>实验环境</h2><ul>
+<li>公有云环境：AWS EC2</li>
+<li>操作系统：ubuntu 16.04</li>
+<li>kubeadm version：v1.12.1</li>
+<li>Docker version：18.6.1</li>
+<li>集群节点<br>  |   hostname    |    节点角色   |   IP地址        |<br>  |   —         |    —    |   —             |<br>  |   kube-node1     |    master     |   172.31.18.155   |<br>  |   kube-node2     |    worker     |   172.31.21.171   |<br>  |   kube-node3     |    worker     |   172.31.20.189   |</li>
+</ul>
+<h2 id="准备工作"><a href="#准备工作" class="headerlink" title="准备工作"></a>准备工作</h2><h3 id="查看k8s集群状态"><a href="#查看k8s集群状态" class="headerlink" title="查看k8s集群状态"></a>查看k8s集群状态</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl get node -o wide</span><br><span class="line">NAME         STATUS   ROLES    AGE   VERSION   INTERNAL-IP     EXTERNAL-IP   OS-IMAGE             KERNEL-VERSION    CONTAINER-RUNTIME</span><br><span class="line">kube-node1   Ready    master   28h   v1.12.1   172.31.18.155   &lt;none&gt;        Ubuntu 18.04.1 LTS   4.15.0-1021-aws   docker://18.6.1</span><br><span class="line">kube-node2   Ready    &lt;none&gt;   28h   v1.12.1   172.31.21.171   &lt;none&gt;        Ubuntu 18.04.1 LTS   4.15.0-1021-aws   docker://18.6.1</span><br><span class="line">kube-node3   Ready    &lt;none&gt;   28h   v1.12.1   172.31.20.189   &lt;none&gt;        Ubuntu 18.04.1 LTS   4.15.0-1021-aws   docker://18.6.1</span><br><span class="line"></span><br><span class="line">$ kubectl get pods --all-namespaces -o wide</span><br><span class="line">NAMESPACE     NAME                                 READY   STATUS    RESTARTS   AGE     IP          NODE         NOMINATED NODE</span><br><span class="line">kube-system   coredns-576cbf47c7-b5xbb             1/1     Running   0          28h   10.244.0.5      kube-node1   &lt;none&gt;</span><br><span class="line">kube-system   coredns-576cbf47c7-g5s9j             1/1     Running   0          28h   10.244.0.4      kube-node1   &lt;none&gt;</span><br><span class="line">kube-system   etcd-kube-node1                      1/1     Running   0          28h   172.31.18.155   kube-node1   &lt;none&gt;</span><br><span class="line">kube-system   kube-apiserver-kube-node1            1/1     Running   0          28h   172.31.18.155   kube-node1   &lt;none&gt;</span><br><span class="line">kube-system   kube-controller-manager-kube-node1   1/1     Running   0          28h   172.31.18.155   kube-node1   &lt;none&gt;</span><br><span class="line">kube-system   kube-flannel-ds-amd64-fscrm          1/1     Running   0          28h   172.31.20.189   kube-node3   &lt;none&gt;</span><br><span class="line">kube-system   kube-flannel-ds-amd64-hhj8b          1/1     Running   0          28h   172.31.21.171   kube-node2   &lt;none&gt;</span><br><span class="line">kube-system   kube-flannel-ds-amd64-l6ccn          1/1     Running   0          28h   172.31.18.155   kube-node1   &lt;none&gt;</span><br><span class="line">kube-system   kube-proxy-79thv                     1/1     Running   0          28h   172.31.20.189   kube-node3   &lt;none&gt;</span><br><span class="line">kube-system   kube-proxy-ckg9t                     1/1     Running   0          28h   172.31.21.171   kube-node2   &lt;none&gt;</span><br><span class="line">kube-system   kube-proxy-skq8m                     1/1     Running   0          28h   172.31.18.155   kube-node1   &lt;none&gt;</span><br><span class="line">kube-system   kube-scheduler-kube-node1            1/1     Running   0          28h   172.31.18.155   kube-node1   &lt;none&gt;</span><br></pre></td></tr></table></figure>
+<h3 id="查看apiserver配置"><a href="#查看apiserver配置" class="headerlink" title="查看apiserver配置"></a>查看apiserver配置</h3><p>Emqx自动集群功能需要用到k8s的apiserver，先看一下apiserver的具体配置<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl describe pods kube-apiserver-kube-node1 -n kube-system  </span><br><span class="line">Name:               kube-apiserver-kube-node1</span><br><span class="line">Namespace:          kube-system</span><br><span class="line">Priority:           2000000000</span><br><span class="line">PriorityClassName:  system-cluster-critical</span><br><span class="line">Node:               kube-node1/172.31.18.155</span><br><span class="line">Start Time:         Tue, 23 Oct 2018 02:29:37 +0000</span><br><span class="line">Labels:             component=kube-apiserver</span><br><span class="line">                    tier=control-plane</span><br><span class="line">Annotations:        kubernetes.io/config.hash: c5ac975e628056601100307026359ba8</span><br><span class="line">                    kubernetes.io/config.mirror: c5ac975e628056601100307026359ba8</span><br><span class="line">                    kubernetes.io/config.seen: 2018-10-17T02:00:07.757483468Z</span><br><span class="line">                    kubernetes.io/config.source: file</span><br><span class="line">                    scheduler.alpha.kubernetes.io/critical-pod: </span><br><span class="line">Status:             Running</span><br><span class="line">IP:                 172.31.18.155</span><br><span class="line">Containers:</span><br><span class="line">  kube-apiserver:</span><br><span class="line">    Container ID:  docker://d753a932b41ff8a99b6a11767d463f13af7e9de7526567df6eb5bd29a101f17b</span><br><span class="line">    Image:         k8s.gcr.io/kube-apiserver:v1.12.1</span><br><span class="line">    Image ID:      docker-pullable://k8s.gcr.io/kube-apiserver@sha256:52b9dae126b5a99675afb56416e9ae69239e012028668f7274e30ae16112bb1f</span><br><span class="line">    Port:          &lt;none&gt;</span><br><span class="line">    Host Port:     &lt;none&gt;</span><br><span class="line">    Command:</span><br><span class="line">      kube-apiserver</span><br><span class="line">      --authorization-mode=Node,RBAC</span><br><span class="line">      --advertise-address=172.31.18.155</span><br><span class="line">      --allow-privileged=true</span><br><span class="line">      --client-ca-file=/etc/kubernetes/pki/ca.crt</span><br><span class="line">      --enable-admission-plugins=NodeRestriction</span><br><span class="line">      --enable-bootstrap-token-auth=true</span><br><span class="line">      --etcd-cafile=/etc/kubernetes/pki/etcd/ca.crt</span><br><span class="line">      --etcd-certfile=/etc/kubernetes/pki/apiserver-etcd-client.crt</span><br><span class="line">      --etcd-keyfile=/etc/kubernetes/pki/apiserver-etcd-client.key</span><br><span class="line">      --etcd-servers=https://127.0.0.1:2379</span><br><span class="line">      --insecure-port=0</span><br><span class="line">      --kubelet-client-certificate=/etc/kubernetes/pki/apiserver-kubelet-client.crt</span><br><span class="line">      --kubelet-client-key=/etc/kubernetes/pki/apiserver-kubelet-client.key</span><br><span class="line">      --kubelet-preferred-address-types=InternalIP,ExternalIP,Hostname</span><br><span class="line">      --proxy-client-cert-file=/etc/kubernetes/pki/front-proxy-client.crt</span><br><span class="line">      --proxy-client-key-file=/etc/kubernetes/pki/front-proxy-client.key</span><br><span class="line">      --requestheader-allowed-names=front-proxy-client</span><br><span class="line">      --requestheader-client-ca-file=/etc/kubernetes/pki/front-proxy-ca.crt</span><br><span class="line">      --requestheader-extra-headers-prefix=X-Remote-Extra-</span><br><span class="line">      --requestheader-group-headers=X-Remote-Group</span><br><span class="line">      --requestheader-username-headers=X-Remote-User</span><br><span class="line">      --secure-port=6443</span><br><span class="line">      --service-account-key-file=/etc/kubernetes/pki/sa.pub</span><br><span class="line">      --service-cluster-ip-range=10.96.0.0/12</span><br><span class="line">      --tls-cert-file=/etc/kubernetes/pki/apiserver.crt</span><br><span class="line">      --tls-private-key-file=/etc/kubernetes/pki/apiserver.key</span><br><span class="line">    State:          Running</span><br><span class="line">      Started:      Tue, 23 Oct 2018 02:29:39 +0000</span><br><span class="line">    Last State:     Terminated</span><br><span class="line">      Reason:       Completed</span><br><span class="line">      Exit Code:    0</span><br><span class="line">      Started:      Wed, 17 Oct 2018 02:00:09 +0000</span><br><span class="line">      Finished:     Thu, 18 Oct 2018 12:43:31 +0000</span><br><span class="line">    Ready:          True</span><br><span class="line">    Restart Count:  1</span><br><span class="line">    Requests:</span><br><span class="line">      cpu:        250m</span><br><span class="line">    Liveness:     http-get https://172.31.18.155:6443/healthz delay=15s timeout=15s period=10s #success=1 #failure=8</span><br><span class="line">    Environment:  &lt;none&gt;</span><br><span class="line">    Mounts:</span><br><span class="line">      /etc/ca-certificates from etc-ca-certificates (ro)</span><br><span class="line">      /etc/kubernetes/pki from k8s-certs (ro)</span><br><span class="line">      /etc/ssl/certs from ca-certs (ro)</span><br><span class="line">      /usr/local/share/ca-certificates from usr-local-share-ca-certificates (ro)</span><br><span class="line">      /usr/share/ca-certificates from usr-share-ca-certificates (ro)</span><br><span class="line">Conditions:</span><br><span class="line">  Type              Status</span><br><span class="line">  Initialized       True </span><br><span class="line">  Ready             True </span><br><span class="line">  ContainersReady   True </span><br><span class="line">  PodScheduled      True </span><br><span class="line">Volumes:</span><br><span class="line">  k8s-certs:</span><br><span class="line">    Type:          HostPath (bare host directory volume)</span><br><span class="line">    Path:          /etc/kubernetes/pki</span><br><span class="line">    HostPathType:  DirectoryOrCreate</span><br><span class="line">  ca-certs:</span><br><span class="line">    Type:          HostPath (bare host directory volume)</span><br><span class="line">    Path:          /etc/ssl/certs</span><br><span class="line">    HostPathType:  DirectoryOrCreate</span><br><span class="line">  usr-share-ca-certificates:</span><br><span class="line">    Type:          HostPath (bare host directory volume)</span><br><span class="line">    Path:          /usr/share/ca-certificates</span><br><span class="line">    HostPathType:  DirectoryOrCreate</span><br><span class="line">  usr-local-share-ca-certificates:</span><br><span class="line">    Type:          HostPath (bare host directory volume)</span><br><span class="line">    Path:          /usr/local/share/ca-certificates</span><br><span class="line">    HostPathType:  DirectoryOrCreate</span><br><span class="line">  etc-ca-certificates:</span><br><span class="line">    Type:          HostPath (bare host directory volume)</span><br><span class="line">    Path:          /etc/ca-certificates</span><br><span class="line">    HostPathType:  DirectoryOrCreate</span><br><span class="line">QoS Class:         Burstable</span><br><span class="line">Node-Selectors:    &lt;none&gt;</span><br><span class="line">Tolerations:       :NoExecute</span><br><span class="line">Events:            &lt;none&gt;</span><br></pre></td></tr></table></figure></p>
+<p>通过 <code>--advertise-address=172.31.18.155</code> 获得apiserver的IP地址（该地址在使用<code>kubeadm init</code> 命令创建集群的时候可以通过 <code>--apiserver-advertise-address=172.31.18.155</code> 参数来指定)，通过<code>--authorization-mode=Node,RBAC</code> 可以看到apiserver的访问规则为只有节点或者配置了合理的RBAC规则的pod可以访问。</p>
+<h3 id="在节点上访问apiserver"><a href="#在节点上访问apiserver" class="headerlink" title="在节点上访问apiserver"></a>在节点上访问apiserver</h3><p>执行 <code>curl http://172.31.18.155:8080</code> 访问apiserver发现报错 <code>Connection refused</code>，使用 <code>netstat -apn | grep 8080</code>命令查看发现并没有进程监听8080端口。</p>
+<p>执行<code>kubectl proxy --help</code>命令可以看到<code>kubectl proxy</code>可以在本机和apiserver之间创建一个代理服务器，它允许指定规则的http访问。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl proxy --accept-hosts=&quot;^.*$&quot; --address=&apos;172.31.18.155&apos; -p=8080 &amp;</span><br><span class="line">$ curl http://172.31.18.155:8080</span><br><span class="line">&#123;</span><br><span class="line">  &quot;paths&quot;: [</span><br><span class="line">    &quot;/api&quot;,</span><br><span class="line">    &quot;/api/v1&quot;,</span><br><span class="line">    &quot;/apis&quot;,</span><br><span class="line">    &quot;/apis/&quot;,</span><br><span class="line">    &quot;/apis/admissionregistration.k8s.io&quot;,</span><br><span class="line">    &quot;/apis/admissionregistration.k8s.io/v1beta1&quot;,</span><br><span class="line">    &quot;/apis/apiextensions.k8s.io&quot;,</span><br><span class="line">    &quot;/apis/apiextensions.k8s.io/v1beta1&quot;,</span><br><span class="line">    &quot;/apis/apiregistration.k8s.io&quot;,</span><br><span class="line">    &quot;/apis/apiregistration.k8s.io/v1&quot;,</span><br><span class="line">    &quot;/apis/apiregistration.k8s.io/v1beta1&quot;,</span><br><span class="line">    ......</span><br></pre></td></tr></table></figure></p>
+<h2 id="创建服务"><a href="#创建服务" class="headerlink" title="创建服务"></a>创建服务</h2><p>kubectl可以通过 kubectl create -f xxx.yml来创建各种资源，那么只需要编写一个或多个合法的yml文件就可以创建emqx集群了。本文将所有资源都写在了一个yml文件中，在实际生产中，可以在一个目录下创建多个yml文件，并使用<code>kubectl create -f 目录名</code>来部署。<br>为了方便理解和学习，在本次实验中，将需要创建的资源类型和命名提前确定下来<br>|   资源类型         |   命名             |<br>|   ——–        |   —-            |<br>|   role            |   pod-reader      |<br>|   rolebinding     |   read-pods       |<br>|   serviceaccount  |   emqx-sa         |<br>|   service         |   emqx            |<br>|   deployment      |   emqx            |<br>|   pod             |   emqx            |</p>
+<p>需要注意的是，一般来说service、deployment和pod最好命名为不同的名字以便区分，不过Emqx的自动集群功能需要将它们命名为统一的名字。</p>
+<h3 id="Role"><a href="#Role" class="headerlink" title="Role"></a>Role</h3><p>上文我们查看了apiserver的配置，可以看到普通pod是没有权限访问apiserver的，必须要配置合法的RBAC规则策略才可以。</p>
+<p>在RBAC API中，一个角色包含了一套表示一组权限的规则。 权限以纯粹的累加形式累积（没有”否定”的规则）。 角色可以由命名空间（namespace）内的Role对象定义，而整个Kubernetes集群范围内有效的角色则通过ClusterRole对象实现。</p>
+<p>一个Role对象只能用于授予对某一单一命名空间中资源的访问权限。 以下示例描述了”default”命名空间中的一个Role对象的定义，用于授予对pod的读访问权限：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">kind: Role</span><br><span class="line">apiVersion: rbac.authorization.k8s.io/v1beta1</span><br><span class="line">metadata:</span><br><span class="line">  namespace: default</span><br><span class="line">  name: pod-reader</span><br><span class="line">rules:</span><br><span class="line">- apiGroups: [&quot;&quot;] </span><br><span class="line">  resources: [&quot;&quot;]</span><br><span class="line">  verbs: [&quot;get&quot;, &quot;watch&quot;, &quot;list&quot;]</span><br></pre></td></tr></table></figure></p>
+<h3 id="RoleBinding"><a href="#RoleBinding" class="headerlink" title="RoleBinding"></a>RoleBinding</h3><p>角色绑定将一个角色中定义的各种权限授予一个或者一组用户。 角色绑定包含了一组相关主体（即subject, 包括用户——User、用户组——Group、或者服务账户——Service Account）以及对被授予角色的引用。 在命名空间中可以通过RoleBinding对象授予权限，而集群范围的权限授予则通过ClusterRoleBinding对象完成。</p>
+<p>RoleBinding可以引用在同一命名空间内定义的Role对象。 下面示例中定义的RoleBinding对象在”default”命名空间中将”pod-reader”角色授予”emqx-sa”。 这一授权将允许”emqx-sa”从”default”命名空间中读取pod。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">kind: RoleBinding</span><br><span class="line">apiVersion: rbac.authorization.k8s.io/v1beta1</span><br><span class="line">metadata:</span><br><span class="line">  name: read-pods</span><br><span class="line">  namespace: default</span><br><span class="line">subjects:</span><br><span class="line">- kind: ServiceAccount</span><br><span class="line">  name: emqx-sa</span><br><span class="line">  apiGroup: &quot;&quot;</span><br><span class="line">roleRef:</span><br><span class="line">  kind: Role</span><br><span class="line">  name: pod-reader</span><br><span class="line">  apiGroup: rbac.authorization.k8s.io</span><br></pre></td></tr></table></figure>
+<h3 id="Service-Account"><a href="#Service-Account" class="headerlink" title="Service Account"></a>Service Account</h3><p>创建好了RBAC规则之后，还需要创建Service Account，Service Account概念的引入是基于这样的使用场景：运行在pod里的进程需要调用Kubernetes API以及非Kubernetes API的其它服务。Service Account它并不是给kubernetes集群的用户使用的，而是给pod里面的进程使用的，它为pod提供必要的身份认证。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl get sa --all-namespaces</span><br><span class="line">NAMESPACE     NAME                                 SECRETS   AGE</span><br><span class="line">default       default                              1         6d3h</span><br><span class="line">kube-public   default                              1         6d3h</span><br><span class="line">kube-system   attachdetach-controller              1         6d3h</span><br><span class="line">kube-system   bootstrap-signer                     1         6d3h</span><br><span class="line">kube-system   certificate-controller               1         6d3h</span><br><span class="line">kube-system   clusterrole-aggregation-controller   1         6d3h</span><br><span class="line">kube-system   coredns                              1         6d3h</span><br><span class="line">kube-system   cronjob-controller                   1         6d3h</span><br><span class="line">kube-system   daemon-set-controller                1         6d3h</span><br><span class="line">kube-system   default                              1         6d3h</span><br><span class="line">kube-system   deployment-controller                1         6d3h</span><br><span class="line">kube-system   disruption-controller                1         6d3h</span><br><span class="line">kube-system   endpoint-controller                  1         6d3h</span><br><span class="line">kube-system   expand-controller                    1         6d3h</span><br><span class="line">kube-system   flannel                              1         6d3h</span><br><span class="line">kube-system   generic-garbage-collector            1         6d3h</span><br><span class="line">kube-system   horizontal-pod-autoscaler            1         6d3h</span><br><span class="line">kube-system   job-controller                       1         6d3h</span><br><span class="line">kube-system   kube-proxy                           1         6d3h</span><br><span class="line">kube-system   namespace-controller                 1         6d3h</span><br><span class="line">kube-system   node-controller                      1         6d3h</span><br><span class="line">kube-system   persistent-volume-binder             1         6d3h</span><br><span class="line">kube-system   pod-garbage-collector                1         6d3h</span><br><span class="line">kube-system   pv-protection-controller             1         6d3h</span><br><span class="line">kube-system   pvc-protection-controller            1         6d3h</span><br><span class="line">kube-system   replicaset-controller                1         6d3h</span><br><span class="line">kube-system   replication-controller               1         6d3h</span><br><span class="line">kube-system   resourcequota-controller             1         6d3h</span><br><span class="line">kube-system   service-account-controller           1         6d3h</span><br><span class="line">kube-system   service-controller                   1         6d3h</span><br><span class="line">kube-system   statefulset-controller               1         6d3h</span><br><span class="line">kube-system   token-cleaner                        1         6d3h</span><br><span class="line">kube-system   ttl-controller                       1         6d3h</span><br></pre></td></tr></table></figure></p>
+<p>如果kubernetes开启了ServiceAccount（–admission_control=…,ServiceAccount,… ）那么会在每个namespace下面都会创建一个默认的default的sa。<br>如下，其中最重要的就是secrets，它是每个sa下面都会拥有的一个加密的token，当用户再该namespace下创建pod的时候都会默认使用这个sa。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl get sa  default  -o yaml</span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: ServiceAccount</span><br><span class="line">metadata:</span><br><span class="line">  creationTimestamp: 2018-10-17T02:00:36Z</span><br><span class="line">  name: default</span><br><span class="line">  namespace: default</span><br><span class="line">  resourceVersion: &quot;342&quot;</span><br><span class="line">  selfLink: /api/v1/namespaces/default/serviceaccounts/default</span><br><span class="line">  uid: 70ae05df-d1b0-11e8-bc24-0a7114fbf79e</span><br><span class="line">secrets:</span><br><span class="line">- name: default-token-7gd5l</span><br></pre></td></tr></table></figure></p>
+<p>创建ServiceSAccount<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">apiVersion: v1</span><br><span class="line">kind: ServiceSAccount</span><br><span class="line">metadata:</span><br><span class="line">  name: emqx-sa</span><br><span class="line">  namespace: default</span><br></pre></td></tr></table></figure></p>
+<h3 id="Deployment-amp-amp-Pod"><a href="#Deployment-amp-amp-Pod" class="headerlink" title="Deployment &amp;&amp; Pod"></a>Deployment &amp;&amp; Pod</h3><p>查看<a href="http://emqtt.com/docs/v3/config.html#id7" target="_blank" rel="noopener">Emqx官方文档</a>中基于 Kubernetes 自动集群的相关配置，需要将<code>etc/emqx.conf</code>的配置做如下修改。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">cluster.discovery = k8s</span><br><span class="line"></span><br><span class="line">##--------------------------------------------------------------------</span><br><span class="line">## Cluster with k8s</span><br><span class="line"></span><br><span class="line">cluster.k8s.apiserver = http://10.110.111.204:8080</span><br><span class="line"></span><br><span class="line">cluster.k8s.service_name = emqx</span><br><span class="line"></span><br><span class="line">## Address Type: ip | dns</span><br><span class="line">cluster.k8s.address_type = ip</span><br><span class="line"></span><br><span class="line">## The Erlang application name</span><br><span class="line">cluster.k8s.app_name = emqx</span><br><span class="line"></span><br><span class="line">## Kubernates Namespace</span><br><span class="line">cluster.k8s.namespace = default</span><br></pre></td></tr></table></figure></p>
+<p>查看<a href="https://github.com/emqx/emqx-docker/blob/master/README.md" target="_blank" rel="noopener">Github上关于Emqx镜像的文档</a>，可以使用编辑环境变量的方式来修改<code>etc/emqx.conf</code>，根据上文所需的配置，我们可以指定如下环境变量</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">- name: EMQX_CLUSTER__DISCOVERY</span><br><span class="line">    value: k8s</span><br><span class="line">- name: EMQX_NAME</span><br><span class="line">    value: emqx</span><br><span class="line">- name: EMQX_CLUSTER__K8S__APISERVER</span><br><span class="line">    value: http://172.31.19.161:8080</span><br><span class="line">- name: EMQX_CLUSTER__K8S__NAMESPACE</span><br><span class="line">    value: default</span><br><span class="line">- name: EMQX_CLUSTER__K8S__SERVICE_NAME</span><br><span class="line">    value: emqx</span><br><span class="line">- name: EMQX_CLUSTER__K8S__ADDRESS_TYPE</span><br><span class="line">    value: ip</span><br><span class="line">- name: EMQX_CLUSTER__K8S__APP_NAME</span><br><span class="line">    value: emqx</span><br></pre></td></tr></table></figure>
+<p>创建deployment和pod，因为k8s不能直接使用Dockerfile去编译镜像，只能从docker的镜像仓库中拉取，所以pod使用<a href="https://hub.docker.com/r/emqx/emqx/" target="_blank" rel="noopener">docker hub</a>的镜像。指定部署两个emqx镜像的pod，并指定pod的端口和环境变量。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line">apiVersion: extensions/v1beta1</span><br><span class="line">kind: Deployment</span><br><span class="line">metadata:</span><br><span class="line">  name: emqx</span><br><span class="line">  labels:</span><br><span class="line">        app: emqx</span><br><span class="line">spec:</span><br><span class="line">  replicas: 2</span><br><span class="line">  template:</span><br><span class="line">    metadata:</span><br><span class="line">      labels:</span><br><span class="line">        app: emqx</span><br><span class="line">    spec:</span><br><span class="line">      containers:</span><br><span class="line">      - name: emqx</span><br><span class="line">        image: emqx/emqx:latest</span><br><span class="line">        ports:</span><br><span class="line">        - name: emqx-dashboard</span><br><span class="line">          containerPort: 18083</span><br><span class="line">        - name: emqx-http</span><br><span class="line">          containerPort: 8083</span><br><span class="line">        - name: emqx-mqtt</span><br><span class="line">          containerPort: 1883</span><br><span class="line">        env:</span><br><span class="line">        - name: EMQX_CLUSTER__DISCOVERY</span><br><span class="line">          value: k8s</span><br><span class="line">        - name: EMQX_NAME</span><br><span class="line">          value: emqx</span><br><span class="line">        - name: EMQX_CLUSTER__K8S__APISERVER</span><br><span class="line">          value: http://172.31.19.161:8080</span><br><span class="line">        - name: EMQX_CLUSTER__K8S__NAMESPACE</span><br><span class="line">          value: default</span><br><span class="line">        - name: EMQX_CLUSTER__K8S__SERVICE_NAME</span><br><span class="line">          value: emqx</span><br><span class="line">        - name: EMQX_CLUSTER__K8S__ADDRESS_TYPE</span><br><span class="line">          value: ip</span><br><span class="line">        - name: EMQX_CLUSTER__K8S__APP_NAME</span><br><span class="line">          value: emqx</span><br><span class="line">        tty: true</span><br></pre></td></tr></table></figure></p>
+<h3 id="Servives"><a href="#Servives" class="headerlink" title="Servives"></a>Servives</h3><p>创建Service，方便访问Emqx的dashboard。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">apiVersion: v1</span><br><span class="line">kind: Service</span><br><span class="line">metadata:</span><br><span class="line">  name: emqx</span><br><span class="line">spec:</span><br><span class="line">  ports:</span><br><span class="line">  - port: 32333</span><br><span class="line">    nodePort: 32333</span><br><span class="line">    targetPort:  emqx-dashboard</span><br><span class="line">    protocol: TCP</span><br><span class="line">  selector:</span><br><span class="line">    app: emqx</span><br><span class="line">  type: NodePort</span><br></pre></td></tr></table></figure></p>
+<h2 id="部署服务"><a href="#部署服务" class="headerlink" title="部署服务"></a>部署服务</h2><p>查看一下emqx.yml文件<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br></pre></td><td class="code"><pre><span class="line">cat emqx.yml</span><br><span class="line"></span><br><span class="line">kind: Role</span><br><span class="line">apiVersion: rbac.authorization.k8s.io/v1beta1</span><br><span class="line">metadata:</span><br><span class="line">  namespace: default</span><br><span class="line">  name: pod-reader</span><br><span class="line">rules:</span><br><span class="line">- apiGroups: [&quot;&quot;] </span><br><span class="line">  resources: [&quot;&quot;]</span><br><span class="line">  verbs: [&quot;get&quot;, &quot;watch&quot;, &quot;list&quot;]</span><br><span class="line"></span><br><span class="line">---</span><br><span class="line">kind: RoleBinding</span><br><span class="line">apiVersion: rbac.authorization.k8s.io/v1beta1</span><br><span class="line">metadata:</span><br><span class="line">  name: read-pods</span><br><span class="line">  namespace: default</span><br><span class="line">subjects:</span><br><span class="line">- kind: ServiceAccount</span><br><span class="line">  name: emqx-sa</span><br><span class="line">  apiGroup: &quot;&quot;</span><br><span class="line">roleRef:</span><br><span class="line">  kind: Role</span><br><span class="line">  name: pod-reader</span><br><span class="line">  apiGroup: rbac.authorization.k8s.io</span><br><span class="line"></span><br><span class="line">---</span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: ServiceAccount</span><br><span class="line">metadata:</span><br><span class="line">  name: emqx-sa</span><br><span class="line">  namespace: default</span><br><span class="line"></span><br><span class="line">---</span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: Service</span><br><span class="line">metadata:</span><br><span class="line">  name: emqx</span><br><span class="line">spec:</span><br><span class="line">  ports:</span><br><span class="line">  - port: 32333</span><br><span class="line">    nodePort: 32333</span><br><span class="line">    targetPort:  emqx-dashboard</span><br><span class="line">    protocol: TCP</span><br><span class="line">  selector:</span><br><span class="line">    app: emqx</span><br><span class="line">  type: NodePort</span><br><span class="line"></span><br><span class="line">---</span><br><span class="line">apiVersion: extensions/v1beta1</span><br><span class="line">kind: Deployment</span><br><span class="line">metadata:</span><br><span class="line">  name: emqx</span><br><span class="line">  labels:</span><br><span class="line">        app: emqx</span><br><span class="line">spec:</span><br><span class="line">  replicas: 2</span><br><span class="line">  template:</span><br><span class="line">    metadata:</span><br><span class="line">      labels:</span><br><span class="line">        app: emqx</span><br><span class="line">    spec:</span><br><span class="line">      nodeName: ip-172-31-23-51</span><br><span class="line">      containers:</span><br><span class="line">      - name: emqx</span><br><span class="line">        image: emqx/emqx:latest</span><br><span class="line">        ports:</span><br><span class="line">        - name: emqx-dashboard</span><br><span class="line">          containerPort: 18083</span><br><span class="line">        - name: emqx-http</span><br><span class="line">          containerPort: 8083</span><br><span class="line">        - name: emqx-mqtt</span><br><span class="line">          containerPort: 1883</span><br><span class="line">        env:</span><br><span class="line">        - name: EMQX_CLUSTER__DISCOVERY</span><br><span class="line">          value: k8s</span><br><span class="line">        - name: EMQX_NAME</span><br><span class="line">          value: emqx</span><br><span class="line">        - name: EMQX_CLUSTER__K8S__APISERVER</span><br><span class="line">          value: http://172.31.19.161:8080</span><br><span class="line">        - name: EMQX_CLUSTER__K8S__NAMESPACE</span><br><span class="line">          value: default</span><br><span class="line">        - name: EMQX_CLUSTER__K8S__SERVICE_NAME</span><br><span class="line">          value: emqx</span><br><span class="line">        - name: EMQX_CLUSTER__K8S__ADDRESS_TYPE</span><br><span class="line">          value: ip</span><br><span class="line">        - name: EMQX_CLUSTER__K8S__APP_NAME</span><br><span class="line">          value: emqx</span><br><span class="line">        tty: true</span><br></pre></td></tr></table></figure></p>
+<p>部署emqx<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl create -f emqx.yml </span><br><span class="line">role.rbac.authorization.k8s.io/pod-reader created</span><br><span class="line">rolebinding.rbac.authorization.k8s.io/read-pods created</span><br><span class="line">serviceaccount/emqx-sa created</span><br><span class="line">service/emqx created</span><br><span class="line">deployment.extensions/emqx created</span><br></pre></td></tr></table></figure></p>
+<p>查看部署的状态，可以看到所有的资源都成功部署了<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl get all -o wide</span><br><span class="line">NAME                                  READY   STATUS        RESTARTS   AGE     IP            NODE         NOMINATED NODE</span><br><span class="line">pod/emqx-7685fc45cd-qmxlq             1/1     Running       0          3m22s   10.244.2.14   kube-node3   &lt;none&gt;</span><br><span class="line">pod/emqx-7685fc45cd-zq2cj             1/1     Running       0          3m22s   10.244.1.18   kube-node2   &lt;none&gt;</span><br><span class="line"></span><br><span class="line">NAME                 TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)           AGE     SELECTOR</span><br><span class="line">service/emqx         NodePort    10.109.165.143   &lt;none&gt;        32333:32333/TCP   3m22s   app=emqx</span><br><span class="line">service/kubernetes   ClusterIP   10.96.0.1        &lt;none&gt;        443/TCP           6d4h    &lt;none&gt;</span><br><span class="line"></span><br><span class="line">NAME                   DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE     CONTAINERS   IMAGES             SELECTOR</span><br><span class="line">deployment.apps/emqx   2         2         2            2           3m22s   emqx         emqx/emqx:latest   app=emqx</span><br><span class="line"></span><br><span class="line">NAME                              DESIRED   CURRENT   READY   AGE     CONTAINERS   IMAGES             SELECTOR</span><br><span class="line">replicaset.apps/emqx-7685fc45cd   2         2         2       3m22s   emqx         emqx/emqx:latest   app=emqx,pod-template-hash=7685fc45cd</span><br></pre></td></tr></table></figure></p>
+<p>使用命令行查看集群状态，可以看到emqx已自动集群。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl exec -it emqx-7685fc45cd-qmxlq /opt/emqx/bin/emqx_ctl cluster status</span><br><span class="line">Cluster status: [&#123;running_nodes,[&apos;emqx@10.244.1.18&apos;,&apos;emqx@10.244.2.14&apos;]&#125;]</span><br></pre></td></tr></table></figure></p>
+<p>即使删掉一个pod，k8s也会自动创建出一个新的pod来自动集群<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl delete pod/emqx-7685fc45cd-zq2cj</span><br><span class="line">pod &quot;emqx-7685fc45cd-zq2cj&quot; deleted</span><br><span class="line"></span><br><span class="line">$ kubectl get pods </span><br><span class="line">NAME                    READY   STATUS    RESTARTS   AGE</span><br><span class="line">emqx-7685fc45cd-nt54v   1/1     Running   0          56s</span><br><span class="line">emqx-7685fc45cd-qmxlq   1/1     Running   0          6m25</span><br><span class="line"></span><br><span class="line">$ kubectl exec -it emqx-7685fc45cd-qmxlq /opt/emqx/bin/emqx_ctl cluster status</span><br><span class="line">Cluster status: [&#123;running_nodes,[&apos;emqx@10.244.1.19&apos;,&apos;emqx@10.244.2.14&apos;]&#125;,</span><br><span class="line">                 &#123;stopped_nodes,[&apos;emqx@10.244.1.18&apos;]&#125;]</span><br></pre></td></tr></table></figure></p>
+<p>打开浏览器，输入<code>http://任意节点的公网IP：32333</code>可以成功访问Emqx的dashboard页面。</p>
+<p>参考资料</p>
+<ul>
+<li><a href="https://blog.csdn.net/u010278923/article/details/72857928" target="_blank" rel="noopener">kubernetes的Service Account和secret</a></li>
+<li><a href="https://jimmysong.io/kubernetes-handbook/guide/rbac.html" target="_blank" rel="noopener">RBAC——基于角色的访问控制</a></li>
+<li><a href="http://blog.51cto.com/ylw6006/2113542" target="_blank" rel="noopener">K8S使用dashboard管理集群</a></li>
+</ul>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/linux/" rel="tag"># linux</a>
+          
+            <a href="/tags/服务器/" rel="tag"># 服务器</a>
+          
+            <a href="/tags/docker/" rel="tag"># docker</a>
+          
+            <a href="/tags/k8s/" rel="tag"># k8s</a>
+          
+            <a href="/tags/emqx/" rel="tag"># emqx</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/10/18/离线环境下使用二进制方式安装配置Kubernetes集群/" rel="next" title="离线环境下使用二进制方式安装配置Kubernetes集群">
+                <i class="fa fa-chevron-left"></i> 离线环境下使用二进制方式安装配置Kubernetes集群
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/10/25/kubernetes1-9安装dashboard，以及token认证问题/" rel="prev" title="kubernetes1.9安装dashboard，以及token认证问题">
+                kubernetes1.9安装dashboard，以及token认证问题 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="张奇怪" />
+          <p class="site-author-name" itemprop="name">张奇怪</p>
+           
+              <p class="site-description motion-element" itemprop="description"></p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">34</span>
+                <span class="site-state-item-name">posts</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">4</span>
+                <span class="site-state-item-name">categories</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">16</span>
+                <span class="site-state-item-name">tags</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#实验环境"><span class="nav-number">1.</span> <span class="nav-text">实验环境</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#准备工作"><span class="nav-number">2.</span> <span class="nav-text">准备工作</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#查看k8s集群状态"><span class="nav-number">2.1.</span> <span class="nav-text">查看k8s集群状态</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#查看apiserver配置"><span class="nav-number">2.2.</span> <span class="nav-text">查看apiserver配置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#在节点上访问apiserver"><span class="nav-number">2.3.</span> <span class="nav-text">在节点上访问apiserver</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#创建服务"><span class="nav-number">3.</span> <span class="nav-text">创建服务</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Role"><span class="nav-number">3.1.</span> <span class="nav-text">Role</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#RoleBinding"><span class="nav-number">3.2.</span> <span class="nav-text">RoleBinding</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Service-Account"><span class="nav-number">3.3.</span> <span class="nav-text">Service Account</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Deployment-amp-amp-Pod"><span class="nav-number">3.4.</span> <span class="nav-text">Deployment &amp;&amp; Pod</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Servives"><span class="nav-number">3.5.</span> <span class="nav-text">Servives</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#部署服务"><span class="nav-number">4.</span> <span class="nav-text">部署服务</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">张奇怪</span>
+</div>
+
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="https://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

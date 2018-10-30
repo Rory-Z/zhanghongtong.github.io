@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="简体中文">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="linux,服务器,docker,k8s," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="写在前面dashboard的安装非常简单。但按照官网建议的方式安装完成后，输入token登录时会没有反应。  这个问题困扰了我一整天，最终在这里找到了答案。  原因如下：  按官方文档建议的方式安装完dashboard后，使用kubectl proxy代理的方式来访问webUI。使用这个代理的方式访问就会导致登录无响应的问题。 我们需要将dashboard的service类型改为NodePort,">
+<meta name="keywords" content="linux,服务器,docker,k8s">
+<meta property="og:type" content="article">
+<meta property="og:title" content="kubernetes1.9安装dashboard，以及token认证问题">
+<meta property="og:url" content="https://zhanghongtong.github.io/2018/10/25/kubernetes1-9安装dashboard，以及token认证问题/index.html">
+<meta property="og:site_name" content="张奇怪的blog">
+<meta property="og:description" content="写在前面dashboard的安装非常简单。但按照官网建议的方式安装完成后，输入token登录时会没有反应。  这个问题困扰了我一整天，最终在这里找到了答案。  原因如下：  按官方文档建议的方式安装完dashboard后，使用kubectl proxy代理的方式来访问webUI。使用这个代理的方式访问就会导致登录无响应的问题。 我们需要将dashboard的service类型改为NodePort,">
+<meta property="og:locale" content="简体中文">
+<meta property="og:updated_time" content="2018-10-25T07:21:47.612Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="kubernetes1.9安装dashboard，以及token认证问题">
+<meta name="twitter:description" content="写在前面dashboard的安装非常简单。但按照官网建议的方式安装完成后，输入token登录时会没有反应。  这个问题困扰了我一整天，最终在这里找到了答案。  原因如下：  按官方文档建议的方式安装完dashboard后，使用kubectl proxy代理的方式来访问webUI。使用这个代理的方式访问就会导致登录无响应的问题。 我们需要将dashboard的service类型改为NodePort,">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://zhanghongtong.github.io/2018/10/25/kubernetes1-9安装dashboard，以及token认证问题/"/>
+
+
+
+
+
+  <title>kubernetes1.9安装dashboard，以及token认证问题 | 张奇怪的blog</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="简体中文">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">张奇怪的blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://zhanghongtong.github.io/2018/10/25/kubernetes1-9安装dashboard，以及token认证问题/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="张奇怪">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="张奇怪的blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">kubernetes1.9安装dashboard，以及token认证问题</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-10-25T15:13:18+08:00">
+                2018-10-25
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/kubernetes/" itemprop="url" rel="index">
+                    <span itemprop="name">kubernetes</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="写在前面"><a href="#写在前面" class="headerlink" title="写在前面"></a>写在前面</h2><p>dashboard的安装非常简单。但按照官网建议的方式安装完成后，输入token登录时会没有反应。 </p>
+<p>这个问题困扰了我一整天，最终在<a href="https://github.com/kubernetes/dashboard/issues/2540l" target="_blank" rel="noopener">这里</a>找到了答案。 </p>
+<p>原因如下： </p>
+<p>按官方文档建议的方式安装完dashboard后，使用kubectl proxy代理的方式来访问webUI。使用这个代理的方式访问就会导致登录无响应的问题。</p>
+<p>我们需要将dashboard的service类型改为NodePort,将端口映射到虚拟机上，然后直接通过虚拟机的ip地址登录</p>
+<h2 id="安装dashboard"><a href="#安装dashboard" class="headerlink" title="安装dashboard"></a>安装dashboard</h2><h3 id="首先下载官网提供的dashboard-yaml"><a href="#首先下载官网提供的dashboard-yaml" class="headerlink" title="首先下载官网提供的dashboard.yaml"></a>首先下载官网提供的dashboard.yaml</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wget https://raw.githubusercontent.com/kubernetes/dashboard/master/src/deploy/recommended/kubernetes-dashboard.yaml</span><br></pre></td></tr></table></figure>
+<h3 id="修改yaml-添加NodePort"><a href="#修改yaml-添加NodePort" class="headerlink" title="修改yaml,添加NodePort."></a>修改yaml,添加NodePort.</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">kind: Service</span><br><span class="line">apiVersion: v1</span><br><span class="line">metadata:</span><br><span class="line">  labels:</span><br><span class="line">    k8s-app: kubernetes-dashboard</span><br><span class="line">  name: kubernetes-dashboard</span><br><span class="line">  namespace: kube-system</span><br><span class="line">spec:</span><br><span class="line">  # 添加Service的type为NodePort</span><br><span class="line">  type: NodePort</span><br><span class="line">  ports:</span><br><span class="line">    - port: 443</span><br><span class="line">      targetPort: 8443</span><br><span class="line">      # 添加映射到虚拟机的端口,k8s只支持30000以上的端口</span><br><span class="line">      nodePort: 30001</span><br><span class="line">  selector:</span><br><span class="line">    k8s-app: kubernetes-dashboard</span><br></pre></td></tr></table></figure>
+<h3 id="安装dashboard-1"><a href="#安装dashboard-1" class="headerlink" title="安装dashboard"></a>安装dashboard</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl create -f kubernetes-dashboard.yaml</span><br></pre></td></tr></table></figure>
+<h3 id="获取token"><a href="#获取token" class="headerlink" title="获取token"></a>获取token</h3><p>这里有一个简单的命令：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl -n kube-system describe $(kubectl -n kube-system get secret -n kube-system -o name | grep namespace) | grep token</span><br></pre></td></tr></table></figure></p>
+<p>也可以自己手动查询：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"># 输入下面命令查询kube-system命名空间下的所有secret</span><br><span class="line">kubectl get secret -n kube-system</span><br><span class="line"></span><br><span class="line"># 然后获取token。只要是type为service-account-token的secret的token都可以使用。</span><br><span class="line"># 比如我们获取replicaset-controller-token-wsv4v的touken</span><br><span class="line">kubectl -n kube-system describe replicaset-controller-token-wsv4v</span><br></pre></td></tr></table></figure></p>
+<h3 id="访问dashboard"><a href="#访问dashboard" class="headerlink" title="访问dashboard"></a>访问dashboard</h3><p>通过node节点的ip，加刚刚我们设置的nodePort就可以访问了。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://&lt;node-ip&gt;:&lt;node-port&gt;</span><br></pre></td></tr></table></figure></p>
+<p>认证有两种方式：</p>
+<ul>
+<li>通过我们刚刚获取的token直接认证</li>
+<li><p>通过Kubeconfig文件认证</p>
+<p>只需要在kubeadm生成的admin.conf文件末尾加上刚刚获取的token就好了。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">- name: kubernetes-admin</span><br><span class="line">user:</span><br><span class="line">  client-certificate-data: xxxxxxxx</span><br><span class="line">  client-key-data: xxxxxx</span><br><span class="line">  token: &quot;在这里加上token&quot;</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
+<li><a href="https://segmentfault.com/a/1190000013681047" target="_blank" rel="noopener">kubernetes1.9安装dashboard，以及token认证问题</a></li>
+</ul>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/linux/" rel="tag"># linux</a>
+          
+            <a href="/tags/服务器/" rel="tag"># 服务器</a>
+          
+            <a href="/tags/docker/" rel="tag"># docker</a>
+          
+            <a href="/tags/k8s/" rel="tag"># k8s</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/10/23/在k8s上搭建emqx自动集群/" rel="next" title="在k8s上搭建emqx自动集群">
+                <i class="fa fa-chevron-left"></i> 在k8s上搭建emqx自动集群
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/10/30/Kunbernetes安装部署工具Helm，使用helm管理与发布kubernetes应用/" rel="prev" title="Kunbernetes安装部署工具Helm，使用helm管理与发布kubernetes应用">
+                Kunbernetes安装部署工具Helm，使用helm管理与发布kubernetes应用 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="张奇怪" />
+          <p class="site-author-name" itemprop="name">张奇怪</p>
+           
+              <p class="site-description motion-element" itemprop="description"></p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">34</span>
+                <span class="site-state-item-name">posts</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">4</span>
+                <span class="site-state-item-name">categories</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">16</span>
+                <span class="site-state-item-name">tags</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#写在前面"><span class="nav-number">1.</span> <span class="nav-text">写在前面</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#安装dashboard"><span class="nav-number">2.</span> <span class="nav-text">安装dashboard</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#首先下载官网提供的dashboard-yaml"><span class="nav-number">2.1.</span> <span class="nav-text">首先下载官网提供的dashboard.yaml</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#修改yaml-添加NodePort"><span class="nav-number">2.2.</span> <span class="nav-text">修改yaml,添加NodePort.</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#安装dashboard-1"><span class="nav-number">2.3.</span> <span class="nav-text">安装dashboard</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#获取token"><span class="nav-number">2.4.</span> <span class="nav-text">获取token</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#访问dashboard"><span class="nav-number">2.5.</span> <span class="nav-text">访问dashboard</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考资料"><span class="nav-number">3.</span> <span class="nav-text">参考资料</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">张奇怪</span>
+</div>
+
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="https://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

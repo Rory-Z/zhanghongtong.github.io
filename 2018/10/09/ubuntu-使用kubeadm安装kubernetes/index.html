@@ -94,18 +94,18 @@
 
 
 
-<meta name="description" content="准备工作 本文所用的环境：   虚拟机软件：VirtualBox 操作系统：ubuntu 16.04 minimal 安装 网络规划： kube-node1：172.31.18.155 kube-node2：172.31.21.171 kube-node3：172.31.20.189     安装docker  设置国内下载源 123456apt-get update &amp;amp;&amp;amp; apt">
+<meta name="description" content="kubeadm 介绍kubeadm 是一个工具包，可帮助您以简单，合理安全和可扩展的方式引导最佳实践Kubernetes群集。它还支持为您管理Bootstrap Tokens并升级/降级群集。 kubeadm的目标是建立一个通过Kubernetes一致性测试Kubernetes Conformance tests的最小可行集群 ，但不会安装其他功能插件。 它在设计上并未为您安装网络解决方案，需要用">
 <meta name="keywords" content="linux,服务器,docker,k8s">
 <meta property="og:type" content="article">
 <meta property="og:title" content="ubuntu 使用kubeadm安装kubernetes">
 <meta property="og:url" content="https://zhanghongtong.github.io/2018/10/09/ubuntu-使用kubeadm安装kubernetes/index.html">
 <meta property="og:site_name" content="张奇怪的blog">
-<meta property="og:description" content="准备工作 本文所用的环境：   虚拟机软件：VirtualBox 操作系统：ubuntu 16.04 minimal 安装 网络规划： kube-node1：172.31.18.155 kube-node2：172.31.21.171 kube-node3：172.31.20.189     安装docker  设置国内下载源 123456apt-get update &amp;amp;&amp;amp; apt">
+<meta property="og:description" content="kubeadm 介绍kubeadm 是一个工具包，可帮助您以简单，合理安全和可扩展的方式引导最佳实践Kubernetes群集。它还支持为您管理Bootstrap Tokens并升级/降级群集。 kubeadm的目标是建立一个通过Kubernetes一致性测试Kubernetes Conformance tests的最小可行集群 ，但不会安装其他功能插件。 它在设计上并未为您安装网络解决方案，需要用">
 <meta property="og:locale" content="简体中文">
-<meta property="og:updated_time" content="2018-10-18T07:04:00.443Z">
+<meta property="og:updated_time" content="2018-10-25T07:12:11.025Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="ubuntu 使用kubeadm安装kubernetes">
-<meta name="twitter:description" content="准备工作 本文所用的环境：   虚拟机软件：VirtualBox 操作系统：ubuntu 16.04 minimal 安装 网络规划： kube-node1：172.31.18.155 kube-node2：172.31.21.171 kube-node3：172.31.20.189     安装docker  设置国内下载源 123456apt-get update &amp;amp;&amp;amp; apt">
+<meta name="twitter:description" content="kubeadm 介绍kubeadm 是一个工具包，可帮助您以简单，合理安全和可扩展的方式引导最佳实践Kubernetes群集。它还支持为您管理Bootstrap Tokens并升级/降级群集。 kubeadm的目标是建立一个通过Kubernetes一致性测试Kubernetes Conformance tests的最小可行集群 ，但不会安装其他功能插件。 它在设计上并未为您安装网络解决方案，需要用">
 
 
 
@@ -325,8 +325,8 @@
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/k8s/" itemprop="url" rel="index">
-                    <span itemprop="name">k8s</span>
+                  <a href="/categories/kubernetes/" itemprop="url" rel="index">
+                    <span itemprop="name">kubernetes</span>
                   </a>
                 </span>
 
@@ -362,11 +362,17 @@
       
 
       
-        <h2 id="准备工作"><a href="#准备工作" class="headerlink" title="准备工作"></a>准备工作</h2><ol>
+        <h2 id="kubeadm-介绍"><a href="#kubeadm-介绍" class="headerlink" title="kubeadm 介绍"></a>kubeadm 介绍</h2><p>kubeadm 是一个工具包，可帮助您以简单，合理安全和可扩展的方式引导最佳实践Kubernetes群集。它还支持为您管理Bootstrap Tokens并升级/降级群集。</p>
+<p>kubeadm的目标是建立一个通过Kubernetes一致性测试Kubernetes Conformance tests的最小可行集群 ，但不会安装其他功能插件。</p>
+<p>它在设计上并未为您安装网络解决方案，需要用户自行安装第三方符合CNI的网络解决方案（如flanal，calico，canal等）。</p>
+<p>kubeadm可以在多种设备上运行，可以是Linux笔记本电脑，虚拟机，物理/云服务器或Raspberry Pi。这使得kubeadm非常适合与不同种类的配置系统（例如Terraform，Ansible等）集成。</p>
+<p>kubeadm是一种简单的方式让新用户开始尝试Kubernetes，也可能是第一次让现有用户轻松测试他们的应用程序并缝合到一起的方式，也可以作为其他生态系统中的构建块，或者具有更大范围的安装工具。</p>
+<p>可以在支持安装deb或rpm软件包的操作系统上非常轻松地安装kubeadm。SIG集群生命周期SIG Cluster Lifecycle kubeadm的SIG相关维护者提供了预编译的这些软件包，也可以在其他操作系统上使用。</p>
+<h2 id="准备工作"><a href="#准备工作" class="headerlink" title="准备工作"></a>准备工作</h2><ol>
 <li>本文所用的环境：</li>
 </ol>
 <ul>
-<li>虚拟机软件：VirtualBox</li>
+<li>公有云环境：AWS EC2</li>
 <li>操作系统：ubuntu 16.04 minimal 安装</li>
 <li>网络规划：<ul>
 <li>kube-node1：172.31.18.155</li>
@@ -544,7 +550,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">31</span>
+                <span class="site-state-item-count">34</span>
                 <span class="site-state-item-name">posts</span>
               </a>
             </div>
@@ -566,7 +572,7 @@
             
             <div class="site-state-item site-state-tags">
               <a href="/tags/index.html">
-                <span class="site-state-item-count">15</span>
+                <span class="site-state-item-count">16</span>
                 <span class="site-state-item-name">tags</span>
               </a>
             </div>
@@ -601,7 +607,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#准备工作"><span class="nav-number">1.</span> <span class="nav-text">准备工作</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#配置master节点"><span class="nav-number">2.</span> <span class="nav-text">配置master节点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#配置worker节点"><span class="nav-number">3.</span> <span class="nav-text">配置worker节点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考资料"><span class="nav-number">4.</span> <span class="nav-text">参考资料</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#一些坑"><span class="nav-number">5.</span> <span class="nav-text">一些坑</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#kubeadm-介绍"><span class="nav-number">1.</span> <span class="nav-text">kubeadm 介绍</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#准备工作"><span class="nav-number">2.</span> <span class="nav-text">准备工作</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#配置master节点"><span class="nav-number">3.</span> <span class="nav-text">配置master节点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#配置worker节点"><span class="nav-number">4.</span> <span class="nav-text">配置worker节点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考资料"><span class="nav-number">5.</span> <span class="nav-text">参考资料</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#一些坑"><span class="nav-number">6.</span> <span class="nav-text">一些坑</span></a></li></ol></div>
             
 
           </div>
