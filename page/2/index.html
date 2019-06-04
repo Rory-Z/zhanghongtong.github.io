@@ -270,6 +270,149 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://zhanghongtong.github.io/2018/09/13/Linux下-shell获取本机ip地址/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="张奇怪">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="张奇怪的blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/09/13/Linux下-shell获取本机ip地址/" itemprop="url">Linux下 shell获取本机ip地址</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-09-13T10:30:17+08:00">
+                2018-09-13
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/服务器/" itemprop="url" rel="index">
+                    <span itemprop="name">服务器</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>获取所有的网卡地址<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/sbin/ifconfig -a|grep inet|grep -v 127.0.0.1|grep -v inet6 | awk &apos;&#123;print $2&#125;&apos; | tr -d &quot;addr:&quot;</span><br></pre></td></tr></table></figure></p>
+<p>假设网卡名为 <code>eth0</code> , 获取本机ip地址地址，并保存到变量中<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">arg=ifconfig eth0 |grep &quot;inet addr&quot;| cut -f 2 -d &quot;:&quot;|cut -f 1 -d &quot; &quot; </span><br><span class="line">ipaddr=$arg</span><br><span class="line"></span><br><span class="line">echo $ipadd</span><br></pre></td></tr></table></figure></p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="https://zhanghongtong.github.io/2018/09/05/Ubuntu-16-04-Java8-安装/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -514,32 +657,32 @@
 <h3 id="二、安装haproxy"><a href="#二、安装haproxy" class="headerlink" title="二、安装haproxy"></a>二、安装haproxy</h3><p>haproxy下载地址</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://www.haproxy.org/#down</span><br></pre></td></tr></table></figure>
 <p>查看内核版本</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;</span> uname -r</span><br></pre></td></tr></table></figure>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;</span><span class="bash"> uname -r</span></span><br></pre></td></tr></table></figure>
 <p>解压haproxy，并安装</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;</span> tar xf haproxy-1.7.2.tar.gz</span><br><span class="line"><span class="meta">&gt;</span> cd haproxy-1.7.2</span><br><span class="line"><span class="meta">&gt;</span> make TARGET=linux2628 USE_PCRE=1 USE_OPENSSL=1 USE_ZLIB=1 USE_CRYPT_H=1 USE_LIBCRYPT=1 </span><br><span class="line"><span class="meta">&gt;</span> make install PREFIX=/usr/local/haproxy</span><br></pre></td></tr></table></figure>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;</span><span class="bash"> tar xf haproxy-1.7.2.tar.gz</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash"> <span class="built_in">cd</span> haproxy-1.7.2</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash"> make TARGET=linux2628 USE_PCRE=1 USE_OPENSSL=1 USE_ZLIB=1 USE_CRYPT_H=1 USE_LIBCRYPT=1 </span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash"> make install PREFIX=/usr/<span class="built_in">local</span>/haproxy</span></span><br></pre></td></tr></table></figure>
 <p>安装成功后，查看版本</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;</span> /usr/local/haproxy/sbin/haproxy -vv</span><br></pre></td></tr></table></figure>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;</span><span class="bash"> /usr/<span class="built_in">local</span>/haproxy/sbin/haproxy -vv</span></span><br></pre></td></tr></table></figure>
 <p>复制haproxy文件到/usr/sbin下<br>因为下面的haproxy.init启动脚本默认会去/usr/sbin下找，当然你也可以修改，不过比较麻烦。</p>
 <figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&gt; cp /<span class="keyword">data</span>/haproxy/sbin/haproxy /usr/sbin/</span><br></pre></td></tr></table></figure>
 <p>复制haproxy脚本，到/etc/init.d下</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;</span> cp ./examples/haproxy.init /etc/init.d/haproxy</span><br><span class="line"><span class="meta">&gt;</span> chmod 755 /etc/init.d/haproxy</span><br></pre></td></tr></table></figure>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;</span><span class="bash"> cp ./examples/haproxy.init /etc/init.d/haproxy</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash"> chmod 755 /etc/init.d/haproxy</span></span><br></pre></td></tr></table></figure>
 <p>我们可以查看一下这个haproxy.init文件</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span>$BASENAME默认就是haproxy</span><br><span class="line">BASENAME=`basename $0`</span><br><span class="line">if [ -L $0 ]; then</span><br><span class="line">BASENAME=`find $0 -name $BASENAME -printf %l`</span><br><span class="line">BASENAME=`basename $BASENAME`</span><br><span class="line">fi</span><br><span class="line"> </span><br><span class="line"><span class="meta">#</span>执行文件路径</span><br><span class="line">BIN=/usr/sbin/$BASENAME</span><br><span class="line"><span class="meta">#</span>配置文件路径</span><br><span class="line">CFG=/etc/$BASENAME/$BASENAME.cfg</span><br><span class="line"><span class="meta">#</span>pid文件路径</span><br><span class="line">PIDFILE=/var/run/$BASENAME.pid</span><br><span class="line"><span class="meta">#</span>锁文件路径</span><br><span class="line">LOCKFILE=/var/lock/subsys/$BASENAME</span><br></pre></td></tr></table></figure>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"><span class="variable">$BASENAME</span>默认就是haproxy</span></span><br><span class="line">BASENAME=`basename $0`</span><br><span class="line">if [ -L $0 ]; then</span><br><span class="line">BASENAME=`find $0 -name $BASENAME -printf %l`</span><br><span class="line">BASENAME=`basename $BASENAME`</span><br><span class="line">fi</span><br><span class="line"> </span><br><span class="line"><span class="meta">#</span><span class="bash">执行文件路径</span></span><br><span class="line">BIN=/usr/sbin/$BASENAME</span><br><span class="line"><span class="meta">#</span><span class="bash">配置文件路径</span></span><br><span class="line">CFG=/etc/$BASENAME/$BASENAME.cfg</span><br><span class="line"><span class="meta">#</span><span class="bash">pid文件路径</span></span><br><span class="line">PIDFILE=/var/run/$BASENAME.pid</span><br><span class="line"><span class="meta">#</span><span class="bash">锁文件路径</span></span><br><span class="line">LOCKFILE=/var/lock/subsys/$BASENAME</span><br></pre></td></tr></table></figure>
 <p>创建系统账号</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;</span> useradd -r haproxy</span><br></pre></td></tr></table></figure>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;</span><span class="bash"> useradd -r haproxy</span></span><br></pre></td></tr></table></figure>
 <p>创建配置文件</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;</span> mkdir /etc/haproxy</span><br><span class="line"><span class="meta">&gt;</span> vim /etc/haproxy/haproxy.cfg</span><br></pre></td></tr></table></figure>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span>全局配置</span><br><span class="line">global</span><br><span class="line">    #设置日志</span><br><span class="line">    log 127.0.0.1 local3 info</span><br><span class="line">    chroot /data/haproxy</span><br><span class="line">    #用户与用户组</span><br><span class="line">    user haproxy</span><br><span class="line">    group haproxy</span><br><span class="line">    #守护进程启动</span><br><span class="line">    daemon</span><br><span class="line">    #最大连接数</span><br><span class="line">    maxconn 4000</span><br><span class="line"> </span><br><span class="line"><span class="meta">#</span>默认配置</span><br><span class="line">defaults</span><br><span class="line">    log global</span><br><span class="line">    mode http</span><br><span class="line">    option httplog</span><br><span class="line">    option dontlognull</span><br><span class="line">    timeout connect 5000</span><br><span class="line">    timeout client 50000</span><br><span class="line">    timeout server 50000</span><br><span class="line"> </span><br><span class="line"><span class="meta">#</span>前端配置，http_front名称可自定义</span><br><span class="line">frontend http_front</span><br><span class="line">    bind *:80</span><br><span class="line">    #haproxy的状态管理页面，通过/haproxy?stats来访问</span><br><span class="line">    stats uri /haproxy?stats</span><br><span class="line">    default_backend http_back</span><br><span class="line"> </span><br><span class="line"><span class="meta">#</span>后端配置，http_back名称可自定义</span><br><span class="line">backend http_back</span><br><span class="line">    #负载均衡方式</span><br><span class="line">    #source 根据请求源IP</span><br><span class="line">    #static-rr 根据权重</span><br><span class="line">    #leastconn 最少连接者先处理</span><br><span class="line">    #uri 根据请求的uri</span><br><span class="line">    #url_param 根据请求的url参数</span><br><span class="line">    #rdp-cookie 据据cookie(name)来锁定并哈希每一次请求</span><br><span class="line">    #hdr(name) 根据HTTP请求头来锁定每一次HTTP请求</span><br><span class="line">    #roundrobin 轮询方式</span><br><span class="line">    balance roundrobin</span><br><span class="line">    #设置健康检查页面</span><br><span class="line">    option httpchk GET /index.html</span><br><span class="line">    #传递客户端真实IP</span><br><span class="line">    option forwardfor header X-Forwarded-For</span><br><span class="line">    # inter 2000 健康检查时间间隔2秒</span><br><span class="line">    # rise 3 检测多少次才认为是正常的</span><br><span class="line">    # fall 3 失败多少次才认为是不可用的</span><br><span class="line">    # weight 30 权重</span><br><span class="line">    server node1 192.168.1.222:8080 check inter 2000 rise 3 fall 3 weight 30</span><br><span class="line">    server node2 192.168.1.222:8082 check inter 2000 rise 3 fall 3 weight 30</span><br></pre></td></tr></table></figure>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;</span><span class="bash"> mkdir /etc/haproxy</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash"> vim /etc/haproxy/haproxy.cfg</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash">全局配置</span></span><br><span class="line">global</span><br><span class="line">    #设置日志</span><br><span class="line">    log 127.0.0.1 local3 info</span><br><span class="line">    chroot /data/haproxy</span><br><span class="line">    #用户与用户组</span><br><span class="line">    user haproxy</span><br><span class="line">    group haproxy</span><br><span class="line">    #守护进程启动</span><br><span class="line">    daemon</span><br><span class="line">    #最大连接数</span><br><span class="line">    maxconn 4000</span><br><span class="line"> </span><br><span class="line"><span class="meta">#</span><span class="bash">默认配置</span></span><br><span class="line">defaults</span><br><span class="line">    log global</span><br><span class="line">    mode http</span><br><span class="line">    option httplog</span><br><span class="line">    option dontlognull</span><br><span class="line">    timeout connect 5000</span><br><span class="line">    timeout client 50000</span><br><span class="line">    timeout server 50000</span><br><span class="line"> </span><br><span class="line"><span class="meta">#</span><span class="bash">前端配置，http_front名称可自定义</span></span><br><span class="line">frontend http_front</span><br><span class="line">    bind *:80</span><br><span class="line">    #haproxy的状态管理页面，通过/haproxy?stats来访问</span><br><span class="line">    stats uri /haproxy?stats</span><br><span class="line">    default_backend http_back</span><br><span class="line"> </span><br><span class="line"><span class="meta">#</span><span class="bash">后端配置，http_back名称可自定义</span></span><br><span class="line">backend http_back</span><br><span class="line">    #负载均衡方式</span><br><span class="line">    #source 根据请求源IP</span><br><span class="line">    #static-rr 根据权重</span><br><span class="line">    #leastconn 最少连接者先处理</span><br><span class="line">    #uri 根据请求的uri</span><br><span class="line">    #url_param 根据请求的url参数</span><br><span class="line">    #rdp-cookie 据据cookie(name)来锁定并哈希每一次请求</span><br><span class="line">    #hdr(name) 根据HTTP请求头来锁定每一次HTTP请求</span><br><span class="line">    #roundrobin 轮询方式</span><br><span class="line">    balance roundrobin</span><br><span class="line">    #设置健康检查页面</span><br><span class="line">    option httpchk GET /index.html</span><br><span class="line">    #传递客户端真实IP</span><br><span class="line">    option forwardfor header X-Forwarded-For</span><br><span class="line">    # inter 2000 健康检查时间间隔2秒</span><br><span class="line">    # rise 3 检测多少次才认为是正常的</span><br><span class="line">    # fall 3 失败多少次才认为是不可用的</span><br><span class="line">    # weight 30 权重</span><br><span class="line">    server node1 192.168.1.222:8080 check inter 2000 rise 3 fall 3 weight 30</span><br><span class="line">    server node2 192.168.1.222:8082 check inter 2000 rise 3 fall 3 weight 30</span><br></pre></td></tr></table></figure>
 <p>打开rsyslog配置</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;</span> vim /etc/rsyslog.conf</span><br></pre></td></tr></table></figure>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;</span><span class="bash"> vim /etc/rsyslog.conf</span></span><br></pre></td></tr></table></figure>
 <p>去掉下面两行前面的#号</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span>ModLoad imudp</span><br><span class="line"><span class="meta">$</span>UDPServerRun 514</span><br></pre></td></tr></table></figure>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash">ModLoad imudp</span></span><br><span class="line"><span class="meta">$</span><span class="bash">UDPServerRun 514</span></span><br></pre></td></tr></table></figure>
 <p>并添加下面一行</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">local3.* /var/log/haproxy.log</span><br></pre></td></tr></table></figure>
 <p>重启rsyslog</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;</span> systemctl restart rsyslog</span><br></pre></td></tr></table></figure>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;</span><span class="bash"> systemctl restart rsyslog</span></span><br></pre></td></tr></table></figure>
 <p>启动haproxy</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;</span> service haproxy start</span><br></pre></td></tr></table></figure>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;</span><span class="bash"> service haproxy start</span></span><br></pre></td></tr></table></figure>
 <h3 id="三、haproxy的acl规则"><a href="#三、haproxy的acl规则" class="headerlink" title="三、haproxy的acl规则"></a>三、haproxy的acl规则</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line">frontend http_front</span><br><span class="line">    bind *:80</span><br><span class="line">    stats uri /haproxy?stats</span><br><span class="line"> </span><br><span class="line">    #创建一个acl，is_http_back2是acl的名称，可自定义，用于判断主机名是否为www.back2.com</span><br><span class="line">    acl is_http_back2 hdr_end(host) www.back2.com</span><br><span class="line">    #通过正则判断主机名中是否为bbs.back.com或forum.back.com</span><br><span class="line">    acl is_host_bbs hdr_reg(host) -i ^(bbs.back.com|forum.back.com)</span><br><span class="line">    #判断ua是否为android</span><br><span class="line">    acl is_ua_android hdr_reg(User-Agent) -i android</span><br><span class="line">    #判断主机名开头是否为img.或css.或js.</span><br><span class="line">    acl is_host_static hdr_beg(host) -i img. css. js.</span><br><span class="line">    #判断url路径中是否有/bbs</span><br><span class="line">    acl is_path_bbs path_beg -i /bbs</span><br><span class="line">    #判断url文件结尾</span><br><span class="line">    acl is_php path_end -i .php</span><br><span class="line">    #通过正则判断url中结尾以</span><br><span class="line">    acl is_static_file url_reg -i /*.(css|jpg|png|jpeg|gif)$</span><br><span class="line">    #效果同上</span><br><span class="line">    acl is_static_file2 path_end -i .css .jpg .png .jpeg .gif</span><br><span class="line"> </span><br><span class="line">    #如果主机名是www.back2.com那么就使用后端http_back2</span><br><span class="line">    use_backend http_back2 if is_http_back2</span><br><span class="line"> </span><br><span class="line">    #默认使用的后端</span><br><span class="line">    default_backend http_back</span><br><span class="line"> </span><br><span class="line">backend http_back</span><br><span class="line">    balance roundrobin</span><br><span class="line">    option httpchk GET /index.html</span><br><span class="line">    option forwardfor header X-Forwarded-For</span><br><span class="line">    server node1 192.168.1.222:8080 check inter 2000 rise 3 fall 3 weight 30</span><br><span class="line"> </span><br><span class="line">backend http_back2</span><br><span class="line">    balance roundrobin</span><br><span class="line">    option httpchk GET /index.html</span><br><span class="line">    option forwardfor header X-Forwarded-For</span><br><span class="line">    server node2 192.168.1.222:8082 check inter 2000 rise 3 fall 3 weight 30</span><br></pre></td></tr></table></figure>
 
           
@@ -1644,159 +1787,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://zhanghongtong.github.io/2018/07/04/golang基础-互斥锁、读写锁/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="张奇怪">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="张奇怪的blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/07/04/golang基础-互斥锁、读写锁/" itemprop="url">golang基础-互斥锁、读写锁</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">Posted on</span>
-              
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-07-04T14:37:06+08:00">
-                2018-07-04
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">In</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/golang/" itemprop="url" rel="index">
-                    <span itemprop="name">golang</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h4 id="互斥锁"><a href="#互斥锁" class="headerlink" title="互斥锁"></a><strong>互斥锁</strong></h4><p>其中Mutex为互斥锁，Lock()加锁，Unlock()解锁，使用Lock()加锁后，便不能再次对其进行加锁，直到利用Unlock()解锁对其解锁后，才能再次加锁．<strong>适用于读写不确定场景，即读写次数没有明显的区别，并且只允许只有一个读或者写的场景，所以该锁叶叫做全局锁。</strong><br>func (m *Mutex) Unlock()用于解锁m，如果在使用Unlock()前未加锁，就会引起一个运行错误．已经锁定的Mutex并不与特定的goroutine相关联，这样可以利用一个goroutine对其加锁，再利用其他goroutine对其解锁。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line">package main</span><br><span class="line"></span><br><span class="line">import(</span><br><span class="line">    &quot;fmt&quot;</span><br><span class="line">    &quot;time&quot;</span><br><span class="line">    &quot;sync&quot;</span><br><span class="line">    &quot;math/rand&quot;</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line">var lock sync.Mutex</span><br><span class="line"></span><br><span class="line">func main() &#123;</span><br><span class="line"></span><br><span class="line">    testMap()</span><br><span class="line">&#125;</span><br><span class="line">func testMap() &#123;</span><br><span class="line">    var a map[int]int</span><br><span class="line">    a = make(map[int]int, 5)</span><br><span class="line"></span><br><span class="line">    a[8] = 10</span><br><span class="line">    a[3] = 10</span><br><span class="line">    a[2] = 10</span><br><span class="line">    a[1] = 10</span><br><span class="line">    a[18] = 10</span><br><span class="line"></span><br><span class="line">    for i := 0; i &lt; 2; i++ &#123;</span><br><span class="line">        go func(b map[int]int) &#123;</span><br><span class="line">            lock.Lock()</span><br><span class="line">            b[8] = rand.Intn(100)</span><br><span class="line">            lock.Unlock()</span><br><span class="line">        &#125;(a)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    lock.Lock()</span><br><span class="line">    fmt.Println(a)</span><br><span class="line">    lock.Unlock()</span><br><span class="line"></span><br><span class="line">    time.Sleep(time.Second)</span><br><span class="line">    fmt.Println(a)</span><br><span class="line">&#125;12345678910111213141516171819202122232425262728293031323334353637383940</span><br></pre></td></tr></table></figure>
-<p>输出如下：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">PS E:\golang\go_pro\src\safly&gt; go run demo.go</span><br><span class="line">map[3:10 2:10 1:10 18:10 8:10]</span><br><span class="line">map[2:10 1:10 18:10 8:87 3:10]</span><br><span class="line">PS E:\golang\go_pro\src\safly&gt;1234</span><br></pre></td></tr></table></figure>
-<p>我们利用了time.Sleep(time.Second)这个进行的延迟，goroute执行完毕，就进行输出，结果是进行了map的修改</p>
-<h4 id="读写锁"><a href="#读写锁" class="headerlink" title="读写锁"></a><strong>读写锁</strong></h4><p>读写锁实际是一种特殊的自旋锁，它把对共享资源的访问者划分成读者和写者，读者只对共享资源进行读访问，写者则需要对共享资源进行写操作<strong>。这种锁相对于自旋锁而言，能提高并发性，</strong>因为在多处理器系统中，它允许同时有多个读者来访问共享资源，最大可能的读者数为实际的逻辑CPU数。<strong>写者是排他性的，一个读写锁同时只能有一个写者或多个读者（与CPU数相关），但不能同时既有读者又有写者。</strong></p>
-<p>1、可以随便读，多个goroutine同时读</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">package main</span><br><span class="line"></span><br><span class="line">import(</span><br><span class="line">    // &quot;fmt&quot;</span><br><span class="line">    &quot;time&quot;</span><br><span class="line">    &quot;sync&quot;</span><br><span class="line"></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line">var m *sync.RWMutex</span><br><span class="line"></span><br><span class="line">func main() &#123;</span><br><span class="line">    m = new(sync.RWMutex)</span><br><span class="line"></span><br><span class="line">    // 多个同时读</span><br><span class="line">    go read(1)</span><br><span class="line">    go read(2)</span><br><span class="line"></span><br><span class="line">    time.Sleep(2*time.Second)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">func read(i int) &#123;</span><br><span class="line">    println(i,&quot;read start&quot;)</span><br><span class="line"></span><br><span class="line">    m.RLock()</span><br><span class="line">    println(i,&quot;reading&quot;)</span><br><span class="line">    time.Sleep(1*time.Second)</span><br><span class="line">    m.RUnlock()    </span><br><span class="line"></span><br><span class="line">    println(i,&quot;read over&quot;)</span><br><span class="line">&#125;12345678910111213141516171819202122232425262728293031</span><br></pre></td></tr></table></figure>
-<p>输出如下：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">PS E:\golang\go_pro\src\safly&gt; go run demo.go</span><br><span class="line">1 read start</span><br><span class="line">1 reading</span><br><span class="line">1 read over</span><br><span class="line">2 read start</span><br><span class="line">2 reading</span><br><span class="line">2 read over1234567</span><br></pre></td></tr></table></figure>
-<p>可以看出1 读还没有结束，2已经在读</p>
-<p>本文来自：<a href="https://blog.csdn.net/u013210620/article/details/78357995" target="_blank" rel="noopener">golang基础-互斥锁、读写锁</a>，感谢作者：<a href="https://blog.csdn.net/u013210620" target="_blank" rel="noopener">Safly</a></p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -1847,7 +1837,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">34</span>
+                <span class="site-state-item-count">35</span>
                 <span class="site-state-item-name">posts</span>
               </a>
             </div>
@@ -1911,7 +1901,7 @@
         <div class="copyright" >
   
   &copy; 
-  <span itemprop="copyrightYear">2018</span>
+  <span itemprop="copyrightYear">2019</span>
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>

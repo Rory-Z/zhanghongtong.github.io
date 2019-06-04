@@ -102,7 +102,7 @@
 <meta property="og:site_name" content="张奇怪的blog">
 <meta property="og:description" content="Helm介绍Helm是管理Kubernetes包的工具，Helm能提供下面的能力：  创建新的charts 将charts打包成tgz文件 与chart仓库交互 安装和卸载Kubernetes的应用 管理使用Helm安装的charts的生命周期  在Helm中，有三个需要了解的重要概念：  chart：是创建Kubernetes应用实例的信息集合； config：创建发布对象的chart的配置信息">
 <meta property="og:locale" content="简体中文">
-<meta property="og:updated_time" content="2018-10-30T08:48:53.129Z">
+<meta property="og:updated_time" content="2018-11-12T08:18:21.731Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Kunbernetes安装部署工具Helm，使用helm管理与发布kubernetes应用">
 <meta name="twitter:description" content="Helm介绍Helm是管理Kubernetes包的工具，Helm能提供下面的能力：  创建新的charts 将charts打包成tgz文件 与chart仓库交互 安装和卸载Kubernetes的应用 管理使用Helm安装的charts的生命周期  在Helm中，有三个需要了解的重要概念：  chart：是创建Kubernetes应用实例的信息集合； config：创建发布对象的chart的配置信息">
@@ -417,7 +417,7 @@
 <li><p>授予名为tiller的Service Account集群管理员角色cluster-admin:</p>
 <ul>
 <li><p>将tiller绑定至集群管理员角色的的yaml文件如下所示：</p>
-  <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">$vim rbac-config.yaml</span><br><span class="line"></span><br><span class="line">apiVersion: rbac.authorization.k8s.io/v1beta1 </span><br><span class="line">kind: ClusterRoleBinding </span><br><span class="line">metadata: </span><br><span class="line">name: tiller </span><br><span class="line">roleRef: </span><br><span class="line">apiGroup: rbac.authorization.k8s.io </span><br><span class="line">kind: ClusterRole </span><br><span class="line">name: cluster-admin </span><br><span class="line">subjects: </span><br><span class="line">- kind: ServiceAccount </span><br><span class="line">name: tiller </span><br><span class="line">namespace: kube-system</span><br></pre></td></tr></table></figure>
+  <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">$vim rbac-config.yaml</span><br><span class="line"></span><br><span class="line">apiVersion: rbac.authorization.k8s.io/v1beta1 </span><br><span class="line">kind: ClusterRoleBinding </span><br><span class="line">metadata: </span><br><span class="line">  name: tiller </span><br><span class="line">roleRef: </span><br><span class="line">  apiGroup: rbac.authorization.k8s.io </span><br><span class="line">  kind: ClusterRole </span><br><span class="line">  name: cluster-admin </span><br><span class="line">subjects: </span><br><span class="line">- kind: ServiceAccount </span><br><span class="line">  name: tiller </span><br><span class="line">  namespace: kube-system</span><br></pre></td></tr></table></figure>
 </li>
 <li><p>通过执行kubectl create -f将授予tiller集群管理员角色：</p>
   <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl create -f rbac-config.yaml</span><br></pre></td></tr></table></figure>
@@ -527,6 +527,10 @@
 
           <div class="post-nav-prev post-nav-item">
             
+              <a href="/2019/06/04/docker中执行sed-can-t-move-etc-resolv-conf73UqmG-to-etc-resolv-conf-Device-or-resource-busy错误的处理原因及方式/" rel="prev" title="docker中执行sed: can't move '/etc/resolv.conf73UqmG' to '/etc/resolv.conf': Device or resource busy错误的处理原因及方式">
+                docker中执行sed: can't move '/etc/resolv.conf73UqmG' to '/etc/resolv.conf': Device or resource busy错误的处理原因及方式 <i class="fa fa-chevron-right"></i>
+              </a>
+            
           </div>
         </div>
       
@@ -602,7 +606,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">34</span>
+                <span class="site-state-item-count">35</span>
                 <span class="site-state-item-name">posts</span>
               </a>
             </div>
@@ -682,7 +686,7 @@
         <div class="copyright" >
   
   &copy; 
-  <span itemprop="copyrightYear">2018</span>
+  <span itemprop="copyrightYear">2019</span>
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>
