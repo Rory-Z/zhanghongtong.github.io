@@ -270,6 +270,219 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://zhanghongtong.github.io/2018/09/13/linux命令之-sed命令用于处理文本文件如修改配置文件/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="张奇怪">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="张奇怪的blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/09/13/linux命令之-sed命令用于处理文本文件如修改配置文件/" itemprop="url">linux命令之 sed命令用于处理文本文件如修改配置文件</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-09-13T10:51:31+08:00">
+                2018-09-13
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/服务器/" itemprop="url" rel="index">
+                    <span itemprop="name">服务器</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="1、sed命令作用"><a href="#1、sed命令作用" class="headerlink" title="1、sed命令作用"></a>1、sed命令作用</h1><p>Linux sed命令是利用script来处理文本文件。</p>
+<p>sed可依照script的指令，来处理、编辑文本文件。</p>
+<p>Sed主要用来自动编辑一个或多个文件；简化对文件的反复操作；编写转换程序等。</p>
+<h1 id="2、sed语法"><a href="#2、sed语法" class="headerlink" title="2、sed语法"></a>2、sed语法</h1><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sed [-hnV][-e&lt;script&gt;][-f&lt;script文件&gt;][文本文件]</span><br></pre></td></tr></table></figure>
+<h2 id="常用选项："><a href="#常用选项：" class="headerlink" title="常用选项："></a>常用选项：</h2><ul>
+<li>-n∶使用安静(silent)模式。在一般 sed 的用法中，所有来自 STDIN的资料一般都会被列出到萤幕上。但如果加上 -n 参数后，则只有经过sed 特殊处理的那一行(或者动作)才会被列出来。</li>
+<li>-e∶直接在指令列模式上进行 sed 的动作编辑；</li>
+<li>-f∶直接将 sed 的动作写在一个档案内， -f filename 则可以执行 filename 内的sed 动作；</li>
+<li>-r∶sed 的动作支援的是延伸型正规表示法的语法。(预设是基础正规表示法语法)</li>
+<li>-i∶直接修改读取的档案内容，而不是由萤幕输出。       </li>
+</ul>
+<h2 id="常用命令："><a href="#常用命令：" class="headerlink" title="常用命令："></a>常用命令：</h2><ul>
+<li>a   ∶新增， a 的后面可以接字串，而这些字串会在新的一行出现(目前的下一行)～</li>
+<li>c   ∶取代， c 的后面可以接字串，这些字串可以取代 n1,n2 之间的行！</li>
+<li>d   ∶删除，因为是删除啊，所以 d 后面通常不接任何咚咚；</li>
+<li>i   ∶插入， i 的后面可以接字串，而这些字串会在新的一行出现(目前的上一行)；</li>
+<li>p  ∶列印，亦即将某个选择的资料印出。通常 p 会与参数 sed -n 一起运作～</li>
+<li>s  ∶取代，可以直接进行取代的工作哩！通常这个 s 的动作可以搭配正规表示法！例如 1,20s/old/new/g 就是啦！</li>
+</ul>
+<h1 id="3、sed案例"><a href="#3、sed案例" class="headerlink" title="3、sed案例"></a>3、sed案例</h1><ol>
+<li><p>删除某行</p>
+<p>删除第一行: <code>sed &#39;1d&#39;  a.txt</code></p>
+<p>删除最后一行: <code>sed &#39;$d&#39; a.txt</code></p>
+<p>删除第一行到第二行: <code>sed &#39;1,2d&#39; a.txt</code></p>
+</li>
+<li><p>增加一行或多行字符串</p>
+<p>第一行到第三行后增加字符串”drink tea”: <code>sed &#39;1,3a drink tea&#39; a.txt</code></p>
+</li>
+<li><p>代替一行或多行</p>
+<p>第一行到第二行代替为Hi: <code>sed &#39;1,2c Hi&#39; ab</code></p>
+</li>
+<li><p>数据的搜寻并替换</p>
+<p>sed ‘s/要被取代的字串/新的字串/g’</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">root@sdap#</span><span class="bash"> /bin/ifconfig eth0 | grep <span class="string">'inet addr'</span> | sed <span class="string">'s/^.*addr://g'</span> 只显示inet addr 一行，并且将 IP 前面的部分予以删除显示</span></span><br><span class="line">192.168.0.22  Bcast:192.1680.255  Mask:255.255.255.</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>数据的搜寻并执行命令</p>
+<p>搜索/etc/passwd,找到root对应的行，执行后面花括号中的一组命令，每个命令之间用分号分隔，这里把bash替换为blueshell，再输出这行</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nl /etc/passwd | sed -n '/root/&#123;s/bash/blueshell/;p&#125;'</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>在文件行首行尾添加字符</p>
+<ul>
+<li><p>在每行的头添加字符，比如”HEAD”，命令如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sed &apos;s/^/HEAD&amp;/g&apos; test.file</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p><code>^</code> 代表行首</p>
+</blockquote>
+</li>
+<li><p>在每行的行尾添加字符，比如“TAIL”，命令如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sed &apos;s/$/&amp;TAIL/g&apos; test.file</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p><code>$</code> 代表行尾</p>
+</blockquote>
+</li>
+</ul>
+</li>
+<li><p>使用正则表达式截取</p>
+<p><code>(-r)</code>选项允许使用正则表达式匹配，截取字符串跟替换字符串的操作相同，只不过是将要替换的内容变成 <code>\1</code> </p>
+<p>比如 <code>VAR=EMQX_AUTH_HTTP_SUPER_REQ</code>，我们要截取<code>EMQX_AUTH_HTTP</code>部分</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">echo $VAR | sed -r &quot;s/(EMQX_[A-Z]*_[A-Z]*)_.*/\1/g&quot;</span><br><span class="line">EMQX_AUTH_HTTP</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p><code>sed -r</code> 命令后的 <code>s/(EMQX_[A-Z]*_[A-Z]*)_.*/\1/g</code> 表示用首先匹配 <code>()</code> 中的内容，<code>()</code> 外的内容则以 <code>\1</code> 来删除掉，所以就截图到了想要的字符</p>
+</blockquote>
+</li>
+<li><p><code>sed</code>的替换命令可以自定义分隔符</p>
+<p><code>sed &#39;s/原字符串/替换字符串/g&#39;</code> 等于 <code>sed &#39;s?原字符串?替换字符串?g&#39;</code> 等于 <code>sed &#39;s:原字符串:替换字符串:g&#39;</code></p>
+</li>
+<li><p>多点编辑：e命令 </p>
+<p><code>(-e)</code>选项允许在同一行里执行多条命令。如例子所示，第一条命令删除1至5行，第二条命令用check替换test。命令的执 行顺序对结果有影响。如果两个命令都是替换命令，那么第一个替换命令将影响第二个替换命令的结果。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sed -e &apos;1,5d&apos; -e &apos;s/test/check/&apos; example</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<h1 id="4、脚本案例"><a href="#4、脚本案例" class="headerlink" title="4、脚本案例"></a>4、脚本案例</h1><p>判断目录是否正确并修改配置文件的字段属性<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash">!/bin/bash</span></span><br><span class="line"></span><br><span class="line">CurDir=`pwd`</span><br><span class="line"></span><br><span class="line">A="console"</span><br><span class="line">B="analysis"</span><br><span class="line">displayIP="192.168.2.11" </span><br><span class="line">analysisIP="192.168.2.13"</span><br><span class="line">echo "----Please  check that the following information is correct!-----"</span><br><span class="line">echo "Dispalyip:$displayIP"</span><br><span class="line">echo "analysisIP:$analysisIP" </span><br><span class="line"><span class="meta">#</span><span class="bash">console  </span></span><br><span class="line">if [[ $CurDir =~ $display ]]</span><br><span class="line">then</span><br><span class="line">    sed -i "s/&lt;smap ip=\".*/&lt;smap ip=\"$displayIP\" port=\"10000\" version=\"V3\"\&gt;/g" ../sysfile/config.xml</span><br><span class="line">elif [[ $CurDir =~ $alarm ]]</span><br><span class="line">then</span><br><span class="line">    sed -i "s/&lt;smap ip=\".*/&lt;smap ip=\"$displayIP\" port=\"10000\" version=\"V3\"\&gt;/g" ../sysfile/config.xml</span><br><span class="line">else</span><br><span class="line">    echo "无需要配置的文件！"</span><br><span class="line">fi</span><br></pre></td></tr></table></figure></p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="https://zhanghongtong.github.io/2018/09/13/Linux下-shell获取本机ip地址/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1628,165 +1841,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://zhanghongtong.github.io/2018/07/04/golang-map数据结构不能并发读写问题-fatal-error-concurrent-map-writes/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="张奇怪">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="张奇怪的blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/07/04/golang-map数据结构不能并发读写问题-fatal-error-concurrent-map-writes/" itemprop="url">golang map数据结构不能并发读写问题 fatal error: concurrent map writes</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">Posted on</span>
-              
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-07-04T14:46:35+08:00">
-                2018-07-04
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">In</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/golang/" itemprop="url" rel="index">
-                    <span itemprop="name">golang</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>go提供了一种叫map的数据结构，可以翻译成映射，对应于其他语言的字典、哈希表。借助map，可以定义一个键和值，然后可以从map中获取、设置和删除这个值，尤其适合数据查找的场景。但是map的使用有一定的限制，如果是在单个协程中读写map，那么不会存在什么问题，如果是多个协程并发访问一个map，有可能会导致程序退出，并打印下面错误信息：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">fatal error: concurrent map read and map write</span><br></pre></td></tr></table></figure>
-<p>上面的这个错误不是每次都会遇到的，如果并发访问的协程数不大，遇到的可能性就更小了。例如下面的程序：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">package main</span><br><span class="line"></span><br><span class="line">func main() &#123;</span><br><span class="line">    Map := make(map[int]int)</span><br><span class="line"></span><br><span class="line">    for i := 0; i &lt; 10; i++ &#123;</span><br><span class="line">        go writeMap(Map, i, i)</span><br><span class="line">        go readMap(Map, i)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">func readMap(Map map[int]int, key int) int &#123;</span><br><span class="line">    return Map[key]</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">func writeMap(Map map[int]int, key int, value int) &#123;</span><br><span class="line">    Map[key] = value</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>只循环了10次，产生了20个协程并发访问map，程序基本不会出错，但是如果将循环次数变大，比如10万，运行下面程序基本每次都会出错：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">package main</span><br><span class="line"></span><br><span class="line">func main() &#123;</span><br><span class="line">    Map := make(map[int]int)</span><br><span class="line"></span><br><span class="line">    for i := 0; i &lt; 100000; i++ &#123;</span><br><span class="line">        go writeMap(Map, i, i)</span><br><span class="line">        go readMap(Map, i)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">func readMap(Map map[int]int, key int) int &#123;</span><br><span class="line">    return Map[key]</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">func writeMap(Map map[int]int, key int, value int) &#123;</span><br><span class="line">    Map[key] = value</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p><a href="https://link.jianshu.com?t=https://blog.golang.org/go-maps-in-action" target="_blank" rel="noopener">go官方博客</a>有如下说明：</p>
-<blockquote>
-<p>Maps are not safe for concurrent use: it’s not defined what happens when you read and write to them simultaneously. If you need to read from and write to a map from concurrently executing goroutines, the accesses must be mediated by some kind of synchronization mechanism. One common way to protect maps is with sync.RWMutex.</p>
-</blockquote>
-<p><a href="https://link.jianshu.com?t=https://golang.org/doc/faq#atomic_maps" target="_blank" rel="noopener">go FAQ</a>解释如下：</p>
-<blockquote>
-<p>After long discussion it was decided that the typical use of maps did not require safe access from multiple goroutines, and in those cases where it did, the map was probably part of some larger data structure or computation that was already synchronized. Therefore requiring that all map operations grab a mutex would slow down most programs and add safety to few. This was not an easy decision, however, since it means uncontrolled map access can crash the program.</p>
-</blockquote>
-<p>大致意思就是说，并发访问map是不安全的，会出现未定义行为，导致程序退出。所以如果希望在多协程中并发访问map，必须提供某种同步机制，一般情况下通过读写锁sync.RWMutex实现对map的并发访问控制，将map和sync.RWMutex封装一下，可以实现对map的安全并发访问，示例代码如下：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line">package main</span><br><span class="line"></span><br><span class="line">import &quot;sync&quot;</span><br><span class="line"></span><br><span class="line">type SafeMap struct &#123;</span><br><span class="line">    sync.RWMutex</span><br><span class="line">    Map map[int]int</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">func main() &#123;</span><br><span class="line">    safeMap := newSafeMap(10)</span><br><span class="line"></span><br><span class="line">    for i := 0; i &lt; 100000; i++ &#123;</span><br><span class="line">        go safeMap.writeMap(i, i)</span><br><span class="line">        go safeMap.readMap(i)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">func newSafeMap(size int) *SafeMap &#123;</span><br><span class="line">    sm := new(SafeMap)</span><br><span class="line">    sm.Map = make(map[int]int)</span><br><span class="line">    return sm</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">func (sm *SafeMap) readMap(key int) int &#123;</span><br><span class="line">    sm.RLock()</span><br><span class="line">    value := sm.Map[key]</span><br><span class="line">    sm.RUnlock()</span><br><span class="line">    return value</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">func (sm *SafeMap) writeMap(key int, value int) &#123;</span><br><span class="line">    sm.Lock()</span><br><span class="line">    sm.Map[key] = value</span><br><span class="line">    sm.Unlock()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>但是通过读写锁控制map的并发访问时，会导致一定的性能问题，不过能保证程序的安全运行，牺牲点性能问题是可以的。</p>
-<p>本文来自：<a href="https://www.jianshu.com/p/10a998089486" target="_blank" rel="noopener">go语言坑之并发访问map</a>，感谢作者：<a href="https://www.jianshu.com/u/b2075cf393f8" target="_blank" rel="noopener">songleo</a></p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -1837,7 +1891,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">35</span>
+                <span class="site-state-item-count">36</span>
                 <span class="site-state-item-name">posts</span>
               </a>
             </div>
@@ -1848,7 +1902,7 @@
             
             <div class="site-state-item site-state-categories">
               <a href="/categories/index.html">
-                <span class="site-state-item-count">4</span>
+                <span class="site-state-item-count">5</span>
                 <span class="site-state-item-name">categories</span>
               </a>
             </div>

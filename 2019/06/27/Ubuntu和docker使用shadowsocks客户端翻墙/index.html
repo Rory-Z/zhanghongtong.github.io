@@ -78,7 +78,7 @@
 <link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
 
 
-  <meta name="keywords" content="linux,服务器,docker,golang," />
+  <meta name="keywords" content="linux,服务器,docker," />
 
 
 
@@ -94,18 +94,18 @@
 
 
 
-<meta name="description" content="之前创建go的docker image时使用的base image是 golang:latest，编译完的image有800+M，太大了，可以在宿主机上先将go编译成可执行文件，然后使用scratch做base image将可执行文件编译成docker image 关于scratchscratch 是一非常特别的镜像，这个镜像很有意思的是他是一个空镜像。也就是说大小几乎是 0 。但是不能单独跑起来">
-<meta name="keywords" content="linux,服务器,docker,golang">
+<meta name="description" content="Ubuntu安装shadowsocks客户端 首先安装shadowsocks-libev和privoxy  12# apt-get update# apt-get install shadowsocks-libev privoxy  编辑shadowsocks配置文件  12345678910# cat /etc/shadowsocks-libev/config&amp;#123;    &amp;quot;se">
+<meta name="keywords" content="linux,服务器,docker">
 <meta property="og:type" content="article">
-<meta property="og:title" content="创建一个足够小的golang应用的Dockerfile">
-<meta property="og:url" content="https://zhanghongtong.github.io/2018/07/25/创建一个足够小的golang应用的Dockerfile/index.html">
+<meta property="og:title" content="Ubuntu和docker使用shadowsocks客户端代理">
+<meta property="og:url" content="https://zhanghongtong.github.io/2019/06/27/Ubuntu和docker使用shadowsocks客户端翻墙/index.html">
 <meta property="og:site_name" content="张奇怪的blog">
-<meta property="og:description" content="之前创建go的docker image时使用的base image是 golang:latest，编译完的image有800+M，太大了，可以在宿主机上先将go编译成可执行文件，然后使用scratch做base image将可执行文件编译成docker image 关于scratchscratch 是一非常特别的镜像，这个镜像很有意思的是他是一个空镜像。也就是说大小几乎是 0 。但是不能单独跑起来">
+<meta property="og:description" content="Ubuntu安装shadowsocks客户端 首先安装shadowsocks-libev和privoxy  12# apt-get update# apt-get install shadowsocks-libev privoxy  编辑shadowsocks配置文件  12345678910# cat /etc/shadowsocks-libev/config&amp;#123;    &amp;quot;se">
 <meta property="og:locale" content="简体中文">
-<meta property="og:updated_time" content="2018-07-26T01:52:03.000Z">
+<meta property="og:updated_time" content="2019-06-27T07:46:14.361Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="创建一个足够小的golang应用的Dockerfile">
-<meta name="twitter:description" content="之前创建go的docker image时使用的base image是 golang:latest，编译完的image有800+M，太大了，可以在宿主机上先将go编译成可执行文件，然后使用scratch做base image将可执行文件编译成docker image 关于scratchscratch 是一非常特别的镜像，这个镜像很有意思的是他是一个空镜像。也就是说大小几乎是 0 。但是不能单独跑起来">
+<meta name="twitter:title" content="Ubuntu和docker使用shadowsocks客户端代理">
+<meta name="twitter:description" content="Ubuntu安装shadowsocks客户端 首先安装shadowsocks-libev和privoxy  12# apt-get update# apt-get install shadowsocks-libev privoxy  编辑shadowsocks配置文件  12345678910# cat /etc/shadowsocks-libev/config&amp;#123;    &amp;quot;se">
 
 
 
@@ -134,13 +134,13 @@
 
 
 
-  <link rel="canonical" href="https://zhanghongtong.github.io/2018/07/25/创建一个足够小的golang应用的Dockerfile/"/>
+  <link rel="canonical" href="https://zhanghongtong.github.io/2019/06/27/Ubuntu和docker使用shadowsocks客户端翻墙/"/>
 
 
 
 
 
-  <title>创建一个足够小的golang应用的Dockerfile | 张奇怪的blog</title>
+  <title>Ubuntu和docker使用shadowsocks客户端代理 | 张奇怪的blog</title>
   
 
 
@@ -273,7 +273,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://zhanghongtong.github.io/2018/07/25/创建一个足够小的golang应用的Dockerfile/">
+    <link itemprop="mainEntityOfPage" href="https://zhanghongtong.github.io/2019/06/27/Ubuntu和docker使用shadowsocks客户端翻墙/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="张奇怪">
@@ -290,7 +290,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">创建一个足够小的golang应用的Dockerfile</h1>
+          <h1 class="post-title" itemprop="name headline">Ubuntu和docker使用shadowsocks客户端代理</h1>
         
 
         <div class="post-meta">
@@ -302,8 +302,8 @@
               
                 <span class="post-meta-item-text">Posted on</span>
               
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-07-25T17:27:04+08:00">
-                2018-07-25
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-06-27T15:37:30+08:00">
+                2019-06-27
               </time>
             
 
@@ -362,16 +362,53 @@
       
 
       
-        <p>之前创建go的docker image时使用的base image是 golang:latest，编译完的image有800+M，太大了，可以在宿主机上先将go编译成可执行文件，然后使用scratch做base image将可执行文件编译成docker image</p>
-<h1 id="关于scratch"><a href="#关于scratch" class="headerlink" title="关于scratch"></a>关于scratch</h1><p><a href="https://hub.docker.com/_/scratch/" target="_blank" rel="noopener">scratch</a> 是一非常特别的镜像，这个镜像很有意思的是他是一个空镜像。<br>也就是说大小几乎是 0 。<br>但是不能单独跑起来，只能做基础镜像，然后把main 程序放上去。<br>说白就是是一个线程了，这样有个非常好的优势，镜像小，没有依赖。</p>
-<h1 id="开始实验"><a href="#开始实验" class="headerlink" title="开始实验"></a>开始实验</h1><h3 id="创建go程序"><a href="#创建go程序" class="headerlink" title="创建go程序"></a>创建go程序</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">package main</span><br><span class="line"></span><br><span class="line">import &quot;fmt&quot;</span><br><span class="line"></span><br><span class="line">func main()  &#123;</span><br><span class="line">	fmt.Println(&quot;hello small docker image&quot;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>使用<code>GOOS=linux GOARCH=amd64 go build .</code>编译成可执行文件</p>
-<h3 id="编写Dockerfile"><a href="#编写Dockerfile" class="headerlink" title="编写Dockerfile"></a>编写Dockerfile</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">#使用scratch做base images</span><br><span class="line">FROM scratch</span><br><span class="line"></span><br><span class="line">#添加可执行文件</span><br><span class="line">ADD main /</span><br><span class="line"></span><br><span class="line">#运行可执行文件</span><br><span class="line">CMD [ &quot;./main&quot; ]</span><br></pre></td></tr></table></figure>
-<p>使用<code>docker build -t test .</code> 命令将Dockerfile编译成docker image</p>
-<h3 id="查看docker-image"><a href="#查看docker-image" class="headerlink" title="查看docker image"></a>查看docker image</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"># docker images</span><br><span class="line">REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE</span><br><span class="line">test                latest              3359eedebdad        4 minutes ago       2.03MB</span><br></pre></td></tr></table></figure>
-<p>可以看到docker image只有2M多</p>
-<h3 id="运行容器"><a href="#运行容器" class="headerlink" title="运行容器"></a>运行容器</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># docker run test</span><br><span class="line">hello small docker image</span><br></pre></td></tr></table></figure>
-<h3 id="Done"><a href="#Done" class="headerlink" title="Done"></a>Done</h3>
+        <h2 id="Ubuntu安装shadowsocks客户端"><a href="#Ubuntu安装shadowsocks客户端" class="headerlink" title="Ubuntu安装shadowsocks客户端"></a>Ubuntu安装shadowsocks客户端</h2><ol>
+<li><p>首先安装shadowsocks-libev和privoxy</p>
+ <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># apt-get update</span><br><span class="line"># apt-get install shadowsocks-libev privoxy</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>编辑shadowsocks配置文件</p>
+ <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"># cat /etc/shadowsocks-libev/config</span><br><span class="line">&#123;</span><br><span class="line">    &quot;server&quot;:&quot;1.2.3.4&quot;,</span><br><span class="line">    &quot;server_port&quot;:23333,</span><br><span class="line">    &quot;local_address&quot;:&quot;0.0.0.0&quot;,</span><br><span class="line">    &quot;local_port&quot;:1080,</span><br><span class="line">    &quot;password&quot;:&quot;mypassword&quot;,</span><br><span class="line">    &quot;timeout&quot;:60,</span><br><span class="line">    &quot;method&quot;:&quot;chacha20-ietf-poly1305&quot;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<ol start="3">
+<li><p><code>ss-local</code>启动shadowsocks客户端</p>
+ <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"># ss-local</span><br><span class="line"> 2019-02-15 10:08:43 INFO: initializing ciphers... chacha20-ietf-poly1305</span><br><span class="line"> 2019-02-15 10:08:43 INFO: listening at 127.0.0.1:1080</span><br><span class="line"> 2019-02-15 10:08:43 INFO: running from root user</span><br></pre></td></tr></table></figure>
+<p> 确认客户端启动没有问题后用<code>nohup ss-local &amp;</code>命令让客户端在后台运行</p>
+</li>
+<li><p>编辑privoxy配置文件 <code>/etc/privoxy/config</code></p>
+<ul>
+<li>找到<code>listen-address</code>这一行，将其修改为<code>listen-address localhost:8118， 8118</code>也就是你需要的http代理的端口。</li>
+<li>再找到<code>forward-socks5t</code>这一行，取消注释，将这一行修改为<code>forward-socks5 / 127.0.0.1:1080 .</code>，1080是socks代理的端口。</li>
+<li>重启服务</li>
+<li><code>service privoxy start</code> #默认自启动</li>
+</ul>
+</li>
+<li><p>给系统设置http代理</p>
+ <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># echo &apos;export http_proxy=&quot;http://0.0.0.0:8118/&quot; &gt;&gt; ~/.bashrc&apos;</span><br><span class="line"># source ~/.bashrc</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<h2 id="docker使用socks5代理加速下载镜像"><a href="#docker使用socks5代理加速下载镜像" class="headerlink" title="docker使用socks5代理加速下载镜像"></a>docker使用socks5代理加速下载镜像</h2><ol>
+<li><p>编辑service文件<br><code>vim /usr/lib/systemd/system/docker.service</code><br>不同系统的docker.service文件位置可能不一样，可以使用 <code>find / -name &quot;docker.service&quot;</code> 查找</p>
+<p>在<code>[Service]</code>下增加</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Environment=HTTP_PROXY=http://127.0.0.1:8118/</span><br><span class="line">Environment=HTTPS_PROXY=http://127.0.0.1:8118/</span><br><span class="line">Environment=NO_PROXY=localhost,127.0.0.1,m1empwb1.mirror.aliyuncs.com,docker.io,registry.cn-hangzhou.aliyuncs.com</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>重启docker服务</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"># systemctl daemon-reload</span><br><span class="line"># systemctl show docker |grep 127.0.0.1</span><br><span class="line">Environment=HTTP_PROXY=http://127.0.0.1:8118/ HTTPS_PROXY=http://127.0.0.1:8118/ NO_PROXY=localhost,127.0.0.1,m1empwb1.mirror.aliyuncs.com,docker.io,registry.cn-hangzhou.aliyuncs.com ALL_PROXY=socks5://127.0.0.1:1080</span><br><span class="line"># systemctl restart docker</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>测试</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"># docker pull gcr.io/kubernetes-helm/tiller:v2.2.2</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<h2 id="docker容器使用socks5代理"><a href="#docker容器使用socks5代理" class="headerlink" title="docker容器使用socks5代理"></a>docker容器使用socks5代理</h2><ol>
+<li><p>在容器内添加环境变量（IP为宿主机代理IP）</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">export ALL_PROXY=socks5://10.190.0.61:1080</span><br><span class="line">export http_proxy=&quot;http://10.190.0.61:8118&quot;</span><br><span class="line">export https_proxy=&quot;https://10.190.0.61:8118&quot;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>测试</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">wget google.com</span><br><span class="line">Connecting to 10.190.0.61:8118 (10.190.0.61:8118)</span><br><span class="line">index.html           100% |***********************************************************************************************************************************************************| 11323   0:00:00 ETA</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>以上</p>
+
       
     </div>
     
@@ -394,8 +431,6 @@
           
             <a href="/tags/docker/" rel="tag"># docker</a>
           
-            <a href="/tags/golang/" rel="tag"># golang</a>
-          
         </div>
       
 
@@ -407,8 +442,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2018/07/17/linux-shell-脚本读取-ini-配置文件/" rel="next" title="linux shell 脚本读取 ini 配置文件">
-                <i class="fa fa-chevron-left"></i> linux shell 脚本读取 ini 配置文件
+              <a href="/2019/06/04/docker中执行sed-can-t-move-etc-resolv-conf73UqmG-to-etc-resolv-conf-Device-or-resource-busy错误的处理原因及方式/" rel="next" title="docker中执行sed: can't move '/etc/resolv.conf73UqmG' to '/etc/resolv.conf': Device or resource busy错误的处理原因及方式">
+                <i class="fa fa-chevron-left"></i> docker中执行sed: can't move '/etc/resolv.conf73UqmG' to '/etc/resolv.conf': Device or resource busy错误的处理原因及方式
               </a>
             
           </div>
@@ -416,10 +451,6 @@
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
-            
-              <a href="/2018/07/26/Dockerfile-CMD-和-ENTRYPOINT-的区别/" rel="prev" title="Dockerfile CMD 和 ENTRYPOINT 的区别">
-                Dockerfile CMD 和 ENTRYPOINT 的区别 <i class="fa fa-chevron-right"></i>
-              </a>
             
           </div>
         </div>
@@ -553,7 +584,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#关于scratch"><span class="nav-number">1.</span> <span class="nav-text">关于scratch</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#开始实验"><span class="nav-number">2.</span> <span class="nav-text">开始实验</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#创建go程序"><span class="nav-number">2.0.1.</span> <span class="nav-text">创建go程序</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#编写Dockerfile"><span class="nav-number">2.0.2.</span> <span class="nav-text">编写Dockerfile</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#查看docker-image"><span class="nav-number">2.0.3.</span> <span class="nav-text">查看docker image</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#运行容器"><span class="nav-number">2.0.4.</span> <span class="nav-text">运行容器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Done"><span class="nav-number">2.0.5.</span> <span class="nav-text">Done</span></a></li></ol></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Ubuntu安装shadowsocks客户端"><span class="nav-number">1.</span> <span class="nav-text">Ubuntu安装shadowsocks客户端</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#docker使用socks5代理加速下载镜像"><span class="nav-number">2.</span> <span class="nav-text">docker使用socks5代理加速下载镜像</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#docker容器使用socks5代理"><span class="nav-number">3.</span> <span class="nav-text">docker容器使用socks5代理</span></a></li></ol></div>
             
 
           </div>
