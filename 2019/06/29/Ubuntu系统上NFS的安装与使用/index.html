@@ -78,7 +78,7 @@
 <link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
 
 
-  <meta name="keywords" content="linux,服务器,docker,k8s," />
+  <meta name="keywords" content="linux,服务器,NFS," />
 
 
 
@@ -94,18 +94,18 @@
 
 
 
-<meta name="description" content="写在前面dashboard的安装非常简单。但按照官网建议的方式安装完成后，输入token登录时会没有反应。  这个问题困扰了我一整天，最终在这里找到了答案。  原因如下：  按官方文档建议的方式安装完dashboard后，使用kubectl proxy代理的方式来访问webUI。使用这个代理的方式访问就会导致登录无响应的问题。 我们需要将dashboard的service类型改为NodePort,">
-<meta name="keywords" content="linux,服务器,docker,k8s">
+<meta name="description" content="服务器端 安装NFS服务 12345#执行以下命令安装NFS服务器，#apt会自动安装nfs-common、rpcbind等13个软件包sudo apt install nfs-kernel-server  编写配置文件： 1234567#编辑/etc/exports 文件：sudo vim /etc/exports#/etc/exports文件的内容如下：/tmp *(rw,sync,no_su">
+<meta name="keywords" content="linux,服务器,NFS">
 <meta property="og:type" content="article">
-<meta property="og:title" content="kubernetes1.9安装dashboard，以及token认证问题">
-<meta property="og:url" content="https://zhanghongtong.github.io/2018/10/25/kubernetes1-9安装dashboard，以及token认证问题/index.html">
+<meta property="og:title" content="Ubuntu系统上NFS的安装与使用">
+<meta property="og:url" content="https://zhanghongtong.github.io/2019/06/29/Ubuntu系统上NFS的安装与使用/index.html">
 <meta property="og:site_name" content="张奇怪的blog">
-<meta property="og:description" content="写在前面dashboard的安装非常简单。但按照官网建议的方式安装完成后，输入token登录时会没有反应。  这个问题困扰了我一整天，最终在这里找到了答案。  原因如下：  按官方文档建议的方式安装完dashboard后，使用kubectl proxy代理的方式来访问webUI。使用这个代理的方式访问就会导致登录无响应的问题。 我们需要将dashboard的service类型改为NodePort,">
+<meta property="og:description" content="服务器端 安装NFS服务 12345#执行以下命令安装NFS服务器，#apt会自动安装nfs-common、rpcbind等13个软件包sudo apt install nfs-kernel-server  编写配置文件： 1234567#编辑/etc/exports 文件：sudo vim /etc/exports#/etc/exports文件的内容如下：/tmp *(rw,sync,no_su">
 <meta property="og:locale" content="简体中文">
-<meta property="og:updated_time" content="2018-10-25T07:21:47.612Z">
+<meta property="og:updated_time" content="2019-06-29T07:01:11.846Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="kubernetes1.9安装dashboard，以及token认证问题">
-<meta name="twitter:description" content="写在前面dashboard的安装非常简单。但按照官网建议的方式安装完成后，输入token登录时会没有反应。  这个问题困扰了我一整天，最终在这里找到了答案。  原因如下：  按官方文档建议的方式安装完dashboard后，使用kubectl proxy代理的方式来访问webUI。使用这个代理的方式访问就会导致登录无响应的问题。 我们需要将dashboard的service类型改为NodePort,">
+<meta name="twitter:title" content="Ubuntu系统上NFS的安装与使用">
+<meta name="twitter:description" content="服务器端 安装NFS服务 12345#执行以下命令安装NFS服务器，#apt会自动安装nfs-common、rpcbind等13个软件包sudo apt install nfs-kernel-server  编写配置文件： 1234567#编辑/etc/exports 文件：sudo vim /etc/exports#/etc/exports文件的内容如下：/tmp *(rw,sync,no_su">
 
 
 
@@ -134,13 +134,13 @@
 
 
 
-  <link rel="canonical" href="https://zhanghongtong.github.io/2018/10/25/kubernetes1-9安装dashboard，以及token认证问题/"/>
+  <link rel="canonical" href="https://zhanghongtong.github.io/2019/06/29/Ubuntu系统上NFS的安装与使用/"/>
 
 
 
 
 
-  <title>kubernetes1.9安装dashboard，以及token认证问题 | 张奇怪的blog</title>
+  <title>Ubuntu系统上NFS的安装与使用 | 张奇怪的blog</title>
   
 
 
@@ -273,7 +273,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://zhanghongtong.github.io/2018/10/25/kubernetes1-9安装dashboard，以及token认证问题/">
+    <link itemprop="mainEntityOfPage" href="https://zhanghongtong.github.io/2019/06/29/Ubuntu系统上NFS的安装与使用/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="张奇怪">
@@ -290,7 +290,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">kubernetes1.9安装dashboard，以及token认证问题</h1>
+          <h1 class="post-title" itemprop="name headline">Ubuntu系统上NFS的安装与使用</h1>
         
 
         <div class="post-meta">
@@ -302,8 +302,8 @@
               
                 <span class="post-meta-item-text">Posted on</span>
               
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-10-25T15:13:18+08:00">
-                2018-10-25
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-06-29T14:48:33+08:00">
+                2019-06-29
               </time>
             
 
@@ -325,8 +325,8 @@
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/kubernetes/" itemprop="url" rel="index">
-                    <span itemprop="name">kubernetes</span>
+                  <a href="/categories/服务器/" itemprop="url" rel="index">
+                    <span itemprop="name">服务器</span>
                   </a>
                 </span>
 
@@ -362,27 +362,44 @@
       
 
       
-        <h2 id="写在前面"><a href="#写在前面" class="headerlink" title="写在前面"></a>写在前面</h2><p>dashboard的安装非常简单。但按照官网建议的方式安装完成后，输入token登录时会没有反应。 </p>
-<p>这个问题困扰了我一整天，最终在<a href="https://github.com/kubernetes/dashboard/issues/2540l" target="_blank" rel="noopener">这里</a>找到了答案。 </p>
-<p>原因如下： </p>
-<p>按官方文档建议的方式安装完dashboard后，使用kubectl proxy代理的方式来访问webUI。使用这个代理的方式访问就会导致登录无响应的问题。</p>
-<p>我们需要将dashboard的service类型改为NodePort,将端口映射到虚拟机上，然后直接通过虚拟机的ip地址登录</p>
-<h2 id="安装dashboard"><a href="#安装dashboard" class="headerlink" title="安装dashboard"></a>安装dashboard</h2><h3 id="首先下载官网提供的dashboard-yaml"><a href="#首先下载官网提供的dashboard-yaml" class="headerlink" title="首先下载官网提供的dashboard.yaml"></a>首先下载官网提供的dashboard.yaml</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wget https://raw.githubusercontent.com/kubernetes/dashboard/master/src/deploy/recommended/kubernetes-dashboard.yaml</span><br></pre></td></tr></table></figure>
-<h3 id="修改yaml-添加NodePort"><a href="#修改yaml-添加NodePort" class="headerlink" title="修改yaml,添加NodePort."></a>修改yaml,添加NodePort.</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">kind: Service</span><br><span class="line">apiVersion: v1</span><br><span class="line">metadata:</span><br><span class="line">  labels:</span><br><span class="line">    k8s-app: kubernetes-dashboard</span><br><span class="line">  name: kubernetes-dashboard</span><br><span class="line">  namespace: kube-system</span><br><span class="line">spec:</span><br><span class="line">  # 添加Service的type为NodePort</span><br><span class="line">  type: NodePort</span><br><span class="line">  ports:</span><br><span class="line">    - port: 443</span><br><span class="line">      targetPort: 8443</span><br><span class="line">      # 添加映射到虚拟机的端口,k8s只支持30000以上的端口</span><br><span class="line">      nodePort: 30001</span><br><span class="line">  selector:</span><br><span class="line">    k8s-app: kubernetes-dashboard</span><br></pre></td></tr></table></figure>
-<h3 id="安装dashboard-1"><a href="#安装dashboard-1" class="headerlink" title="安装dashboard"></a>安装dashboard</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl create -f kubernetes-dashboard.yaml</span><br></pre></td></tr></table></figure>
-<h3 id="获取token"><a href="#获取token" class="headerlink" title="获取token"></a>获取token</h3><p>这里有一个简单的命令：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl -n kube-system describe $(kubectl -n kube-system get secret -n kube-system -o name | grep namespace) | grep token</span><br></pre></td></tr></table></figure></p>
-<p>也可以自己手动查询：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"># 输入下面命令查询kube-system命名空间下的所有secret</span><br><span class="line">kubectl get secret -n kube-system</span><br><span class="line"></span><br><span class="line"># 然后获取token。只要是type为service-account-token的secret的token都可以使用。</span><br><span class="line"># 比如我们获取replicaset-controller-token-wsv4v的touken</span><br><span class="line">kubectl -n kube-system describe replicaset-controller-token-wsv4v</span><br></pre></td></tr></table></figure></p>
-<h3 id="访问dashboard"><a href="#访问dashboard" class="headerlink" title="访问dashboard"></a>访问dashboard</h3><p>通过node节点的ip，加刚刚我们设置的nodePort就可以访问了。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://&lt;node-ip&gt;:&lt;node-port&gt;</span><br></pre></td></tr></table></figure></p>
-<p>认证有两种方式：</p>
-<ul>
-<li>通过我们刚刚获取的token直接认证</li>
-<li><p>通过Kubeconfig文件认证</p>
-<p>只需要在kubeadm生成的admin.conf文件末尾加上刚刚获取的token就好了。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">- name: kubernetes-admin</span><br><span class="line">user:</span><br><span class="line">  client-certificate-data: xxxxxxxx</span><br><span class="line">  client-key-data: xxxxxx</span><br><span class="line">  token: &quot;在这里加上token&quot;</span><br></pre></td></tr></table></figure>
+        <h2 id="服务器端"><a href="#服务器端" class="headerlink" title="服务器端"></a>服务器端</h2><ol>
+<li><p>安装NFS服务</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">#执行以下命令安装NFS服务器，</span><br><span class="line"></span><br><span class="line">#apt会自动安装nfs-common、rpcbind等13个软件包</span><br><span class="line"></span><br><span class="line">sudo apt install nfs-kernel-server</span><br></pre></td></tr></table></figure>
 </li>
-</ul>
-<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
-<li><a href="https://segmentfault.com/a/1190000013681047" target="_blank" rel="noopener">kubernetes1.9安装dashboard，以及token认证问题</a></li>
+<li><p>编写配置文件：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">#编辑/etc/exports 文件：</span><br><span class="line">sudo vim /etc/exports</span><br><span class="line"></span><br><span class="line">#/etc/exports文件的内容如下：</span><br><span class="line">/tmp *(rw,sync,no_subtree_check,no_root_squash)</span><br><span class="line">/data *(rw,sync,no_subtree_check,no_root_squash)</span><br><span class="line">/logs *(rw,sync,no_subtree_check,no_root_squash)</span><br></pre></td></tr></table></figure>
+<p>各段表达的意思如下，根据实际进行修改</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">/tmp   ：共享的目录</span><br><span class="line"></span><br><span class="line">*       ：指定哪些用户可以访问</span><br><span class="line">            *  所有可以ping同该主机的用户</span><br><span class="line">            192.168.1.*  指定网段，在该网段中的用户可以挂载</span><br><span class="line">            192.168.1.12 只有该用户能挂载</span><br><span class="line"></span><br><span class="line">(ro,sync,no_root_squash)：  权限</span><br><span class="line">        ro : 只读</span><br><span class="line">        rw : 读写</span><br><span class="line">        sync :  同步</span><br><span class="line">        no_root_squash: 不降低root用户的权限</span><br><span class="line">    其他选项man 5 exports 查看</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>创建共享目录</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#在服务器端创建/tmp /data和/logs共享目录</span><br><span class="line">sudo mkdir -p /tmp</span><br><span class="line">sudo mkdir -p /data</span><br><span class="line">sudo mkdir -p /logs</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>重启nfs服务：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo service nfs-kernel-server restart</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>常用命令</p>
+ <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">#在安装NFS服务器时，已包含常用的命令行工具，无需额外安装。</span><br><span class="line"></span><br><span class="line">#显示已经mount到本机nfs目录的客户端机器。</span><br><span class="line">sudo showmount -e localhost</span><br><span class="line"></span><br><span class="line">#将配置文件中的目录全部重新export一次！无需重启服务。</span><br><span class="line">sudo exportfs -rv</span><br><span class="line"></span><br><span class="line">#查看NFS的运行状态</span><br><span class="line">sudo nfsstat</span><br><span class="line"></span><br><span class="line">#查看rpc执行信息，可以用于检测rpc运行情况</span><br><span class="line">sudo rpcinfo</span><br><span class="line"></span><br><span class="line">#查看网络端口，NFS默认是使用111端口。</span><br><span class="line">sudo netstat -tu -4</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<h2 id="客户端"><a href="#客户端" class="headerlink" title="客户端"></a>客户端</h2><ol>
+<li><p>安装客户端工具</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">#在需要连接到NFS服务器的客户端机器上执行以下命令，安装nfs-common软件包。</span><br><span class="line">#apt会自动安装nfs-common、rpcbind等12个软件包</span><br><span class="line">sudo apt install nfs-common</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>查看NFS服务器上的共享目录</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">#显示指定的（192.168.3.167）NFS服务器上export出来的目录</span><br><span class="line">sudo showmount -e 192.168.3.167</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>创建本地挂载目录</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">sudo mkdir -p /mnt/data</span><br><span class="line">sudo mkdir -p /mnt/logs</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>挂载共享目录</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">#将NFS服务器192.168.3.167上的目录，挂载到本地的/mnt/目录下</span><br><span class="line">sudo mount -t nfs 192.168.3.167:/data /mnt/data</span><br><span class="line">sudo mount -t nfs 192.168.3.167:/logs /mnt/logs</span><br></pre></td></tr></table></figure>
+<p>访问本地的mnt目录，就可访问服务端共享的目录了。</p>
+</li>
+</ol>
+<h2 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h2><ul>
+<li><a href="http://server.51cto.com/sManage-150923.htm" target="_blank" rel="noopener">超全面的NFS详解</a></li>
+<li><a href="http://www.cnblogs.com/MoreExcellent/p/7222895.html" target="_blank" rel="noopener">ubuntu 16.04 nfs服务的搭建</a></li>
+<li><a href="https://blog.csdn.net/CSDN_duomaomao/article/details/77822883" target="_blank" rel="noopener">Ubuntu 16.04系统上NFS的安装与使用</a></li>
 </ul>
 
       
@@ -405,9 +422,7 @@
           
             <a href="/tags/服务器/" rel="tag"># 服务器</a>
           
-            <a href="/tags/docker/" rel="tag"># docker</a>
-          
-            <a href="/tags/k8s/" rel="tag"># k8s</a>
+            <a href="/tags/NFS/" rel="tag"># NFS</a>
           
         </div>
       
@@ -420,8 +435,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2018/10/23/在k8s上搭建emqx自动集群/" rel="next" title="在k8s上搭建emqx自动集群">
-                <i class="fa fa-chevron-left"></i> 在k8s上搭建emqx自动集群
+              <a href="/2019/06/27/Ubuntu和docker使用shadowsocks客户端翻墙/" rel="next" title="Ubuntu和docker使用shadowsocks客户端代理">
+                <i class="fa fa-chevron-left"></i> Ubuntu和docker使用shadowsocks客户端代理
               </a>
             
           </div>
@@ -429,10 +444,6 @@
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
-            
-              <a href="/2018/10/30/Kunbernetes安装部署工具Helm，使用helm管理与发布kubernetes应用/" rel="prev" title="Kunbernetes安装部署工具Helm，使用helm管理与发布kubernetes应用">
-                Kunbernetes安装部署工具Helm，使用helm管理与发布kubernetes应用 <i class="fa fa-chevron-right"></i>
-              </a>
             
           </div>
         </div>
@@ -566,7 +577,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#写在前面"><span class="nav-number">1.</span> <span class="nav-text">写在前面</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#安装dashboard"><span class="nav-number">2.</span> <span class="nav-text">安装dashboard</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#首先下载官网提供的dashboard-yaml"><span class="nav-number">2.1.</span> <span class="nav-text">首先下载官网提供的dashboard.yaml</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#修改yaml-添加NodePort"><span class="nav-number">2.2.</span> <span class="nav-text">修改yaml,添加NodePort.</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#安装dashboard-1"><span class="nav-number">2.3.</span> <span class="nav-text">安装dashboard</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#获取token"><span class="nav-number">2.4.</span> <span class="nav-text">获取token</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#访问dashboard"><span class="nav-number">2.5.</span> <span class="nav-text">访问dashboard</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考资料"><span class="nav-number">3.</span> <span class="nav-text">参考资料</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#服务器端"><span class="nav-number">1.</span> <span class="nav-text">服务器端</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#客户端"><span class="nav-number">2.</span> <span class="nav-text">客户端</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考链接"><span class="nav-number">3.</span> <span class="nav-text">参考链接</span></a></li></ol></div>
             
 
           </div>
