@@ -270,6 +270,318 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://zhanghongtong.github.io/2018/10/09/Shell中字符串的切割、拼接、比较、替换/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="张奇怪">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="张奇怪的blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/10/09/Shell中字符串的切割、拼接、比较、替换/" itemprop="url">Shell中字符串的切割、拼接、比较、替换</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-10-09T11:20:35+08:00">
+                2018-10-09
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/服务器/" itemprop="url" rel="index">
+                    <span itemprop="name">服务器</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h2 id="截取"><a href="#截取" class="headerlink" title="截取"></a>截取</h2><h3 id="shell-截取字符变量的前8位，有方法如下："><a href="#shell-截取字符变量的前8位，有方法如下：" class="headerlink" title="shell 截取字符变量的前8位，有方法如下："></a>shell 截取字符变量的前8位，有方法如下：</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">expr substr “$a” 1 8</span><br><span class="line">echo $a|awk ‘&#123;print substr(,1,8)&#125;’</span><br><span class="line">echo $a|cut -c1-8</span><br><span class="line">echo $</span><br><span class="line">expr $a : ‘(.\).*’</span><br><span class="line">echo $a|dd bs=1 count=8 2&gt;/dev/null</span><br></pre></td></tr></table></figure>
+<h3 id="按指定的字符串截取"><a href="#按指定的字符串截取" class="headerlink" title="按指定的字符串截取"></a>按指定的字符串截取</h3><p>第一种方法:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">$&#123;varible##*string&#125; 从左向右截取最后一个string后的字符串</span><br><span class="line"></span><br><span class="line">$&#123;varible#*string&#125;从左向右截取第一个string后的字符串</span><br><span class="line"></span><br><span class="line">$&#123;varible%%string*&#125;从右向左截取最后一个string后的字符串</span><br><span class="line"></span><br><span class="line">$&#123;varible%string*&#125;从右向左截取第一个string后的字符串</span><br><span class="line"></span><br><span class="line">“*”只是一个通配符可以不要</span><br></pre></td></tr></table></figure></p>
+<p>例子：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ MYVAR=foodforthought.jpg</span><br><span class="line">$ echo $&#123;MYVAR##*fo&#125;</span><br><span class="line">rthought.jpg</span><br><span class="line">$ echo $&#123;MYVAR#*fo&#125;</span><br><span class="line">odforthought.jpg</span><br></pre></td></tr></table></figure></p>
+<p>第二种方法：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$&#123;varible:n1:n2&#125;:截取变量varible从n1到n2之间的字符串</span><br></pre></td></tr></table></figure></p>
+<p>可以根据特定字符偏移和长度，使用另一种形式的变量扩展，来选择特定子字符串。试着在 bash 中输入以下行：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ EXCLAIM=cowabunga</span><br><span class="line">$ echo $&#123;EXCLAIM:0:3&#125;</span><br><span class="line">cow</span><br><span class="line">$ echo $&#123;EXCLAIM:3:7&#125;</span><br><span class="line">abunga</span><br></pre></td></tr></table></figure>
+<p>这种形式的字符串截断非常简便，只需用冒号分开来指定起始字符和子字符串长度。</p>
+<p>第三种方法：<br>按照指定要求分割：<br>比如获取后缀名</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ls -al | cut -d “.” -f2</span><br></pre></td></tr></table></figure>
+<h2 id="拼接"><a href="#拼接" class="headerlink" title="拼接"></a>拼接</h2><h3 id="拼接字符"><a href="#拼接字符" class="headerlink" title="拼接字符"></a>拼接字符</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$value1=home</span><br><span class="line">$value2=$&#123;value1&#125;&quot;=&quot;</span><br><span class="line">echo $value2</span><br></pre></td></tr></table></figure>
+<h3 id="拼接字符串"><a href="#拼接字符串" class="headerlink" title="拼接字符串"></a>拼接字符串</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[root@localhost sh]# var1=/etc/</span><br><span class="line">[root@localhost sh]# var2=yum.repos.d/</span><br><span class="line">[root@localhost sh]# var3=$&#123;var1&#125;$&#123;var2&#125;</span><br><span class="line">[root@localhost sh]# echo $var3</span><br><span class="line">/etc/yum.repos.d/</span><br></pre></td></tr></table></figure>
+<h2 id="替换"><a href="#替换" class="headerlink" title="替换"></a>替换</h2><p>替换命令：<code>${变量/查找/替换值}  一个&#39;/&#39;表示替换第一个&#39;//&#39;表示替换所有，当查找出中出现了：&quot;/&quot;需要转移成&quot;\/&quot;</code></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[chengmo@localhost ~]$ test=&apos;c:/windows/boot.ini&apos;</span><br><span class="line">[chengmo@localhost ~]$ echo $&#123;test/\//\\&#125;</span><br><span class="line">c:\windows/boot.ini</span><br><span class="line">[chengmo@localhost ~]$ echo $&#123;test//\//\\&#125;</span><br><span class="line">c:\windows\boot.ini</span><br></pre></td></tr></table></figure>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://zhanghongtong.github.io/2018/09/17/Linux-基础：如何在Ubuntu上检查一个软件包是否安装/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="张奇怪">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="张奇怪的blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/09/17/Linux-基础：如何在Ubuntu上检查一个软件包是否安装/" itemprop="url">Linux 基础：如何在Ubuntu上检查一个软件包是否安装</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-09-17T23:06:16+08:00">
+                2018-09-17
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/服务器/" itemprop="url" rel="index">
+                    <span itemprop="name">服务器</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>如果你正在管理Debian或者Ubuntu服务器，你也许会经常使用dpkg 或者 apt-get命令。这两个命令用来安装、卸载和更新包。</p>
+<p>在本篇中，让我们看下如何在基于DEB的系统下检查是否安装了一个包。</p>
+<p>要检查特定的包，比如firefox是否安装了，使用这个命令：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dpkg -s firefox</span><br></pre></td></tr></table></figure></p>
+<p>示例输出<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">Package: firefox</span><br><span class="line">Status: install ok installed</span><br><span class="line">Priority: optional</span><br><span class="line">Section: web</span><br><span class="line">Installed-Size: 93339</span><br><span class="line">Maintainer: Ubuntu Mozilla Team &lt;ubuntu-mozillateam@lists.ubuntu.com&gt;</span><br><span class="line">Architecture: amd64</span><br><span class="line">Version: 35.0+build3-0ubuntu0.14.04.2</span><br><span class="line">Replaces: kubuntu-firefox-installer</span><br><span class="line">Provides: gnome-www-browser, iceweasel, www-browser</span><br><span class="line">Depends: lsb-release, libasound2 (&gt;= 1.0.16), libatk1.0-0 (&gt;= 1.12.4), libc6 (&gt;= 2.17), libcairo2 (&gt;= 1.2.4), libdbus-1-3 (&gt;= 1.0.2), libdbus-glib-1-2 (&gt;= 0.78), libfontconfig1 (&gt;= 2.9.0), libfreetype6 (&gt;= 2.2.1), libgcc1 (&gt;= 1:4.1.1), libgdk-pixbuf2.0-0 (&gt;= 2.22.0), libglib2.0-0 (&gt;= 2.37.3), libgtk2.0-0 (&gt;= 2.24.0), libpango-1.0-0 (&gt;= 1.22.0), libpangocairo-1.0-0 (&gt;= 1.14.0), libstartup-notification0 (&gt;= 0.8), libstdc++6 (&gt;= 4.6), libx11-6, libxcomposite1 (&gt;= 1:0.3-1), libxdamage1 (&gt;= 1:1.1), libxext6, libxfixes3, libxrender1, libxt6</span><br><span class="line">Recommends: xul-ext-ubufox, libcanberra0, libdbusmenu-glib4, libdbusmenu-gtk4</span><br><span class="line">Suggests: ttf-lyx</span><br><span class="line">Conffiles:</span><br><span class="line">/etc/firefox/syspref.js 09e457e65435a1a043521f2bd19cd2a1</span><br><span class="line">/etc/apport/blacklist.d/firefox ee63264f847e671832d42255912ce144</span><br><span class="line">/etc/apport/native-origins.d/firefox 7c26b75c7c2b715c89cc6d85338252a4</span><br><span class="line">/etc/apparmor.d/usr.bin.firefox f54f7a43361c7ecfa3874abca2f292cf</span><br><span class="line">Description: Safe and easy web browser from Mozilla</span><br><span class="line">Firefox delivers safe, easy web browsing. A familiar user interface,</span><br><span class="line">enhanced security features including protection from online identity theft,</span><br><span class="line">and integrated search let you get the most out of the web.</span><br><span class="line">Xul-Appid: &#123;ec8030f7-c20a-464f-9b0e-13a3a9e97384&#125;</span><br></pre></td></tr></table></figure></p>
+<p>如上所见，firefox已经安装了。</p>
+<p>同样，你可以使用dpkg-query 命令。这个命令会有一个更好的输出，当然，你可以用通配符。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dpkg-query -l firefox</span><br></pre></td></tr></table></figure>
+<p>示例输出：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Desired=Unknown/Install/Remove/Purge/Hold</span><br><span class="line">| Status=Not/Inst/Conf-files/Unpacked/halF-conf/Half-inst/trig-aWait/Trig-pend</span><br><span class="line">|/ Err?=(none)/Reinst-required (Status,Err: uppercase=bad)</span><br><span class="line">||/ Name                                 Version                 Architecture            Description</span><br><span class="line">+++-====================================-=======================-=======================-=============================================================================</span><br><span class="line">ii  firefox                              35.0+build3-0ubuntu0.14 amd64                   Safe and easy web browser from Mozilla</span><br></pre></td></tr></table></figure></p>
+<p>要列出你系统中安装的所有包，输入下面的命令：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dpkg --get-selections</span><br></pre></td></tr></table></figure></p>
+<p>示例输出：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">abiword                        install</span><br><span class="line">abiword-common                    install</span><br><span class="line">accountsservice                    install</span><br><span class="line">acl                        install</span><br><span class="line">adduser                        install</span><br><span class="line">alsa-base                    install</span><br><span class="line">alsa-utils                    install</span><br><span class="line">anacron                        install</span><br><span class="line">app-install-data                install</span><br><span class="line">apparmor                    install</span><br><span class="line">.</span><br><span class="line">.</span><br><span class="line">.</span><br><span class="line">zeitgeist                    install</span><br><span class="line">zeitgeist-core                    install</span><br><span class="line">zeitgeist-datahub                install</span><br><span class="line">zenity                        install</span><br><span class="line">zenity-common                    install</span><br><span class="line">zip                        install</span><br><span class="line">zlib1g:amd64                    install</span><br><span class="line">zlib1g:i386                    install</span><br></pre></td></tr></table></figure></p>
+<p>上面的输出可能会非常长，这依赖于你的系统已安装的包。</p>
+<p>你同样可以通过grep来过滤割到更精确的包。比如，我想要使用dpkg命令查看系统中安装的gcc包：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dpkg --get-selections | grep gcc</span><br></pre></td></tr></table></figure>
+<p>示例输出：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">gcc                        install</span><br><span class="line">gcc-4.8                        install</span><br><span class="line">gcc-4.8-base:amd64                install</span><br><span class="line">gcc-4.8-base:i386                install</span><br><span class="line">gcc-4.9-base:amd64                install</span><br><span class="line">gcc-4.9-base:i386                install</span><br><span class="line">libgcc-4.8-dev:amd64                install</span><br><span class="line">libgcc1:amd64                    install</span><br><span class="line">libgcc1:i386                    install</span><br></pre></td></tr></table></figure></p>
+<p>此外，你可以使用“-L”参数来找出包中文件的位置。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dpkg -L gcc-4.8</span><br></pre></td></tr></table></figure>
+<p>示例输出：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">/.</span><br><span class="line">/usr</span><br><span class="line">/usr/share</span><br><span class="line">/usr/share/doc</span><br><span class="line">/usr/share/doc/gcc-4.8-base</span><br><span class="line">/usr/share/doc/gcc-4.8-base/README.Bugs</span><br><span class="line">/usr/share/doc/gcc-4.8-base/NEWS.html</span><br><span class="line">/usr/share/doc/gcc-4.8-base/quadmath</span><br><span class="line">/usr/share/doc/gcc-4.8-base/quadmath/changelog.gz</span><br><span class="line">/usr/share/doc/gcc-4.8-base/gcc</span><br><span class="line">.</span><br><span class="line">.</span><br><span class="line">.</span><br><span class="line">/usr/bin/x86_64-linux-gnu-gcc-4.8</span><br><span class="line">/usr/bin/x86_64-linux-gnu-gcc-ar-4.8</span><br><span class="line">/usr/bin/x86_64-linux-gnu-gcov-4.8</span><br></pre></td></tr></table></figure></p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="https://zhanghongtong.github.io/2018/09/14/Docker-空间使用分析与清理/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1621,303 +1933,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://zhanghongtong.github.io/2018/07/25/创建一个足够小的golang应用的Dockerfile/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="张奇怪">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="张奇怪的blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/07/25/创建一个足够小的golang应用的Dockerfile/" itemprop="url">创建一个足够小的golang应用的Dockerfile</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">Posted on</span>
-              
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-07-25T17:27:04+08:00">
-                2018-07-25
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">In</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/docker/" itemprop="url" rel="index">
-                    <span itemprop="name">docker</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>之前创建go的docker image时使用的base image是 golang:latest，编译完的image有800+M，太大了，可以在宿主机上先将go编译成可执行文件，然后使用scratch做base image将可执行文件编译成docker image</p>
-<h1 id="关于scratch"><a href="#关于scratch" class="headerlink" title="关于scratch"></a>关于scratch</h1><p><a href="https://hub.docker.com/_/scratch/" target="_blank" rel="noopener">scratch</a> 是一非常特别的镜像，这个镜像很有意思的是他是一个空镜像。<br>也就是说大小几乎是 0 。<br>但是不能单独跑起来，只能做基础镜像，然后把main 程序放上去。<br>说白就是是一个线程了，这样有个非常好的优势，镜像小，没有依赖。</p>
-<h1 id="开始实验"><a href="#开始实验" class="headerlink" title="开始实验"></a>开始实验</h1><h3 id="创建go程序"><a href="#创建go程序" class="headerlink" title="创建go程序"></a>创建go程序</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">package main</span><br><span class="line"></span><br><span class="line">import &quot;fmt&quot;</span><br><span class="line"></span><br><span class="line">func main()  &#123;</span><br><span class="line">	fmt.Println(&quot;hello small docker image&quot;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>使用<code>GOOS=linux GOARCH=amd64 go build .</code>编译成可执行文件</p>
-<h3 id="编写Dockerfile"><a href="#编写Dockerfile" class="headerlink" title="编写Dockerfile"></a>编写Dockerfile</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">#使用scratch做base images</span><br><span class="line">FROM scratch</span><br><span class="line"></span><br><span class="line">#添加可执行文件</span><br><span class="line">ADD main /</span><br><span class="line"></span><br><span class="line">#运行可执行文件</span><br><span class="line">CMD [ &quot;./main&quot; ]</span><br></pre></td></tr></table></figure>
-<p>使用<code>docker build -t test .</code> 命令将Dockerfile编译成docker image</p>
-<h3 id="查看docker-image"><a href="#查看docker-image" class="headerlink" title="查看docker image"></a>查看docker image</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"># docker images</span><br><span class="line">REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE</span><br><span class="line">test                latest              3359eedebdad        4 minutes ago       2.03MB</span><br></pre></td></tr></table></figure>
-<p>可以看到docker image只有2M多</p>
-<h3 id="运行容器"><a href="#运行容器" class="headerlink" title="运行容器"></a>运行容器</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># docker run test</span><br><span class="line">hello small docker image</span><br></pre></td></tr></table></figure>
-<h3 id="Done"><a href="#Done" class="headerlink" title="Done"></a>Done</h3>
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://zhanghongtong.github.io/2018/07/17/linux-shell-脚本读取-ini-配置文件/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="张奇怪">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="张奇怪的blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/07/17/linux-shell-脚本读取-ini-配置文件/" itemprop="url">linux shell 脚本读取 ini 配置文件</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">Posted on</span>
-              
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-07-17T15:06:34+08:00">
-                2018-07-17
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">In</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/服务器/" itemprop="url" rel="index">
-                    <span itemprop="name">服务器</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>linux shell 脚本读取 ini 配置档打码如下：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">#!/bin/bash</span><br><span class="line">configFile=&quot;./config.ini&quot;</span><br><span class="line">function ReadINIfile()  </span><br><span class="line">&#123;   </span><br><span class="line">	Key=$1</span><br><span class="line">	Section=$2</span><br><span class="line">  	Configfile=$3</span><br><span class="line">	ReadINI=`awk -F &apos;=&apos; &apos;/\[&apos;$Section&apos;\]/&#123;a=1&#125;a==1&amp;&amp;$1~/&apos;$Key&apos;/&#123;print $2;exit&#125;&apos; $Configfile`  </span><br><span class="line"> 	echo &quot;$ReadINI&quot;  </span><br><span class="line">&#125; </span><br><span class="line">itemCount=`ReadINIfile &quot;ItemCount&quot; &quot;General&quot; &quot;$configFile&quot;`</span><br><span class="line">echo $itemCount</span><br><span class="line"></span><br><span class="line">for((i=0; i&lt;itemCount; i++))</span><br><span class="line">do</span><br><span class="line">	Section=&quot;Item&quot;&quot;$i&quot;</span><br><span class="line">	echo $Section</span><br><span class="line">	numTest=`ReadINIfile &quot;NumTest&quot; &quot;$Section&quot; &quot;$configFile&quot;`</span><br><span class="line">	stringTest=`ReadINIfile &quot;StringTest&quot; &quot;$Section&quot; &quot;$configFile&quot;`</span><br><span class="line">	echo $numTest</span><br><span class="line">	echo $stringTest</span><br><span class="line">done</span><br></pre></td></tr></table></figure>
-<p>测试的ini配置档如下：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">[General]</span><br><span class="line">ItemCount=2</span><br><span class="line">[Item0]</span><br><span class="line">NumTest=100</span><br><span class="line">StringTest=for string test 0</span><br><span class="line">[Item1]</span><br><span class="line">NumTest=111</span><br><span class="line">StringTest=for string test 1</span><br></pre></td></tr></table></figure>
-<p>测试结果如下：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">2</span><br><span class="line">Item0</span><br><span class="line">100</span><br><span class="line">for string test 0</span><br><span class="line">Item1</span><br><span class="line">111</span><br><span class="line">for string test 1</span><br></pre></td></tr></table></figure>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -1968,7 +1983,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">37</span>
+                <span class="site-state-item-count">39</span>
                 <span class="site-state-item-name">posts</span>
               </a>
             </div>
@@ -1990,7 +2005,7 @@
             
             <div class="site-state-item site-state-tags">
               <a href="/tags/index.html">
-                <span class="site-state-item-count">17</span>
+                <span class="site-state-item-count">18</span>
                 <span class="site-state-item-name">tags</span>
               </a>
             </div>

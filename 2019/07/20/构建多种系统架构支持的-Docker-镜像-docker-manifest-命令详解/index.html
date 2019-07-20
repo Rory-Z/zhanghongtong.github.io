@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="简体中文">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="linux,服务器,docker,edge," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="前言我们知道使用镜像创建一个容器，该镜像必须与 Docker 宿主机系统架构一致，例如 Linux x86_64 架构的系统中只能使用 Linux x86_64 的镜像创建容器。  macOS 除外，其使用了 binfmt_misc 提供了多种架构支持，在 macOS 系统上 (x86_64) 可以运行 arm 等其他架构的镜像。  例如我们在 Linux x86_64 中构建一个 usernam">
+<meta name="keywords" content="linux,服务器,docker,edge">
+<meta property="og:type" content="article">
+<meta property="og:title" content="构建多种系统架构支持的 Docker 镜像 -- docker manifest 命令详解">
+<meta property="og:url" content="https://zhanghongtong.github.io/2019/07/20/构建多种系统架构支持的-Docker-镜像-docker-manifest-命令详解/index.html">
+<meta property="og:site_name" content="张奇怪的blog">
+<meta property="og:description" content="前言我们知道使用镜像创建一个容器，该镜像必须与 Docker 宿主机系统架构一致，例如 Linux x86_64 架构的系统中只能使用 Linux x86_64 的镜像创建容器。  macOS 除外，其使用了 binfmt_misc 提供了多种架构支持，在 macOS 系统上 (x86_64) 可以运行 arm 等其他架构的镜像。  例如我们在 Linux x86_64 中构建一个 usernam">
+<meta property="og:locale" content="简体中文">
+<meta property="og:updated_time" content="2019-07-20T12:16:49.826Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="构建多种系统架构支持的 Docker 镜像 -- docker manifest 命令详解">
+<meta name="twitter:description" content="前言我们知道使用镜像创建一个容器，该镜像必须与 Docker 宿主机系统架构一致，例如 Linux x86_64 架构的系统中只能使用 Linux x86_64 的镜像创建容器。  macOS 除外，其使用了 binfmt_misc 提供了多种架构支持，在 macOS 系统上 (x86_64) 可以运行 arm 等其他架构的镜像。  例如我们在 Linux x86_64 中构建一个 usernam">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://zhanghongtong.github.io/2019/07/20/构建多种系统架构支持的-Docker-镜像-docker-manifest-命令详解/"/>
+
+
+
+
+
+  <title>构建多种系统架构支持的 Docker 镜像 -- docker manifest 命令详解 | 张奇怪的blog</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="简体中文">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">张奇怪的blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://zhanghongtong.github.io/2019/07/20/构建多种系统架构支持的-Docker-镜像-docker-manifest-命令详解/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="张奇怪">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="张奇怪的blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">构建多种系统架构支持的 Docker 镜像 -- docker manifest 命令详解</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-07-20T20:05:49+08:00">
+                2019-07-20
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/docker/" itemprop="url" rel="index">
+                    <span itemprop="name">docker</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>我们知道使用镜像创建一个容器，该镜像必须与 Docker 宿主机系统架构一致，例如 <code>Linux x86_64</code> 架构的系统中只能使用 <code>Linux x86_64</code> 的镜像创建容器。</p>
+<blockquote>
+<p>macOS 除外，其使用了 <a href="https://docs.docker.com/docker-for-mac/multi-arch/" target="_blank" rel="noopener">binfmt_misc</a> 提供了多种架构支持，在 macOS 系统上 (x86_64) 可以运行 arm 等其他架构的镜像。</p>
+</blockquote>
+<p>例如我们在 Linux x86_64 中构建一个 username/test 镜像。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">FROM alpine</span><br><span class="line"></span><br><span class="line">CMD echo 1</span><br></pre></td></tr></table></figure>
+<p>构建镜像后推送到 Docker Hub，之后我们尝试在树莓派 <code>Linux arm64v8</code> 中使用这个镜像。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker run -it --rm username/test</span><br></pre></td></tr></table></figure>
+<p>可以发现这个镜像根本获取不到。</p>
+<p>要解决这个问题，通常采用的做法是通过镜像名区分不同系统架构的镜像，例如在 <code>Linux x86_64</code> 和 <code>Linux arm64v8</code> 分别构建 <code>username/test</code> 和 <code>username/arm64v8-test</code> 镜像。运行时使用对应架构的镜像即可。</p>
+<p>这样做显得很繁琐，那么有没有一种方法让 Docker 引擎根据系统架构自动拉取对应的镜像呢？</p>
+<p>我们发现在<code>Linux x86_64</code> 和 <code>Linux arm64v8</code> 架构的计算机中执行 <code>$ docker run golang:alpine go version</code> 时我们发现可以正确的运行。</p>
+<p>这是什么原因呢？</p>
+<p>原因就是 <code>golang:alpine</code> 官方镜像有一个 <a href="https://docs.docker.com/registry/spec/manifest-v2-2/" target="_blank" rel="noopener">manifest 列表</a>。</p>
+<p>当用户获取一个镜像时，Docker 引擎会首先查找该镜像是否有 manifest 列表，如果有的话 Docker 引擎会按照 Docker 运行环境（系统及架构）查找出对应镜像（例如 <code>golang:alpine</code>）。如果没有的话会直接获取镜像（例如上例中我们构建的 <code>username/test</code>）。</p>
+<p>我们可以使用 <code>$ docker manifest inspect golang:alpine</code> 查看这个 <code>manifest</code> 列表的结构。</p>
+<p>由于该命令属于实验特性，必须设置如下 <strong>环境变量</strong> 之后才能使用：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"># Linux、macOS</span><br><span class="line">$ export DOCKER_CLI_EXPERIMENTAL=enabled</span><br><span class="line"></span><br><span class="line"># Windows</span><br><span class="line">$ set $env:DOCKER_CLI_EXPERIMENTAL=enabled</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>以上是设置环境变量的临时方法，若使环境变量永久生效请读者自行设置。</p>
+</blockquote>
+<p>设置之后，执行结果如下</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker manifest inspect golang:alpine</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">   &quot;schemaVersion&quot;: 2,</span><br><span class="line">   &quot;mediaType&quot;: &quot;application/vnd.docker.distribution.manifest.list.v2+json&quot;,</span><br><span class="line">   &quot;manifests&quot;: [</span><br><span class="line">      &#123;</span><br><span class="line">         &quot;mediaType&quot;: &quot;application/vnd.docker.distribution.manifest.v2+json&quot;,</span><br><span class="line">         &quot;size&quot;: 1365,</span><br><span class="line">         &quot;digest&quot;: &quot;sha256:5e28ac423243b187f464d635bcfe1e909f4a31c6c8bce51d0db0a1062bec9e16&quot;,</span><br><span class="line">         &quot;platform&quot;: &#123;</span><br><span class="line">            &quot;architecture&quot;: &quot;amd64&quot;,</span><br><span class="line">            &quot;os&quot;: &quot;linux&quot;</span><br><span class="line">         &#125;</span><br><span class="line">      &#125;,</span><br><span class="line">      &#123;</span><br><span class="line">         &quot;mediaType&quot;: &quot;application/vnd.docker.distribution.manifest.v2+json&quot;,</span><br><span class="line">         &quot;size&quot;: 1365,</span><br><span class="line">         &quot;digest&quot;: &quot;sha256:2945c46e26c9787da884b4065d1de64cf93a3b81ead1b949843dda1fcd458bae&quot;,</span><br><span class="line">         &quot;platform&quot;: &#123;</span><br><span class="line">            &quot;architecture&quot;: &quot;arm&quot;,</span><br><span class="line">            &quot;os&quot;: &quot;linux&quot;,</span><br><span class="line">            &quot;variant&quot;: &quot;v7&quot;</span><br><span class="line">         &#125;</span><br><span class="line">      &#125;,</span><br><span class="line">      &#123;</span><br><span class="line">         &quot;mediaType&quot;: &quot;application/vnd.docker.distribution.manifest.v2+json&quot;,</span><br><span class="line">         &quot;size&quot;: 1365,</span><br><span class="line">         &quot;digest&quot;: &quot;sha256:87fff60114fd3402d0c1a7ddf1eea1ded658f171749b57dc782fd33ee2d47b2d&quot;,</span><br><span class="line">         &quot;platform&quot;: &#123;</span><br><span class="line">            &quot;architecture&quot;: &quot;arm64&quot;,</span><br><span class="line">            &quot;os&quot;: &quot;linux&quot;,</span><br><span class="line">            &quot;variant&quot;: &quot;v8&quot;</span><br><span class="line">         &#125;</span><br><span class="line">      &#125;,</span><br><span class="line">      &#123;</span><br><span class="line">         &quot;mediaType&quot;: &quot;application/vnd.docker.distribution.manifest.v2+json&quot;,</span><br><span class="line">         &quot;size&quot;: 1365,</span><br><span class="line">         &quot;digest&quot;: &quot;sha256:607b43f1d91144f82a9433764e85eb3ccf83f73569552a49bc9788c31b4338de&quot;,</span><br><span class="line">         &quot;platform&quot;: &#123;</span><br><span class="line">            &quot;architecture&quot;: &quot;386&quot;,</span><br><span class="line">            &quot;os&quot;: &quot;linux&quot;</span><br><span class="line">         &#125;</span><br><span class="line">      &#125;,</span><br><span class="line">      &#123;</span><br><span class="line">         &quot;mediaType&quot;: &quot;application/vnd.docker.distribution.manifest.v2+json&quot;,</span><br><span class="line">         &quot;size&quot;: 1365,</span><br><span class="line">         &quot;digest&quot;: &quot;sha256:25ead0e21ed5e246ce31e274b98c09aaf548606788ef28eaf375dc8525064314&quot;,</span><br><span class="line">         &quot;platform&quot;: &#123;</span><br><span class="line">            &quot;architecture&quot;: &quot;ppc64le&quot;,</span><br><span class="line">            &quot;os&quot;: &quot;linux&quot;</span><br><span class="line">         &#125;</span><br><span class="line">      &#125;,</span><br><span class="line">      &#123;</span><br><span class="line">         &quot;mediaType&quot;: &quot;application/vnd.docker.distribution.manifest.v2+json&quot;,</span><br><span class="line">         &quot;size&quot;: 1365,</span><br><span class="line">         &quot;digest&quot;: &quot;sha256:69f5907fa93ea591175b2c688673775378ed861eeb687776669a48692bb9754d&quot;,</span><br><span class="line">         &quot;platform&quot;: &#123;</span><br><span class="line">            &quot;architecture&quot;: &quot;s390x&quot;,</span><br><span class="line">            &quot;os&quot;: &quot;linux&quot;</span><br><span class="line">         &#125;</span><br><span class="line">      &#125;</span><br><span class="line">   ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>可以看出 <code>manifest</code> 列表中包含了不同系统架构所对应的镜像 <code>digest</code> 值，这样 Docker 就可以在不同的架构中使用相同的 <code>manifest</code> (例如 <code>golang:alpine</code>) 获取对应的镜像。</p>
+<p>下面介绍如何使用 <code>$ docker manifest</code> 命令创建并推送 <code>manifest</code> 列表到 Docker Hub。</p>
+<h3 id="构建镜像"><a href="#构建镜像" class="headerlink" title="构建镜像"></a>构建镜像</h3><p>首先在 <code>Linux x86_64</code> 构建 <code>username/x8664-test</code> 镜像。并在 <code>Linux arm64v8</code> 中构建 <code>username/arm64v8-test</code> 镜像，构建好之后推送到 Docker Hub。</p>
+<h3 id="创建-manifest-列表"><a href="#创建-manifest-列表" class="headerlink" title="创建 manifest 列表"></a>创建 <code>manifest</code> 列表</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"># $ docker manifest create MANIFEST_LIST MANIFEST [MANIFEST...]</span><br><span class="line">$ docker manifest create username/test \</span><br><span class="line">      username/x8664-test \</span><br><span class="line">      username/arm64v8-test</span><br></pre></td></tr></table></figure>
+<p>当要修改一个 <code>manifest</code> 列表时，可以加入 <code>-a,--amend</code> 参数。</p>
+<h3 id="设置-manifest-列表"><a href="#设置-manifest-列表" class="headerlink" title="设置 manifest 列表"></a>设置 <code>manifest</code> 列表</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"># $ docker manifest annotate [OPTIONS] MANIFEST_LIST MANIFEST</span><br><span class="line">$ docker manifest annotate username/test \</span><br><span class="line">      username/x8664-test \</span><br><span class="line">      --os linux --arch x86_64</span><br><span class="line"></span><br><span class="line">$ docker manifest annotate username/test \</span><br><span class="line">      username/arm64v8-test \</span><br><span class="line">      --os linux --arch arm64 --variant v8</span><br></pre></td></tr></table></figure>
+<p>这样就配置好了 <code>manifest</code> 列表。</p>
+<h3 id="查看-manifest-列表"><a href="#查看-manifest-列表" class="headerlink" title="查看 manifest 列表"></a>查看 <code>manifest</code> 列表</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker manifest inspect username/test</span><br></pre></td></tr></table></figure>
+<h3 id="推送-manifest-列表"><a href="#推送-manifest-列表" class="headerlink" title="推送 manifest 列表"></a>推送 <code>manifest</code> 列表</h3><p>最后我们可以将其推送到 Docker Hub。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker manifest push username/test</span><br></pre></td></tr></table></figure>
+<h3 id="测试"><a href="#测试" class="headerlink" title="测试"></a>测试</h3><p>我们在 <code>Linux x86_64</code>、<code>Linux arm64v8</code> 中分别执行 <code>$ docker run -it --rm username/test</code> 命令，发现可以正确的执行。</p>
+<p>官方博客</p>
+<p>详细了解 manifest 可以阅读官方博客。</p>
+<ul>
+<li><a href="https://blog.docker.com/2017/11/multi-arch-all-the-things/" target="_blank" rel="noopener">https://blog.docker.com/2017/11/multi-arch-all-the-things/</a></li>
+</ul>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/linux/" rel="tag"># linux</a>
+          
+            <a href="/tags/服务器/" rel="tag"># 服务器</a>
+          
+            <a href="/tags/docker/" rel="tag"># docker</a>
+          
+            <a href="/tags/edge/" rel="tag"># edge</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/07/20/Ubuntu下docker使用非root权限运行docker/" rel="next" title="Ubuntu下docker使用非root权限运行docker">
+                <i class="fa fa-chevron-left"></i> Ubuntu下docker使用非root权限运行docker
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="张奇怪" />
+          <p class="site-author-name" itemprop="name">张奇怪</p>
+           
+              <p class="site-description motion-element" itemprop="description"></p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">39</span>
+                <span class="site-state-item-name">posts</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">4</span>
+                <span class="site-state-item-name">categories</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">18</span>
+                <span class="site-state-item-name">tags</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#构建镜像"><span class="nav-number">2.</span> <span class="nav-text">构建镜像</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#创建-manifest-列表"><span class="nav-number">3.</span> <span class="nav-text">创建 manifest 列表</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#设置-manifest-列表"><span class="nav-number">4.</span> <span class="nav-text">设置 manifest 列表</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#查看-manifest-列表"><span class="nav-number">5.</span> <span class="nav-text">查看 manifest 列表</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#推送-manifest-列表"><span class="nav-number">6.</span> <span class="nav-text">推送 manifest 列表</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#测试"><span class="nav-number">7.</span> <span class="nav-text">测试</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">张奇怪</span>
+</div>
+
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="https://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

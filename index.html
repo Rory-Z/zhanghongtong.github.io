@@ -270,6 +270,343 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://zhanghongtong.github.io/2019/07/20/构建多种系统架构支持的-Docker-镜像-docker-manifest-命令详解/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="张奇怪">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="张奇怪的blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/07/20/构建多种系统架构支持的-Docker-镜像-docker-manifest-命令详解/" itemprop="url">构建多种系统架构支持的 Docker 镜像 -- docker manifest 命令详解</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-07-20T20:05:49+08:00">
+                2019-07-20
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/docker/" itemprop="url" rel="index">
+                    <span itemprop="name">docker</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>我们知道使用镜像创建一个容器，该镜像必须与 Docker 宿主机系统架构一致，例如 <code>Linux x86_64</code> 架构的系统中只能使用 <code>Linux x86_64</code> 的镜像创建容器。</p>
+<blockquote>
+<p>macOS 除外，其使用了 <a href="https://docs.docker.com/docker-for-mac/multi-arch/" target="_blank" rel="noopener">binfmt_misc</a> 提供了多种架构支持，在 macOS 系统上 (x86_64) 可以运行 arm 等其他架构的镜像。</p>
+</blockquote>
+<p>例如我们在 Linux x86_64 中构建一个 username/test 镜像。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">FROM alpine</span><br><span class="line"></span><br><span class="line">CMD echo 1</span><br></pre></td></tr></table></figure>
+<p>构建镜像后推送到 Docker Hub，之后我们尝试在树莓派 <code>Linux arm64v8</code> 中使用这个镜像。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker run -it --rm username/test</span><br></pre></td></tr></table></figure>
+<p>可以发现这个镜像根本获取不到。</p>
+<p>要解决这个问题，通常采用的做法是通过镜像名区分不同系统架构的镜像，例如在 <code>Linux x86_64</code> 和 <code>Linux arm64v8</code> 分别构建 <code>username/test</code> 和 <code>username/arm64v8-test</code> 镜像。运行时使用对应架构的镜像即可。</p>
+<p>这样做显得很繁琐，那么有没有一种方法让 Docker 引擎根据系统架构自动拉取对应的镜像呢？</p>
+<p>我们发现在<code>Linux x86_64</code> 和 <code>Linux arm64v8</code> 架构的计算机中执行 <code>$ docker run golang:alpine go version</code> 时我们发现可以正确的运行。</p>
+<p>这是什么原因呢？</p>
+<p>原因就是 <code>golang:alpine</code> 官方镜像有一个 <a href="https://docs.docker.com/registry/spec/manifest-v2-2/" target="_blank" rel="noopener">manifest 列表</a>。</p>
+<p>当用户获取一个镜像时，Docker 引擎会首先查找该镜像是否有 manifest 列表，如果有的话 Docker 引擎会按照 Docker 运行环境（系统及架构）查找出对应镜像（例如 <code>golang:alpine</code>）。如果没有的话会直接获取镜像（例如上例中我们构建的 <code>username/test</code>）。</p>
+<p>我们可以使用 <code>$ docker manifest inspect golang:alpine</code> 查看这个 <code>manifest</code> 列表的结构。</p>
+<p>由于该命令属于实验特性，必须设置如下 <strong>环境变量</strong> 之后才能使用：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"># Linux、macOS</span><br><span class="line">$ export DOCKER_CLI_EXPERIMENTAL=enabled</span><br><span class="line"></span><br><span class="line"># Windows</span><br><span class="line">$ set $env:DOCKER_CLI_EXPERIMENTAL=enabled</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>以上是设置环境变量的临时方法，若使环境变量永久生效请读者自行设置。</p>
+</blockquote>
+<p>设置之后，执行结果如下</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker manifest inspect golang:alpine</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">   &quot;schemaVersion&quot;: 2,</span><br><span class="line">   &quot;mediaType&quot;: &quot;application/vnd.docker.distribution.manifest.list.v2+json&quot;,</span><br><span class="line">   &quot;manifests&quot;: [</span><br><span class="line">      &#123;</span><br><span class="line">         &quot;mediaType&quot;: &quot;application/vnd.docker.distribution.manifest.v2+json&quot;,</span><br><span class="line">         &quot;size&quot;: 1365,</span><br><span class="line">         &quot;digest&quot;: &quot;sha256:5e28ac423243b187f464d635bcfe1e909f4a31c6c8bce51d0db0a1062bec9e16&quot;,</span><br><span class="line">         &quot;platform&quot;: &#123;</span><br><span class="line">            &quot;architecture&quot;: &quot;amd64&quot;,</span><br><span class="line">            &quot;os&quot;: &quot;linux&quot;</span><br><span class="line">         &#125;</span><br><span class="line">      &#125;,</span><br><span class="line">      &#123;</span><br><span class="line">         &quot;mediaType&quot;: &quot;application/vnd.docker.distribution.manifest.v2+json&quot;,</span><br><span class="line">         &quot;size&quot;: 1365,</span><br><span class="line">         &quot;digest&quot;: &quot;sha256:2945c46e26c9787da884b4065d1de64cf93a3b81ead1b949843dda1fcd458bae&quot;,</span><br><span class="line">         &quot;platform&quot;: &#123;</span><br><span class="line">            &quot;architecture&quot;: &quot;arm&quot;,</span><br><span class="line">            &quot;os&quot;: &quot;linux&quot;,</span><br><span class="line">            &quot;variant&quot;: &quot;v7&quot;</span><br><span class="line">         &#125;</span><br><span class="line">      &#125;,</span><br><span class="line">      &#123;</span><br><span class="line">         &quot;mediaType&quot;: &quot;application/vnd.docker.distribution.manifest.v2+json&quot;,</span><br><span class="line">         &quot;size&quot;: 1365,</span><br><span class="line">         &quot;digest&quot;: &quot;sha256:87fff60114fd3402d0c1a7ddf1eea1ded658f171749b57dc782fd33ee2d47b2d&quot;,</span><br><span class="line">         &quot;platform&quot;: &#123;</span><br><span class="line">            &quot;architecture&quot;: &quot;arm64&quot;,</span><br><span class="line">            &quot;os&quot;: &quot;linux&quot;,</span><br><span class="line">            &quot;variant&quot;: &quot;v8&quot;</span><br><span class="line">         &#125;</span><br><span class="line">      &#125;,</span><br><span class="line">      &#123;</span><br><span class="line">         &quot;mediaType&quot;: &quot;application/vnd.docker.distribution.manifest.v2+json&quot;,</span><br><span class="line">         &quot;size&quot;: 1365,</span><br><span class="line">         &quot;digest&quot;: &quot;sha256:607b43f1d91144f82a9433764e85eb3ccf83f73569552a49bc9788c31b4338de&quot;,</span><br><span class="line">         &quot;platform&quot;: &#123;</span><br><span class="line">            &quot;architecture&quot;: &quot;386&quot;,</span><br><span class="line">            &quot;os&quot;: &quot;linux&quot;</span><br><span class="line">         &#125;</span><br><span class="line">      &#125;,</span><br><span class="line">      &#123;</span><br><span class="line">         &quot;mediaType&quot;: &quot;application/vnd.docker.distribution.manifest.v2+json&quot;,</span><br><span class="line">         &quot;size&quot;: 1365,</span><br><span class="line">         &quot;digest&quot;: &quot;sha256:25ead0e21ed5e246ce31e274b98c09aaf548606788ef28eaf375dc8525064314&quot;,</span><br><span class="line">         &quot;platform&quot;: &#123;</span><br><span class="line">            &quot;architecture&quot;: &quot;ppc64le&quot;,</span><br><span class="line">            &quot;os&quot;: &quot;linux&quot;</span><br><span class="line">         &#125;</span><br><span class="line">      &#125;,</span><br><span class="line">      &#123;</span><br><span class="line">         &quot;mediaType&quot;: &quot;application/vnd.docker.distribution.manifest.v2+json&quot;,</span><br><span class="line">         &quot;size&quot;: 1365,</span><br><span class="line">         &quot;digest&quot;: &quot;sha256:69f5907fa93ea591175b2c688673775378ed861eeb687776669a48692bb9754d&quot;,</span><br><span class="line">         &quot;platform&quot;: &#123;</span><br><span class="line">            &quot;architecture&quot;: &quot;s390x&quot;,</span><br><span class="line">            &quot;os&quot;: &quot;linux&quot;</span><br><span class="line">         &#125;</span><br><span class="line">      &#125;</span><br><span class="line">   ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>可以看出 <code>manifest</code> 列表中包含了不同系统架构所对应的镜像 <code>digest</code> 值，这样 Docker 就可以在不同的架构中使用相同的 <code>manifest</code> (例如 <code>golang:alpine</code>) 获取对应的镜像。</p>
+<p>下面介绍如何使用 <code>$ docker manifest</code> 命令创建并推送 <code>manifest</code> 列表到 Docker Hub。</p>
+<h3 id="构建镜像"><a href="#构建镜像" class="headerlink" title="构建镜像"></a>构建镜像</h3><p>首先在 <code>Linux x86_64</code> 构建 <code>username/x8664-test</code> 镜像。并在 <code>Linux arm64v8</code> 中构建 <code>username/arm64v8-test</code> 镜像，构建好之后推送到 Docker Hub。</p>
+<h3 id="创建-manifest-列表"><a href="#创建-manifest-列表" class="headerlink" title="创建 manifest 列表"></a>创建 <code>manifest</code> 列表</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"># $ docker manifest create MANIFEST_LIST MANIFEST [MANIFEST...]</span><br><span class="line">$ docker manifest create username/test \</span><br><span class="line">      username/x8664-test \</span><br><span class="line">      username/arm64v8-test</span><br></pre></td></tr></table></figure>
+<p>当要修改一个 <code>manifest</code> 列表时，可以加入 <code>-a,--amend</code> 参数。</p>
+<h3 id="设置-manifest-列表"><a href="#设置-manifest-列表" class="headerlink" title="设置 manifest 列表"></a>设置 <code>manifest</code> 列表</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"># $ docker manifest annotate [OPTIONS] MANIFEST_LIST MANIFEST</span><br><span class="line">$ docker manifest annotate username/test \</span><br><span class="line">      username/x8664-test \</span><br><span class="line">      --os linux --arch x86_64</span><br><span class="line"></span><br><span class="line">$ docker manifest annotate username/test \</span><br><span class="line">      username/arm64v8-test \</span><br><span class="line">      --os linux --arch arm64 --variant v8</span><br></pre></td></tr></table></figure>
+<p>这样就配置好了 <code>manifest</code> 列表。</p>
+<h3 id="查看-manifest-列表"><a href="#查看-manifest-列表" class="headerlink" title="查看 manifest 列表"></a>查看 <code>manifest</code> 列表</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker manifest inspect username/test</span><br></pre></td></tr></table></figure>
+<h3 id="推送-manifest-列表"><a href="#推送-manifest-列表" class="headerlink" title="推送 manifest 列表"></a>推送 <code>manifest</code> 列表</h3><p>最后我们可以将其推送到 Docker Hub。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker manifest push username/test</span><br></pre></td></tr></table></figure>
+<h3 id="测试"><a href="#测试" class="headerlink" title="测试"></a>测试</h3><p>我们在 <code>Linux x86_64</code>、<code>Linux arm64v8</code> 中分别执行 <code>$ docker run -it --rm username/test</code> 命令，发现可以正确的执行。</p>
+<p>官方博客</p>
+<p>详细了解 manifest 可以阅读官方博客。</p>
+<ul>
+<li><a href="https://blog.docker.com/2017/11/multi-arch-all-the-things/" target="_blank" rel="noopener">https://blog.docker.com/2017/11/multi-arch-all-the-things/</a></li>
+</ul>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://zhanghongtong.github.io/2019/07/20/Ubuntu下docker使用非root权限运行docker/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="张奇怪">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="张奇怪的blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/07/20/Ubuntu下docker使用非root权限运行docker/" itemprop="url">Ubuntu下docker使用非root权限运行docker</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-07-20T19:57:23+08:00">
+                2019-07-20
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/docker/" itemprop="url" rel="index">
+                    <span itemprop="name">docker</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>默认情况下，docker 命令会使用 Unix socket 与 Docker 引擎通讯。而只有 root 用户和 docker 组的用户才可以访问 Docker 引擎的 Unix socket。出于安全考虑，一般 Linux 系统上不会直接使用 root 用户。因此，更好地做法是将需要使用 docker 的用户加入 docker 用户组。</p>
+<ol>
+<li><p>添加 docker group ：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sudo groupadd docker</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>将用户加入该 group 内</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ sudo usermod -aG docker $USER</span><br><span class="line"># 或者使用下面命令</span><br><span class="line">$ sudo gpasswd -a $&#123;USER&#125; docker</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>重启服务</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ sudo service docker restart</span><br><span class="line"># 或者</span><br><span class="line">$ sudo /etc/init.d/docker restart</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>切换当前会话到新 group 或者重启 shell 会话 </p>
+<p><strong>这一步是必须的，否则因为 groups 命令获取到的是缓存的组信息，刚添加的组信息未能生效，所以 docker images 执行时同样有错。</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ newgrp - docker</span><br></pre></td></tr></table></figure></li>
+</ol>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="https://zhanghongtong.github.io/2019/06/29/Ubuntu系统上NFS的安装与使用/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1839,318 +2176,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://zhanghongtong.github.io/2018/10/09/Shell中字符串的切割、拼接、比较、替换/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="张奇怪">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="张奇怪的blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/10/09/Shell中字符串的切割、拼接、比较、替换/" itemprop="url">Shell中字符串的切割、拼接、比较、替换</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">Posted on</span>
-              
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-10-09T11:20:35+08:00">
-                2018-10-09
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">In</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/服务器/" itemprop="url" rel="index">
-                    <span itemprop="name">服务器</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h2 id="截取"><a href="#截取" class="headerlink" title="截取"></a>截取</h2><h3 id="shell-截取字符变量的前8位，有方法如下："><a href="#shell-截取字符变量的前8位，有方法如下：" class="headerlink" title="shell 截取字符变量的前8位，有方法如下："></a>shell 截取字符变量的前8位，有方法如下：</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">expr substr “$a” 1 8</span><br><span class="line">echo $a|awk ‘&#123;print substr(,1,8)&#125;’</span><br><span class="line">echo $a|cut -c1-8</span><br><span class="line">echo $</span><br><span class="line">expr $a : ‘(.\).*’</span><br><span class="line">echo $a|dd bs=1 count=8 2&gt;/dev/null</span><br></pre></td></tr></table></figure>
-<h3 id="按指定的字符串截取"><a href="#按指定的字符串截取" class="headerlink" title="按指定的字符串截取"></a>按指定的字符串截取</h3><p>第一种方法:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">$&#123;varible##*string&#125; 从左向右截取最后一个string后的字符串</span><br><span class="line"></span><br><span class="line">$&#123;varible#*string&#125;从左向右截取第一个string后的字符串</span><br><span class="line"></span><br><span class="line">$&#123;varible%%string*&#125;从右向左截取最后一个string后的字符串</span><br><span class="line"></span><br><span class="line">$&#123;varible%string*&#125;从右向左截取第一个string后的字符串</span><br><span class="line"></span><br><span class="line">“*”只是一个通配符可以不要</span><br></pre></td></tr></table></figure></p>
-<p>例子：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ MYVAR=foodforthought.jpg</span><br><span class="line">$ echo $&#123;MYVAR##*fo&#125;</span><br><span class="line">rthought.jpg</span><br><span class="line">$ echo $&#123;MYVAR#*fo&#125;</span><br><span class="line">odforthought.jpg</span><br></pre></td></tr></table></figure></p>
-<p>第二种方法：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$&#123;varible:n1:n2&#125;:截取变量varible从n1到n2之间的字符串</span><br></pre></td></tr></table></figure></p>
-<p>可以根据特定字符偏移和长度，使用另一种形式的变量扩展，来选择特定子字符串。试着在 bash 中输入以下行：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ EXCLAIM=cowabunga</span><br><span class="line">$ echo $&#123;EXCLAIM:0:3&#125;</span><br><span class="line">cow</span><br><span class="line">$ echo $&#123;EXCLAIM:3:7&#125;</span><br><span class="line">abunga</span><br></pre></td></tr></table></figure>
-<p>这种形式的字符串截断非常简便，只需用冒号分开来指定起始字符和子字符串长度。</p>
-<p>第三种方法：<br>按照指定要求分割：<br>比如获取后缀名</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ls -al | cut -d “.” -f2</span><br></pre></td></tr></table></figure>
-<h2 id="拼接"><a href="#拼接" class="headerlink" title="拼接"></a>拼接</h2><h3 id="拼接字符"><a href="#拼接字符" class="headerlink" title="拼接字符"></a>拼接字符</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$value1=home</span><br><span class="line">$value2=$&#123;value1&#125;&quot;=&quot;</span><br><span class="line">echo $value2</span><br></pre></td></tr></table></figure>
-<h3 id="拼接字符串"><a href="#拼接字符串" class="headerlink" title="拼接字符串"></a>拼接字符串</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[root@localhost sh]# var1=/etc/</span><br><span class="line">[root@localhost sh]# var2=yum.repos.d/</span><br><span class="line">[root@localhost sh]# var3=$&#123;var1&#125;$&#123;var2&#125;</span><br><span class="line">[root@localhost sh]# echo $var3</span><br><span class="line">/etc/yum.repos.d/</span><br></pre></td></tr></table></figure>
-<h2 id="替换"><a href="#替换" class="headerlink" title="替换"></a>替换</h2><p>替换命令：<code>${变量/查找/替换值}  一个&#39;/&#39;表示替换第一个&#39;//&#39;表示替换所有，当查找出中出现了：&quot;/&quot;需要转移成&quot;\/&quot;</code></p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[chengmo@localhost ~]$ test=&apos;c:/windows/boot.ini&apos;</span><br><span class="line">[chengmo@localhost ~]$ echo $&#123;test/\//\\&#125;</span><br><span class="line">c:\windows/boot.ini</span><br><span class="line">[chengmo@localhost ~]$ echo $&#123;test//\//\\&#125;</span><br><span class="line">c:\windows\boot.ini</span><br></pre></td></tr></table></figure>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://zhanghongtong.github.io/2018/09/17/Linux-基础：如何在Ubuntu上检查一个软件包是否安装/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="张奇怪">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="张奇怪的blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/09/17/Linux-基础：如何在Ubuntu上检查一个软件包是否安装/" itemprop="url">Linux 基础：如何在Ubuntu上检查一个软件包是否安装</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">Posted on</span>
-              
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-09-17T23:06:16+08:00">
-                2018-09-17
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">In</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/服务器/" itemprop="url" rel="index">
-                    <span itemprop="name">服务器</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>如果你正在管理Debian或者Ubuntu服务器，你也许会经常使用dpkg 或者 apt-get命令。这两个命令用来安装、卸载和更新包。</p>
-<p>在本篇中，让我们看下如何在基于DEB的系统下检查是否安装了一个包。</p>
-<p>要检查特定的包，比如firefox是否安装了，使用这个命令：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dpkg -s firefox</span><br></pre></td></tr></table></figure></p>
-<p>示例输出<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">Package: firefox</span><br><span class="line">Status: install ok installed</span><br><span class="line">Priority: optional</span><br><span class="line">Section: web</span><br><span class="line">Installed-Size: 93339</span><br><span class="line">Maintainer: Ubuntu Mozilla Team &lt;ubuntu-mozillateam@lists.ubuntu.com&gt;</span><br><span class="line">Architecture: amd64</span><br><span class="line">Version: 35.0+build3-0ubuntu0.14.04.2</span><br><span class="line">Replaces: kubuntu-firefox-installer</span><br><span class="line">Provides: gnome-www-browser, iceweasel, www-browser</span><br><span class="line">Depends: lsb-release, libasound2 (&gt;= 1.0.16), libatk1.0-0 (&gt;= 1.12.4), libc6 (&gt;= 2.17), libcairo2 (&gt;= 1.2.4), libdbus-1-3 (&gt;= 1.0.2), libdbus-glib-1-2 (&gt;= 0.78), libfontconfig1 (&gt;= 2.9.0), libfreetype6 (&gt;= 2.2.1), libgcc1 (&gt;= 1:4.1.1), libgdk-pixbuf2.0-0 (&gt;= 2.22.0), libglib2.0-0 (&gt;= 2.37.3), libgtk2.0-0 (&gt;= 2.24.0), libpango-1.0-0 (&gt;= 1.22.0), libpangocairo-1.0-0 (&gt;= 1.14.0), libstartup-notification0 (&gt;= 0.8), libstdc++6 (&gt;= 4.6), libx11-6, libxcomposite1 (&gt;= 1:0.3-1), libxdamage1 (&gt;= 1:1.1), libxext6, libxfixes3, libxrender1, libxt6</span><br><span class="line">Recommends: xul-ext-ubufox, libcanberra0, libdbusmenu-glib4, libdbusmenu-gtk4</span><br><span class="line">Suggests: ttf-lyx</span><br><span class="line">Conffiles:</span><br><span class="line">/etc/firefox/syspref.js 09e457e65435a1a043521f2bd19cd2a1</span><br><span class="line">/etc/apport/blacklist.d/firefox ee63264f847e671832d42255912ce144</span><br><span class="line">/etc/apport/native-origins.d/firefox 7c26b75c7c2b715c89cc6d85338252a4</span><br><span class="line">/etc/apparmor.d/usr.bin.firefox f54f7a43361c7ecfa3874abca2f292cf</span><br><span class="line">Description: Safe and easy web browser from Mozilla</span><br><span class="line">Firefox delivers safe, easy web browsing. A familiar user interface,</span><br><span class="line">enhanced security features including protection from online identity theft,</span><br><span class="line">and integrated search let you get the most out of the web.</span><br><span class="line">Xul-Appid: &#123;ec8030f7-c20a-464f-9b0e-13a3a9e97384&#125;</span><br></pre></td></tr></table></figure></p>
-<p>如上所见，firefox已经安装了。</p>
-<p>同样，你可以使用dpkg-query 命令。这个命令会有一个更好的输出，当然，你可以用通配符。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dpkg-query -l firefox</span><br></pre></td></tr></table></figure>
-<p>示例输出：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Desired=Unknown/Install/Remove/Purge/Hold</span><br><span class="line">| Status=Not/Inst/Conf-files/Unpacked/halF-conf/Half-inst/trig-aWait/Trig-pend</span><br><span class="line">|/ Err?=(none)/Reinst-required (Status,Err: uppercase=bad)</span><br><span class="line">||/ Name                                 Version                 Architecture            Description</span><br><span class="line">+++-====================================-=======================-=======================-=============================================================================</span><br><span class="line">ii  firefox                              35.0+build3-0ubuntu0.14 amd64                   Safe and easy web browser from Mozilla</span><br></pre></td></tr></table></figure></p>
-<p>要列出你系统中安装的所有包，输入下面的命令：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dpkg --get-selections</span><br></pre></td></tr></table></figure></p>
-<p>示例输出：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">abiword                        install</span><br><span class="line">abiword-common                    install</span><br><span class="line">accountsservice                    install</span><br><span class="line">acl                        install</span><br><span class="line">adduser                        install</span><br><span class="line">alsa-base                    install</span><br><span class="line">alsa-utils                    install</span><br><span class="line">anacron                        install</span><br><span class="line">app-install-data                install</span><br><span class="line">apparmor                    install</span><br><span class="line">.</span><br><span class="line">.</span><br><span class="line">.</span><br><span class="line">zeitgeist                    install</span><br><span class="line">zeitgeist-core                    install</span><br><span class="line">zeitgeist-datahub                install</span><br><span class="line">zenity                        install</span><br><span class="line">zenity-common                    install</span><br><span class="line">zip                        install</span><br><span class="line">zlib1g:amd64                    install</span><br><span class="line">zlib1g:i386                    install</span><br></pre></td></tr></table></figure></p>
-<p>上面的输出可能会非常长，这依赖于你的系统已安装的包。</p>
-<p>你同样可以通过grep来过滤割到更精确的包。比如，我想要使用dpkg命令查看系统中安装的gcc包：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dpkg --get-selections | grep gcc</span><br></pre></td></tr></table></figure>
-<p>示例输出：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">gcc                        install</span><br><span class="line">gcc-4.8                        install</span><br><span class="line">gcc-4.8-base:amd64                install</span><br><span class="line">gcc-4.8-base:i386                install</span><br><span class="line">gcc-4.9-base:amd64                install</span><br><span class="line">gcc-4.9-base:i386                install</span><br><span class="line">libgcc-4.8-dev:amd64                install</span><br><span class="line">libgcc1:amd64                    install</span><br><span class="line">libgcc1:i386                    install</span><br></pre></td></tr></table></figure></p>
-<p>此外，你可以使用“-L”参数来找出包中文件的位置。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dpkg -L gcc-4.8</span><br></pre></td></tr></table></figure>
-<p>示例输出：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">/.</span><br><span class="line">/usr</span><br><span class="line">/usr/share</span><br><span class="line">/usr/share/doc</span><br><span class="line">/usr/share/doc/gcc-4.8-base</span><br><span class="line">/usr/share/doc/gcc-4.8-base/README.Bugs</span><br><span class="line">/usr/share/doc/gcc-4.8-base/NEWS.html</span><br><span class="line">/usr/share/doc/gcc-4.8-base/quadmath</span><br><span class="line">/usr/share/doc/gcc-4.8-base/quadmath/changelog.gz</span><br><span class="line">/usr/share/doc/gcc-4.8-base/gcc</span><br><span class="line">.</span><br><span class="line">.</span><br><span class="line">.</span><br><span class="line">/usr/bin/x86_64-linux-gnu-gcc-4.8</span><br><span class="line">/usr/bin/x86_64-linux-gnu-gcc-ar-4.8</span><br><span class="line">/usr/bin/x86_64-linux-gnu-gcov-4.8</span><br></pre></td></tr></table></figure></p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -2201,7 +2226,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">37</span>
+                <span class="site-state-item-count">39</span>
                 <span class="site-state-item-name">posts</span>
               </a>
             </div>
@@ -2223,7 +2248,7 @@
             
             <div class="site-state-item site-state-tags">
               <a href="/tags/index.html">
-                <span class="site-state-item-count">17</span>
+                <span class="site-state-item-count">18</span>
                 <span class="site-state-item-name">tags</span>
               </a>
             </div>
