@@ -552,6 +552,9 @@
 <li><p>将用户加入该 group 内</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ sudo usermod -aG docker $USER</span><br><span class="line"># 或者使用下面命令</span><br><span class="line">$ sudo gpasswd -a $&#123;USER&#125; docker</span><br></pre></td></tr></table></figure>
 </li>
+<li><p>赋予 <code>~/.docker</code> 目录权限</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ sudo chown &quot;$USER&quot;:&quot;$USER&quot; /home/&quot;$USER&quot;/.docker -R</span><br><span class="line">$ sudo chmod g+rwx &quot;/home/$USER/.docker&quot; -R</span><br></pre></td></tr></table></figure>
+</li>
 <li><p>重启服务</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ sudo service docker restart</span><br><span class="line"># 或者</span><br><span class="line">$ sudo /etc/init.d/docker restart</span><br></pre></td></tr></table></figure>
 </li>
