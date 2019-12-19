@@ -270,6 +270,240 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://zhanghongtong.github.io/2018/10/18/离线环境下使用二进制方式安装配置Kubernetes集群/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="张奇怪">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="张奇怪的blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/10/18/离线环境下使用二进制方式安装配置Kubernetes集群/" itemprop="url">离线环境下使用二进制方式安装配置Kubernetes集群</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-10-18T15:11:38+08:00">
+                2018-10-18
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/kubernetes/" itemprop="url" rel="index">
+                    <span itemprop="name">kubernetes</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h2 id="环境"><a href="#环境" class="headerlink" title="环境"></a>环境</h2><ul>
+<li>Centos 7.3</li>
+<li>Kubernetes的版本为 V1.10。</li>
+<li>Docker版本为18.03.1-ce。</li>
+<li>etcd 版本为 V3.3.8。</li>
+</ul>
+<h2 id="准备规划"><a href="#准备规划" class="headerlink" title="准备规划"></a>准备规划</h2><h3 id="1-Node-规划"><a href="#1-Node-规划" class="headerlink" title="1 Node 规划"></a>1 Node 规划</h3><table>
+<thead>
+<tr>
+<th>主机名</th>
+<th>地址</th>
+<th>角色</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>devops-101</td>
+<td>192.168.0.101</td>
+<td>k8s master</td>
+</tr>
+<tr>
+<td>devops-102</td>
+<td>192.168.0.102</td>
+<td>k8s node</td>
+</tr>
+</tbody>
+</table>
+<h3 id="2-Network-网络"><a href="#2-Network-网络" class="headerlink" title="2 Network 网络"></a>2 Network 网络</h3><h3 id="3-安装文件"><a href="#3-安装文件" class="headerlink" title="3 安装文件"></a>3 安装文件</h3><p>Kubernetes安装需要以下二进制文件：</p>
+<ul>
+<li>etcd</li>
+<li>docker</li>
+<li>Kubernetes<ul>
+<li>kubelet</li>
+<li>kube-proxy</li>
+<li>kube-apiserver</li>
+<li>kube-controller-manager</li>
+<li>kube-scheduler</li>
+</ul>
+</li>
+</ul>
+<p>我们可以下载编译好的二进制文件，也可以下载源码自己编译，源码编译可以参考这里本文只讨论二进制的安装方式。在Kubernetes的Github Latest 页面，可以看到最新打包的版本。也可以到 Tag 页面中找到自己需要的版本，我下载的是 V1.11。</p>
+<p>注意这个页面有可能不是最新的版本，我查看的时候显示的版本是 V1.9.9，但是最新的版本是 V1.11，这时就需要切换到 Tag 页面查找。</p>
+<p>服务器上需要的二进制文件并不在下载的 tar 包中，需要解压tar包，然后执行<code>cluster/get-kube-binaries.sh</code>。下载需要访问 storage.googleapis.com，因为大家都知道的原因，可能无法正常访问，需要大家科学的获取安装文件。下载完成后，解压<code>kubernetes-server-linux-amd64.tar.gz</code>。</p>
+<p>可以看到文件列表<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">[root@devops-101 bin]# pwd</span><br><span class="line">/root/kubernetes/server/bin</span><br><span class="line">[root@devops-101 bin]# ls -lh</span><br><span class="line">total 1.8G</span><br><span class="line">-rwxr-xr-x. 1 root root  57M Jun 28 04:55 apiextensions-apiserver</span><br><span class="line">-rwxr-xr-x. 1 root root 132M Jun 28 04:55 cloud-controller-manager</span><br><span class="line">-rw-r--r--. 1 root root    8 Jun 28 04:55 cloud-controller-manager.docker_tag</span><br><span class="line">-rw-r--r--. 1 root root 134M Jun 28 04:55 cloud-controller-manager.tar</span><br><span class="line">-rwxr-xr-x. 1 root root 218M Jun 28 04:55 hyperkube</span><br><span class="line">-rwxr-xr-x. 1 root root  56M Jun 28 04:55 kube-aggregator</span><br><span class="line">-rw-r--r--. 1 root root    8 Jun 28 04:55 kube-aggregator.docker_tag</span><br><span class="line">-rw-r--r--. 1 root root  57M Jun 28 04:55 kube-aggregator.tar</span><br><span class="line">-rwxr-xr-x. 1 root root 177M Jun 28 04:55 kube-apiserver</span><br><span class="line">-rw-r--r--. 1 root root    8 Jun 28 04:55 kube-apiserver.docker_tag</span><br><span class="line">-rw-r--r--. 1 root root 179M Jun 28 04:55 kube-apiserver.tar</span><br><span class="line">-rwxr-xr-x. 1 root root 147M Jun 28 04:55 kube-controller-manager</span><br><span class="line">-rw-r--r--. 1 root root    8 Jun 28 04:55 kube-controller-manager.docker_tag</span><br><span class="line">-rw-r--r--. 1 root root 149M Jun 28 04:55 kube-controller-manager.tar</span><br><span class="line">-rwxr-xr-x. 1 root root  50M Jun 28 04:55 kube-proxy</span><br><span class="line">-rw-r--r--. 1 root root    8 Jun 28 04:55 kube-proxy.docker_tag</span><br><span class="line">-rw-r--r--. 1 root root  96M Jun 28 04:55 kube-proxy.tar</span><br><span class="line">-rwxr-xr-x. 1 root root  54M Jun 28 04:55 kube-scheduler</span><br><span class="line">-rw-r--r--. 1 root root    8 Jun 28 04:55 kube-scheduler.docker_tag</span><br><span class="line">-rw-r--r--. 1 root root  55M Jun 28 04:55 kube-scheduler.tar</span><br><span class="line">-rwxr-xr-x. 1 root root  55M Jun 28 04:55 kubeadm</span><br><span class="line">-rwxr-xr-x. 1 root root  53M Jun 28 04:56 kubectl</span><br><span class="line">-rwxr-xr-x. 1 root root 156M Jun 28 04:55 kubelet</span><br><span class="line">-rwxr-xr-x. 1 root root 2.3M Jun 28 04:55 mounter</span><br></pre></td></tr></table></figure></p>
+<h3 id="4-系统配置"><a href="#4-系统配置" class="headerlink" title="4 系统配置"></a>4 系统配置</h3><ul>
+<li>配置Hosts</li>
+<li><p>关闭防火墙</p>
+  <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ systemctl stop firewalld</span><br><span class="line">$ systemctl disable firewalld</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>关闭selinux</p>
+  <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ vim /etc/selinux/config</span><br></pre></td></tr></table></figure>
+<p>  将SELINUX=enforcing改为SELINUX=disabled，wq保存退出。</p>
+</li>
+<li><p>关闭swap</p>
+  <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ swapoff -a</span><br><span class="line">$ vim /etc/fstab #修改自动挂载配置，注释掉即可</span><br><span class="line">#/dev/mapper/centos-swap swap   swap    defaults    0 0</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<h2 id="安装-Node"><a href="#安装-Node" class="headerlink" title="安装 Node"></a>安装 Node</h2><p>我们需要在Node机器上安装以下应用：</p>
+<ul>
+<li>Docker</li>
+<li>kubelet</li>
+<li>kube-proxy</li>
+</ul>
+<h3 id="1-Docker"><a href="#1-Docker" class="headerlink" title="1 Docker"></a>1 Docker</h3><p>Docker的版本需要与kubelete版本相对应，最好都使用最新的版本。Redhat 中需要使用 Static Binary 方式安装，具体可以参考我之前的一篇文章。</p>
+<h3 id="2-拷贝-kubelet、kube-proxy"><a href="#2-拷贝-kubelet、kube-proxy" class="headerlink" title="2 拷贝 kubelet、kube-proxy"></a>2 拷贝 kubelet、kube-proxy</h3><p>在之前解压的 kubernetes 文件夹中拷贝二进制文件<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ cp /root/kubernetes/server/bin/kubelet /usr/bin/</span><br><span class="line">$ cp /root/kubernetes/server/bin/kube-proxy /usr/bin/</span><br></pre></td></tr></table></figure></p>
+<h3 id="3-安装-kube-proxy-服务"><a href="#3-安装-kube-proxy-服务" class="headerlink" title="3 安装 kube-proxy 服务"></a>3 安装 kube-proxy 服务</h3><p>创建service文件<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">$ vim /usr/lib/systemd/system/kube-proxy.service</span><br><span class="line">[Unit]</span><br><span class="line">Description=Kubernetes Kube-Proxy Server</span><br><span class="line">Documentation=https://github.com/GoogleCloudPlatform/kubernetes</span><br><span class="line">After=network.target</span><br><span class="line"> </span><br><span class="line">[Service]</span><br><span class="line">EnvironmentFile=/etc/kubernetes/config</span><br><span class="line">EnvironmentFile=/etc/kubernetes/proxy</span><br><span class="line">ExecStart=/usr/bin/kube-proxy \</span><br><span class="line">            $KUBE_LOGTOSTDERR \</span><br><span class="line">            $KUBE_LOG_LEVEL \</span><br><span class="line">            $KUBE_MASTER \</span><br><span class="line">            $KUBE_PROXY_ARGS</span><br><span class="line">Restart=on-failure</span><br><span class="line">LimitNOFILE=65536</span><br><span class="line"> </span><br><span class="line">[Install]</span><br><span class="line">WantedBy=multi-user.target</span><br></pre></td></tr></table></figure></p>
+<p>创建配置目录，并添加配置文件<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">$ mkdir -p /etc/kubernetes</span><br><span class="line">$ vim /etc/kubernetes/proxy</span><br><span class="line">KUBE_PROXY_ARGS=&quot;&quot;</span><br><span class="line">$ vim /etc/kubernetes/config</span><br><span class="line">KUBE_LOGTOSTDERR=&quot;--logtostderr=true&quot;</span><br><span class="line">KUBE_LOG_LEVEL=&quot;--v=0&quot;</span><br><span class="line">KUBE_ALLOW_PRIV=&quot;--allow_privileged=false&quot;</span><br><span class="line">KUBE_MASTER=&quot;--master=http://192.168.0.101:8080&quot;</span><br></pre></td></tr></table></figure></p>
+<p>启动服务<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[root@devops-102 ~]# systemctl daemon-reload</span><br><span class="line">[root@devops-102 ~]# systemctl start kube-proxy.service</span><br><span class="line">[root@devops-102 ~]# netstat -lntp | grep kube-proxy</span><br><span class="line">tcp        0      0 127.0.0.1:10249         0.0.0.0:*               LISTEN      10522/kube-proxy    </span><br><span class="line">tcp6       0      0 :::10256                :::*                    LISTEN      10522/kube-proxy</span><br></pre></td></tr></table></figure></p>
+<h3 id="4-安装-kubelete-服务"><a href="#4-安装-kubelete-服务" class="headerlink" title="4 安装 kubelete 服务"></a>4 安装 kubelete 服务</h3><p>创建service文件<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">$ vim /usr/lib/systemd/system/kubelet.service</span><br><span class="line">[Unit]</span><br><span class="line">Description=Kubernetes Kubelet Server</span><br><span class="line">Documentation=https://github.com/GoogleCloudPlatform/kubernetes</span><br><span class="line">After=docker.service</span><br><span class="line">Requires=docker.service</span><br><span class="line"> </span><br><span class="line">[Service]</span><br><span class="line">WorkingDirectory=/var/lib/kubelet</span><br><span class="line">EnvironmentFile=/etc/kubernetes/kubelet</span><br><span class="line">ExecStart=/usr/bin/kubelet $KUBELET_ARGS</span><br><span class="line">Restart=on-failure</span><br><span class="line">KillMode=process</span><br><span class="line"> </span><br><span class="line">[Install]</span><br><span class="line">WantedBy=multi-user.target</span><br><span class="line">$ mkdir -p /var/lib/kubelet</span><br><span class="line">$ vim /etc/kubernetes/kubelet</span><br><span class="line">KUBELET_ADDRESS=&quot;--address=0.0.0.0&quot;</span><br><span class="line">KUBELET_HOSTNAME=&quot;--hostname-override=192.168.0.102&quot;</span><br><span class="line">KUBELET_API_SERVER=&quot;--api-servers=http://192.168.0.101:8080&quot;</span><br><span class="line">KUBELET_POD_INFRA_CONTAINER=&quot;--pod-infra-container-image=reg.docker.tb/harbor/pod-infrastructure:latest&quot;</span><br><span class="line">KUBELET_ARGS=&quot;--enable-server=true --enable-debugging-handlers=true --fail-swap-on=false --kubeconfig=/var/lib/kubelet/kubeconfig&quot;</span><br></pre></td></tr></table></figure></p>
+<p>创建配置文件<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">$ vim /var/lib/kubelet/kubeconfig</span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: Config</span><br><span class="line">users:</span><br><span class="line">- name: kubelet</span><br><span class="line">clusters:</span><br><span class="line">- name: kubernetes</span><br><span class="line">  cluster:</span><br><span class="line">    server: http://192.168.0.101:8080</span><br><span class="line">contexts:</span><br><span class="line">- context:</span><br><span class="line">    cluster: kubernetes</span><br><span class="line">    user: kubelet</span><br><span class="line">  name: service-account-context</span><br><span class="line">current-context: service-account-context</span><br></pre></td></tr></table></figure></p>
+<p>启动kubelet并进习验证。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">$ swapoff -a</span><br><span class="line">$ systemctl daemon-reload</span><br><span class="line">$ systemctl start kubelet.service</span><br><span class="line">$ netstat -tnlp | grep kubelet</span><br><span class="line">tcp        0      0 127.0.0.1:10248         0.0.0.0:*               LISTEN      10630/kubelet       </span><br><span class="line">tcp        0      0 127.0.0.1:37865         0.0.0.0:*               LISTEN      10630/kubelet       </span><br><span class="line">tcp6       0      0 :::10250                :::*                    LISTEN      10630/kubelet       </span><br><span class="line">tcp6       0      0 :::10255                :::*                    LISTEN      10630/kubelet</span><br></pre></td></tr></table></figure></p>
+<h2 id="安装-Master"><a href="#安装-Master" class="headerlink" title="安装 Master"></a>安装 Master</h2><h3 id="1-安装etcd"><a href="#1-安装etcd" class="headerlink" title="1 安装etcd"></a>1 安装etcd</h3><p>本文采用二进制安装方法，首先<a href="https://github.com/etcd-io/etcd/releases" target="_blank" rel="noopener">下载</a>安装包。<br>之后进行解压，文件拷贝，编辑 etcd.service、etcd.conf文件夹<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">$ tar zxf etcd-v3.2.11-linux-amd64.tar.gz</span><br><span class="line">$ cd etcd-v3.2.11-linux-amd64</span><br><span class="line">$ cp etcd etcdctl /usr/bin/</span><br><span class="line">$ vim /usr/lib/systemd/system/etcd.service</span><br><span class="line">[Unit]</span><br><span class="line">Description=etcd.service</span><br><span class="line"> </span><br><span class="line">[Service]</span><br><span class="line">Type=notify</span><br><span class="line">TimeoutStartSec=0</span><br><span class="line">Restart=always</span><br><span class="line">WorkingDirectory=/var/lib/etcd</span><br><span class="line">EnvironmentFile=-/etc/etcd/etcd.conf</span><br><span class="line">ExecStart=/usr/bin/etcd</span><br><span class="line"> </span><br><span class="line">[Install]</span><br><span class="line">WantedBy=multi-user.target</span><br><span class="line">$ mkdir -p /var/lib/etcd &amp;&amp; mkdir -p /etc/etcd/</span><br><span class="line">$ vim /etc/etcd/etcd.conf</span><br><span class="line">ETCD_NAME=ETCD Server</span><br><span class="line">ETCD_DATA_DIR=&quot;/var/lib/etcd/&quot;</span><br><span class="line">ETCD_LISTEN_CLIENT_URLS=http://0.0.0.0:2379</span><br><span class="line">ETCD_ADVERTISE_CLIENT_URLS=&quot;http://192.168.0.101:2379&quot;</span><br><span class="line"># 启动etcd</span><br><span class="line">$ systemctl daemon-reload</span><br><span class="line">$ systemctl start etcd.service</span><br></pre></td></tr></table></figure></p>
+<p>查看etcd状态是否正常<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ etcdctl cluster-health</span><br><span class="line">member 8e9e05c52164694d is healthy: got healthy result from http://192.168.0.101:2379</span><br><span class="line">cluster is healthy</span><br></pre></td></tr></table></figure></p>
+<h3 id="2-安装kube-apiserver"><a href="#2-安装kube-apiserver" class="headerlink" title="2 安装kube-apiserver"></a>2 安装kube-apiserver</h3><p>添加启动文件<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">$ vim /usr/lib/systemd/system/kube-apiserver.service</span><br><span class="line">[Unit]</span><br><span class="line">Description=Kubernetes API Server</span><br><span class="line">After=etcd.service</span><br><span class="line">Wants=etcd.service</span><br><span class="line"> </span><br><span class="line">[Service]</span><br><span class="line">EnvironmentFile=/etc/kubernetes/apiserver</span><br><span class="line">ExecStart=/usr/bin/kube-apiserver  \</span><br><span class="line">        $KUBE_ETCD_SERVERS \</span><br><span class="line">        $KUBE_API_ADDRESS \</span><br><span class="line">        $KUBE_API_PORT \</span><br><span class="line">        $KUBE_SERVICE_ADDRESSES \</span><br><span class="line">        $KUBE_ADMISSION_CONTROL \</span><br><span class="line">        $KUBE_API_LOG \</span><br><span class="line">        $KUBE_API_ARGS</span><br><span class="line">Restart=on-failure</span><br><span class="line">Type=notify</span><br><span class="line">LimitNOFILE=65536</span><br><span class="line"> </span><br><span class="line">[Install]</span><br><span class="line">WantedBy=multi-user.target</span><br></pre></td></tr></table></figure></p>
+<p>创建配置文件<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">$ vim /etc/kubernetes/apiserver </span><br><span class="line">KUBE_API_ADDRESS=&quot;--insecure-bind-address=0.0.0.0&quot;</span><br><span class="line">KUBE_API_PORT=&quot;--port=8080&quot;</span><br><span class="line">KUBELET_PORT=&quot;--kubelet-port=10250&quot;</span><br><span class="line">KUBE_ETCD_SERVERS=&quot;--etcd-servers=http://192.168.0.101:2379&quot;</span><br><span class="line">KUBE_SERVICE_ADDRESSES=&quot;--service-cluster-ip-range=10.0.0.0/24&quot;</span><br><span class="line">KUBE_ADMISSION_CONTROL=&quot;--admission-control=NamespaceLifecycle,NamespaceExists,LimitRanger,SecurityContextDeny,ResourceQuota&quot;</span><br><span class="line">KUBE_API_ARGS=&quot;&quot;</span><br></pre></td></tr></table></figure></p>
+<p>启动服务<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ systemctl daemon-reload</span><br><span class="line">$ systemctl start kube-apiserver.service</span><br></pre></td></tr></table></figure></p>
+<p>查看启动是否成功<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ netstat -tnlp | grep kube</span><br><span class="line">tcp6       0      0 :::6443                 :::*                    LISTEN      10144/kube-apiserve </span><br><span class="line">tcp6       0      0 :::8080                 :::*                    LISTEN      10144/kube-apiserve</span><br></pre></td></tr></table></figure></p>
+<p>3.3 安装kube-controller-manager<br>创建启动文件<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">$ vim /usr/lib/systemd/system/kube-controller-manager.service</span><br><span class="line">[Unit]</span><br><span class="line">Description=Kubernetes Scheduler</span><br><span class="line">After=kube-apiserver.service</span><br><span class="line">Requires=kube-apiserver.service</span><br><span class="line"> </span><br><span class="line">[Service]</span><br><span class="line">EnvironmentFile=-/etc/kubernetes/controller-manager</span><br><span class="line">ExecStart=/usr/bin/kube-controller-manager \</span><br><span class="line">        $KUBE_MASTER \</span><br><span class="line">        $KUBE_CONTROLLER_MANAGER_ARGS</span><br><span class="line">Restart=on-failure</span><br><span class="line">LimitNOFILE=65536</span><br><span class="line"> </span><br><span class="line">[Install]</span><br><span class="line">WantedBy=multi-user.target</span><br></pre></td></tr></table></figure></p>
+<p>创建配置文件<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ vim /etc/kubernetes/controller-manager</span><br><span class="line">KUBE_MASTER=&quot;--master=http://192.168.0.101:8080&quot;</span><br><span class="line">KUBE_CONTROLLER_MANAGER_ARGS=&quot; &quot;</span><br></pre></td></tr></table></figure></p>
+<p>启动服务<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ systemctl daemon-reload</span><br><span class="line">$ systemctl start kube-controller-manager.service</span><br></pre></td></tr></table></figure></p>
+<p>验证服务状态<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ netstat -lntp | grep kube-controll</span><br><span class="line">tcp6       0      0 :::10252                :::*                    LISTEN      10163/kube-controll</span><br></pre></td></tr></table></figure></p>
+<h3 id="4-安装kube-scheduler"><a href="#4-安装kube-scheduler" class="headerlink" title="4 安装kube-scheduler"></a>4 安装kube-scheduler</h3><p>创建启动文件<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">$ vim /usr/lib/systemd/system/kube-scheduler.service</span><br><span class="line">[Unit]</span><br><span class="line">Description=Kubernetes Scheduler</span><br><span class="line">After=kube-apiserver.service</span><br><span class="line">Requires=kube-apiserver.service</span><br><span class="line"></span><br><span class="line">[Service]</span><br><span class="line">User=root</span><br><span class="line">EnvironmentFile=/etc/kubernetes/scheduler</span><br><span class="line">ExecStart=/usr/bin/kube-scheduler \</span><br><span class="line">        $KUBE_MASTER \</span><br><span class="line">        $KUBE_SCHEDULER_ARGS</span><br><span class="line">Restart=on-failure</span><br><span class="line">LimitNOFILE=65536</span><br><span class="line"></span><br><span class="line">[Install]</span><br><span class="line">WantedBy=multi-user.target</span><br></pre></td></tr></table></figure></p>
+<p>修改配置<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ vim /etc/kubernetes/scheduler</span><br><span class="line">KUBE_MASTER=&quot;--master=http://192.168.0.101:8080&quot;</span><br><span class="line">KUBE_SCHEDULER_ARGS=&quot;--logtostderr=true --log-dir=/home/log/kubernetes --v=2&quot;</span><br></pre></td></tr></table></figure></p>
+<p>启动服务<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ systemctl daemon-reload</span><br><span class="line">$ systemctl start kube-scheduler.service</span><br></pre></td></tr></table></figure></p>
+<p>验证服务状态<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ netstat -lntp | grep kube-schedule</span><br><span class="line">tcp6       0      0 :::10251                :::*                    LISTEN      10179/kube-schedule</span><br></pre></td></tr></table></figure></p>
+<h3 id="5-配置Profile"><a href="#5-配置Profile" class="headerlink" title="5 配置Profile"></a>5 配置Profile</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ sed -i &apos;$a export PATH=$PATH:/root/kubernetes/server/bin/&apos; /etc/profile</span><br><span class="line">$ source /etc/profile</span><br></pre></td></tr></table></figure>
+<h3 id="6-安装-kubectl-并查看状态"><a href="#6-安装-kubectl-并查看状态" class="headerlink" title="6 安装 kubectl 并查看状态"></a>6 安装 kubectl 并查看状态</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">$ cp /root/kubernetes/server/bin/kubectl /usr/bin/</span><br><span class="line">$ kubectl get cs</span><br><span class="line">NAME                 STATUS    MESSAGE             ERROR</span><br><span class="line">etcd-0               Healthy   &#123;&quot;health&quot;:&quot;true&quot;&#125;   </span><br><span class="line">controller-manager   Healthy   ok                  </span><br><span class="line">scheduler            Healthy   ok</span><br></pre></td></tr></table></figure>
+<p>到这里Master节点就配置完毕。</p>
+<h2 id="配置flannel网络"><a href="#配置flannel网络" class="headerlink" title="配置flannel网络"></a>配置flannel网络</h2><p>Flannel可以使整个集群的docker容器拥有唯一的内网IP，并且多个node之间的docker0可以互相访问，所以每个节点都需要安装flannel。centos下可以直接使用 <code>yum install flanneld</code></p>
+<h2 id="集群验证"><a href="#集群验证" class="headerlink" title="集群验证"></a>集群验证</h2><p>在master 节点上执行命令，检查nodes，如果能看到，表明集群现在已经OK了。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ kubectl get nodes</span><br><span class="line">NAME         STATUS    ROLES     AGE       VERSION</span><br><span class="line">devops-102   Ready     &lt;none&gt;    12s       v1.11.0</span><br></pre></td></tr></table></figure></p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
+<li><a href="https://www.cnblogs.com/cocowool/p/install_k8s_offline.html" target="_blank" rel="noopener">离线环境下使用二进制方式安装配置Kubernetes集群</a></li>
+</ul>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="https://zhanghongtong.github.io/2018/10/09/ubuntu-使用kubeadm安装kubernetes/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -881,7 +1115,7 @@
           
             <p>用户在使用 Docker 部署业务一段时间后，可能会发现宿主节点的磁盘容量持续增长，甚至将磁盘空间耗尽进而引发宿主机异常，进而对业务造成影响。 本文先对 Docker 的空间分析与清理进行说明，然后对容器的磁盘容量限制与使用建议做简要说明。</p>
 <h1 id="典型问题场景"><a href="#典型问题场景" class="headerlink" title="典型问题场景"></a>典型问题场景</h1><p>用户发现 Docker 宿主机的磁盘空间使用率非常高。通过 du 逐层分析，发现是 Volume 或 overlay2 等目录占用了过高空间。示例如下：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 根据使用的存储驱动的不同，相应目录会有所不同：</span></span><br><span class="line">[root@node3 docker]# du -h --max-depth=1 |sort</span><br><span class="line">104K    ./network</span><br><span class="line">13M    ./image</span><br><span class="line">20K    ./plugins</span><br><span class="line">24G    ./overlay2   # 这个目录占用了非常高的磁盘磁盘空间</span><br><span class="line">25G    .</span><br><span class="line">283M    ./volumes</span><br><span class="line">4.0K    ./swarm</span><br><span class="line">4.0K    ./tmp</span><br><span class="line">4.0K    ./trust</span><br><span class="line">518M    ./containers</span><br></pre></td></tr></table></figure>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span> 根据使用的存储驱动的不同，相应目录会有所不同：</span><br><span class="line">[root@node3 docker]# du -h --max-depth=1 |sort</span><br><span class="line">104K    ./network</span><br><span class="line">13M    ./image</span><br><span class="line">20K    ./plugins</span><br><span class="line">24G    ./overlay2   # 这个目录占用了非常高的磁盘磁盘空间</span><br><span class="line">25G    .</span><br><span class="line">283M    ./volumes</span><br><span class="line">4.0K    ./swarm</span><br><span class="line">4.0K    ./tmp</span><br><span class="line">4.0K    ./trust</span><br><span class="line">518M    ./containers</span><br></pre></td></tr></table></figure>
 <h1 id="空间使用分析"><a href="#空间使用分析" class="headerlink" title="空间使用分析"></a>空间使用分析</h1><p>遇到此类问题，可以参阅如下步骤进行空间分析，定位占用过高空间的业务来源。</p>
 <h2 id="分析-Docker-空间分布"><a href="#分析-Docker-空间分布" class="headerlink" title="分析 Docker 空间分布"></a>分析 Docker 空间分布</h2><p>Docker 的内置 CLI 指令 docker system df ，可用于查询镜像（Images）、容器（Containers）和本地卷（Local Volumes）等空间使用大户的空间占用情况。 示例输出如下：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[root@node3 docker]# docker system df</span><br><span class="line">TYPE                TOTAL               ACTIVE              SIZE                RECLAIMABLE</span><br><span class="line">Images              17                  12                  2.713 GB            1.144 GB (42%)</span><br><span class="line">Containers          15                  12                  10.75 GB            0 B (0%)</span><br><span class="line">Local Volumes       8                   4                   282.9 MB            241.8 MB (85%)</span><br></pre></td></tr></table></figure>
@@ -917,11 +1151,11 @@
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line">[root@node3 docker]# docker system prune --help</span><br><span class="line"></span><br><span class="line">Usage:    docker system prune [OPTIONS]</span><br><span class="line"></span><br><span class="line">Remove unused data</span><br><span class="line"></span><br><span class="line">Options:</span><br><span class="line">  -a, --all     Remove all unused images not just dangling ones</span><br><span class="line">  -f, --force   Do not prompt for confirmation</span><br><span class="line">      --help    Print usage</span><br><span class="line">[root@node3 docker]# docker system prune -a</span><br><span class="line">WARNING! This will remove:</span><br><span class="line">    - all stopped containers</span><br><span class="line">    - all volumes not used by at least one container</span><br><span class="line">    - all networks not used by at least one container</span><br><span class="line">    - all images without at least one container associated to them</span><br><span class="line">Are you sure you want to continue? [y/N] y</span><br><span class="line">Deleted Containers:</span><br><span class="line">c09c31c49491ee7f2324160e43947917940221b4e6cc1274906def640a7a631f</span><br><span class="line">2aa0180e1a0f4c2c64349a6ed969651052373e7a9471050dce9015701cf1b957</span><br><span class="line">6d18003b06823c5d76d807a319387b06680fc93d0a32bc29c1cea4c07e8d515d</span><br><span class="line"></span><br><span class="line">Deleted Volumes:</span><br><span class="line">a479c303b278f1442f66644f694a554aac630e72b7a27065a11ef85c4d87b648</span><br><span class="line">79a25b6376e0d6587d8f4f24e08f9467981f04daad14bf3353a12d727d065503</span><br><span class="line"></span><br><span class="line">Deleted Images:</span><br><span class="line">untagged: tutum/curl:latest</span><br><span class="line">untagged: tutum/curl@sha256:b6f16e88387acd4e6326176b212b3dae63f5b2134e69560d0b0673cfb0fb976f</span><br><span class="line">deleted: sha256:01176385d84aeb1d40ed18c6d3f952abf40d2d2b4aa98fcf0a8a4b01010fb9a9</span><br><span class="line">deleted: sha256:c84f85637212412c1d46d1dd50f789df2c3b44678ee3fee6a820888e734f9b5a</span><br><span class="line">untagged: test:lastest</span><br><span class="line">deleted: sha256:794ff09332586a091514eb3d1c44990244e57e34adc71d4b4334c0674a1377e9</span><br><span class="line">deleted: sha256:636a1e7769d2242556243e9a21fb96bb878ab5b94c41ff485667252c968b375e</span><br><span class="line"></span><br><span class="line">Total reclaimed space: 1.565 GB</span><br></pre></td></tr></table></figure>
 <h2 id="手动清理"><a href="#手动清理" class="headerlink" title="手动清理"></a>手动清理</h2><h3 id="网络清理"><a href="#网络清理" class="headerlink" title="网络清理"></a>网络清理</h3><p>网络配置通常占用的空间非常低，略过。</p>
 <h3 id="镜像清理"><a href="#镜像清理" class="headerlink" title="镜像清理"></a>镜像清理</h3><p>如果通过 docker system df 分析，是镜像占用了过高空间。则可以根据业务情况，评估相关镜像的使用情况。对于悬空和未使用的镜像， 可以使用如下指令手工清理：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 删除所有悬空镜像，但不会删除未使用镜像：</span></span><br><span class="line">docker rmi $(docker images -f "dangling=true" -q)</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> 删除所有未使用镜像和悬空镜像。</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 【说明】：轮询到还在被使用的镜像时，会有类似<span class="string">"image is being used by xxx container"</span>的告警信息，所以相关镜像不会被删除，忽略即可。</span></span><br><span class="line">docker rmi $(docker images-q)</span><br></pre></td></tr></table></figure>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span> 删除所有悬空镜像，但不会删除未使用镜像：</span><br><span class="line">docker rmi $(docker images -f "dangling=true" -q)</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span> 删除所有未使用镜像和悬空镜像。</span><br><span class="line"><span class="meta">#</span> 【说明】：轮询到还在被使用的镜像时，会有类似"image is being used by xxx container"的告警信息，所以相关镜像不会被删除，忽略即可。</span><br><span class="line">docker rmi $(docker images-q)</span><br></pre></td></tr></table></figure>
 <h3 id="卷清理"><a href="#卷清理" class="headerlink" title="卷清理"></a>卷清理</h3><p>如果通过 docker system df 分析，是卷占用了过高空间。则可以根据业务情况，评估相关卷的使用情况。对于未被任何容器调用的卷（-v 结果信息中，”LINKS” 显示为 0），可以使用如下指令手工清理：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 删除所有未被任何容器关联引用的卷：</span></span><br><span class="line">docker volume rm $(docker volume ls -qf dangling=true)</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> 也可以直接使用如下指令，删除所有未被任何容器关联引用的卷（但建议使用上面的方式）</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 【说明】轮询到还在使用的卷时，会有类似<span class="string">"volume is in use"</span>的告警信息，所以相关卷不会被删除，忽略即可。</span></span><br><span class="line">docker volume rm $(docker volume ls -q)</span><br></pre></td></tr></table></figure>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span> 删除所有未被任何容器关联引用的卷：</span><br><span class="line">docker volume rm $(docker volume ls -qf dangling=true)</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span> 也可以直接使用如下指令，删除所有未被任何容器关联引用的卷（但建议使用上面的方式）</span><br><span class="line"><span class="meta">#</span> 【说明】轮询到还在使用的卷时，会有类似"volume is in use"的告警信息，所以相关卷不会被删除，忽略即可。</span><br><span class="line">docker volume rm $(docker volume ls -q)</span><br></pre></td></tr></table></figure>
 <h3 id="容器清理"><a href="#容器清理" class="headerlink" title="容器清理"></a>容器清理</h3><p>如果通过 docker system df 分析，是某个容器占用了过高空间。则可以根据业务情况，评估相关容器的业务归属并进行处理。对于已停止或其它异常状态的容器，可以结合  -f 或 –filter 筛选器，使用类似如下指令来手工清理：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 删除所有已退出的容器</span></span><br><span class="line">docker rm -v $(docker ps -aq -f status=exited)</span><br><span class="line"><span class="meta">#</span><span class="bash"> 删除所有状态为 dead 的容器</span></span><br><span class="line">docker rm -v $(docker ps -aq -f status=dead)</span><br></pre></td></tr></table></figure>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span> 删除所有已退出的容器</span><br><span class="line">docker rm -v $(docker ps -aq -f status=exited)</span><br><span class="line"><span class="meta">#</span> 删除所有状态为 dead 的容器</span><br><span class="line">docker rm -v $(docker ps -aq -f status=dead)</span><br></pre></td></tr></table></figure>
 <blockquote>
 <p>更多关于 ps 指令支持的筛选器信息，可以参阅<a href="https://docs.docker-cn.com/engine/reference/commandline/ps/#filtering" target="_blank" rel="noopener">官方文档</a>。</p>
 </blockquote>
@@ -1832,161 +2066,11 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://zhanghongtong.github.io/2018/07/27/Docker-Ubuntu容器cron定时任务不生效解决方法/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="张奇怪">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="张奇怪的blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/07/27/Docker-Ubuntu容器cron定时任务不生效解决方法/" itemprop="url">Docker Ubuntu容器cron定时任务不生效解决方法</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">Posted on</span>
-              
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-07-27T13:33:12+08:00">
-                2018-07-27
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">In</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/docker/" itemprop="url" rel="index">
-                    <span itemprop="name">docker</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>最近在 <code>Docker</code> 的 <code>Ubuntu</code> 容器中设置了一个定时备份任务，发现没有生效,安装rsyslog记录cron日志，发现cron输出了报错信息:</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">CRON[253]: Cannot make/remove an entry for the specified session</span><br></pre></td></tr></table></figure>
-<p>经过一番折腾在stackoverflow找到了解决方法:</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">#You can use something similar to this in your Dockerfile:</span><br><span class="line">RUN sed -i &apos;/session    required     pam_loginuid.so/c\#session    required   pam_loginuid.so&apos; /etc/pam.d/cron</span><br></pre></td></tr></table></figure>
-<p>意思就是注释掉/etc/pam.d/cron文件中的下面这一行:</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">...</span><br><span class="line">session    required     pam_loginuid.so</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
-<p>变为:</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">...</span><br><span class="line"># session    required     pam_loginuid.so</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
-<p>这样cron就可以正常工作了。</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
   <nav class="pagination">
-    <a class="extend prev" rel="prev" href="/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/">3</a><a class="page-number" href="/page/4/">4</a><a class="extend next" rel="next" href="/page/3/"><i class="fa fa-angle-right"></i></a>
+    <a class="extend prev" rel="prev" href="/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/">3</a><span class="space">&hellip;</span><a class="page-number" href="/page/5/">5</a><a class="extend next" rel="next" href="/page/3/"><i class="fa fa-angle-right"></i></a>
   </nav>
 
 
@@ -2032,7 +2116,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">40</span>
+                <span class="site-state-item-count">41</span>
                 <span class="site-state-item-name">posts</span>
               </a>
             </div>
@@ -2054,7 +2138,7 @@
             
             <div class="site-state-item site-state-tags">
               <a href="/tags/index.html">
-                <span class="site-state-item-count">18</span>
+                <span class="site-state-item-count">20</span>
                 <span class="site-state-item-name">tags</span>
               </a>
             </div>

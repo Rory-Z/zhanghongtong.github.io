@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="简体中文">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="linux,服务器,rpm,build," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="#RPM 包的构建 - SPEC 基础知识              spec 文件制作 rpm 软件包并不是一件复杂的工作，其中的关键在于编写软件包的 spec 描述文件。 要想制作一个 rpm 软件包就必须写一个软件包描述文件 spec。这个文件中包含了软件包的诸多信息，如：软件包的名字、版本、类别、说明摘要、创建时要执行什么指令、安装时要执行什么操作、以及软件包所要包含的文件列表等等。 实际">
+<meta name="keywords" content="linux,服务器,rpm,build">
+<meta property="og:type" content="article">
+<meta property="og:title" content="RPM 包的构建 - SPEC 基础知识">
+<meta property="og:url" content="https://zhanghongtong.github.io/2019/12/19/RPM-包的构建-SPEC-基础知识/index.html">
+<meta property="og:site_name" content="张奇怪的blog">
+<meta property="og:description" content="#RPM 包的构建 - SPEC 基础知识              spec 文件制作 rpm 软件包并不是一件复杂的工作，其中的关键在于编写软件包的 spec 描述文件。 要想制作一个 rpm 软件包就必须写一个软件包描述文件 spec。这个文件中包含了软件包的诸多信息，如：软件包的名字、版本、类别、说明摘要、创建时要执行什么指令、安装时要执行什么操作、以及软件包所要包含的文件列表等等。 实际">
+<meta property="og:locale" content="简体中文">
+<meta property="og:updated_time" content="2019-12-19T08:56:58.067Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="RPM 包的构建 - SPEC 基础知识">
+<meta name="twitter:description" content="#RPM 包的构建 - SPEC 基础知识              spec 文件制作 rpm 软件包并不是一件复杂的工作，其中的关键在于编写软件包的 spec 描述文件。 要想制作一个 rpm 软件包就必须写一个软件包描述文件 spec。这个文件中包含了软件包的诸多信息，如：软件包的名字、版本、类别、说明摘要、创建时要执行什么指令、安装时要执行什么操作、以及软件包所要包含的文件列表等等。 实际">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://zhanghongtong.github.io/2019/12/19/RPM-包的构建-SPEC-基础知识/"/>
+
+
+
+
+
+  <title>RPM 包的构建 - SPEC 基础知识 | 张奇怪的blog</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="简体中文">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">张奇怪的blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://zhanghongtong.github.io/2019/12/19/RPM-包的构建-SPEC-基础知识/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="张奇怪">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="张奇怪的blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">RPM 包的构建 - SPEC 基础知识</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-12-19T16:55:52+08:00">
+                2019-12-19
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/服务器/" itemprop="url" rel="index">
+                    <span itemprop="name">服务器</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>#<a href="https://www.cnblogs.com/michael-xiang/p/10480809.html" target="_blank" rel="noopener">RPM 包的构建 - SPEC 基础知识</a>             </p>
+<h2 id="spec-文件"><a href="#spec-文件" class="headerlink" title="spec 文件"></a>spec 文件</h2><p>制作 rpm 软件包并不是一件复杂的工作，其中的关键在于编写软件包的 spec 描述文件。</p>
+<p>要想制作一个 rpm 软件包就必须写一个软件包描述文件 spec。这个文件中包含了软件包的诸多信息，如：软件包的名字、版本、类别、说明摘要、创建时要执行什么指令、安装时要执行什么操作、以及软件包所要包含的文件列表等等。</p>
+<p>实际过程中，最关键的地方，是要清楚虚拟路径的位置，以及宏的定义。</p>
+<h2 id="文件头"><a href="#文件头" class="headerlink" title="文件头"></a>文件头</h2><p>这个区域定义的 <code>Name</code>、<code>Version</code> 这些字段对应的值可以在后面通过 <code>%{name}</code>,<code>%{version}</code> 这样的方式来引用，类似于 C 语言中的宏</p>
+<ul>
+<li><p><code>Summary</code>：用一句话概括该软件s包尽量多的信息。</p>
+</li>
+<li><p><code>Name</code>：软件包的名字，最终 rpm 软件包是用该名字与版本号（<code>Version</code>）、释出号(<code>Release</code>）及体系号来命名软件包的，后面可使用 <code>%{name}</code> 的方式引用</p>
+</li>
+<li><p><code>Version</code>：软件版本号。仅当软件包比以前有较大改变时才增加版本号，后面可使用<code>%{version}</code>引用</p>
+</li>
+<li><p><code>Release</code>：软件包释出号/发行号。一般我们对该软件包做了一些小的补丁的时候就应该把释出号加 1，后面可使用 <code>%{release}</code> 引用</p>
+</li>
+<li><p><code>Packager</code>：打包的人（一般喜欢写个人邮箱）</p>
+</li>
+<li><p><code>Vendor</code>：软件开发者的名字，发行商或打包组织的信息，例如<code>RedFlagCo,Ltd</code></p>
+</li>
+<li><p><code>License</code>：软件授权方式，通常是GPL（自由软件）或GPLv2,BSD</p>
+</li>
+<li><p><code>Copyright</code>：软件包所采用的版权规则。具体有：<code>GPL（自由软件）</code>，<code>BSD</code>，<code>MIT</code>，<code>Public Domain（公共域）</code>，<code>Distributable（贡献）</code>，<code>commercial（商业）</code>，<code>Share（共享）</code>等，一般的开发都写 <code>GPL</code>。</p>
+</li>
+<li><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Group</span><br></pre></td></tr></table></figure>
+<p>：软件包所属类别</p>
+<ul>
+<li>Development/System （开发/系统）</li>
+<li>System Environment/Daemons （系统环境/守护）</li>
+</ul>
+</li>
+<li><p><code>Source</code>：源程序软件包的名字/源代码包的名字，如 <code>stardict-2.0.tar.gz</code>。可以带多个用 <code>Source1</code>、<code>Source2</code> 等源，后面也可以用 <code>%{source1}</code>、<code>%{source2}</code> 引用</p>
+</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">CopySource0: %&#123;name&#125;-boost-%&#123;version&#125;.tar.gz    ← 源码包名称(可以使用URL)，可以用SourceN指定多个，如配置文件</span><br><span class="line">#Patch0: some-bugs0.patch                    ← 如果需要打补丁，则依次填写</span><br><span class="line">#Patch1: some-bugs1.patch                    ← 如果需要打补丁，则依次填写</span><br></pre></td></tr></table></figure>
+<ul>
+<li><p><code>BuildRequires</code>: 制作过程中用到的软件包，构建依赖</p>
+</li>
+<li><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Requires</span><br></pre></td></tr></table></figure>
+<p>: 安装时所需软件包</p>
+<ul>
+<li><code>Requires(pre)</code>: 指定不同阶段的依赖</li>
+</ul>
+</li>
+<li><p><code>BuildRoot</code>: 这个是安装或编译时使用的「虚拟目录」，打包时会用到该目录下文件，可查看安装后文件路径，例如：<code>BuildRoot:      %_topdir/BUILDROOT</code>。</p>
+</li>
+<li><p><code>Prefix: %{_prefix}</code> 这个主要是为了解决今后安装 rpm 包时，并不一定把软件安装到 rpm 中打包的目录的情况。这样，必须在这里定义该标识，并在编写 <code>%install</code> 脚本的时候引用，才能实现 rpm 安装时重新指定位置的功能</p>
+</li>
+<li><p><code>BuildArch</code>: 指编译的目标处理器架构，<code>noarch</code> 标识不指定，但通常都是以 <code>/usr/lib/rpm/marcros</code> 中的内容为默认值</p>
+</li>
+<li><p><code>%description</code>：软件包详细说明，可写在多个行上。这样任何人使用 <code>rpm -qi</code>查询您的软件包时都可以看到它。您可以解释这个软件包做什么，描述任何警告或附加的配置指令，等等。</p>
+</li>
+<li><p><code>URL</code>：软件的主页</p>
+</li>
+</ul>
+<h3 id="RPM-包信息查看"><a href="#RPM-包信息查看" class="headerlink" title="RPM 包信息查看"></a>RPM 包信息查看</h3><p>我通过命令查看了 nginx 包的信息，如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><span class="line">Copy# 查看头部信息</span><br><span class="line"></span><br><span class="line">$ rpm -qpi ./nginx-1.12.2-2.el7.x86_64.rpm</span><br><span class="line">Name        : nginx</span><br><span class="line">Epoch       : 1</span><br><span class="line">Version     : 1.12.2</span><br><span class="line">Release     : 2.el7</span><br><span class="line">Architecture: x86_64</span><br><span class="line">Install Date: (not installed)</span><br><span class="line">Group       : System Environment/Daemons</span><br><span class="line">Size        : 1574949</span><br><span class="line">License     : BSD</span><br><span class="line">Signature   : RSA/SHA256, Tue 06 Mar 2018 05:44:06 PM CST, Key ID 6a2faea2352c64e5</span><br><span class="line">Source RPM  : nginx-1.12.2-2.el7.src.rpm</span><br><span class="line">Build Date  : Tue 06 Mar 2018 05:27:44 PM CST</span><br><span class="line">Build Host  : buildhw-02.phx2.fedoraproject.org</span><br><span class="line">Relocations : (not relocatable)</span><br><span class="line">Packager    : Fedora Project</span><br><span class="line">Vendor      : Fedora Project</span><br><span class="line">URL         : http://nginx.org/</span><br><span class="line">Bug URL     : https://bugz.fedoraproject.org/nginx</span><br><span class="line">Summary     : A high performance web server and reverse proxy server</span><br><span class="line">Description :</span><br><span class="line">Nginx is a web server and a reverse proxy server for HTTP, SMTP, POP3 and</span><br><span class="line">IMAP protocols, with a strong focus on high concurrency, performance and low</span><br><span class="line">memory usage.</span><br><span class="line"></span><br><span class="line"># 查看脚本内容</span><br><span class="line"></span><br><span class="line">$ rpm --scripts -qp ./nginx-1.12.2-2.el7.x86_64.rpm</span><br><span class="line">postinstall scriptlet (using /bin/sh):</span><br><span class="line"></span><br><span class="line">if [ $1 -eq 1 ] ; then</span><br><span class="line">        # Initial installation</span><br><span class="line">        systemctl preset nginx.service &gt;/dev/null 2&gt;&amp;1 || :</span><br><span class="line">fi</span><br><span class="line">preuninstall scriptlet (using /bin/sh):</span><br><span class="line"></span><br><span class="line">if [ $1 -eq 0 ] ; then</span><br><span class="line">        # Package removal, not upgrade</span><br><span class="line">        systemctl --no-reload disable nginx.service &gt; /dev/null 2&gt;&amp;1 || :</span><br><span class="line">        systemctl stop nginx.service &gt; /dev/null 2&gt;&amp;1 || :</span><br><span class="line">fi</span><br><span class="line">postuninstall scriptlet (using /bin/sh):</span><br><span class="line"></span><br><span class="line">systemctl daemon-reload &gt;/dev/null 2&gt;&amp;1 || :</span><br><span class="line"></span><br><span class="line">if [ $1 -ge 1 ]; then</span><br><span class="line">    /usr/bin/nginx-upgrade &gt;/dev/null 2&gt;&amp;1 || :</span><br><span class="line">fi</span><br></pre></td></tr></table></figure>
+<h3 id="RPM-包依赖"><a href="#RPM-包依赖" class="headerlink" title="RPM 包依赖"></a>RPM 包依赖</h3><p>依赖关系定义了一个包正常工作需要依赖的其他包，RPM在升级、安装和删除的时候会确保依赖关系得到满足。</p>
+<h4 id="BuildRequires"><a href="#BuildRequires" class="headerlink" title="BuildRequires"></a>BuildRequires</h4><p>定义构建时依赖的软件包，在构建机器编译 rpm 包时需要的辅助工具，以逗号分隔。</p>
+<p>假如，要求编译 <code>myapp</code> 时，gcc 的版本至少为 4.4.2，则可以写成 <code>gcc &gt;=4.2.2</code></p>
+<h4 id="Requires"><a href="#Requires" class="headerlink" title="Requires"></a>Requires</h4><p>定义安装时的依赖包，该 rpm 包所依赖的软件包名称，就是指编译好的 rpm 软件在其他机器上安装时，需要依赖的其他软件包。</p>
+<p>可以用 <code>&gt;=</code> 或 <code>&lt;=</code> 表示大于或小于某一特定版本。 <code>&gt;=</code> 号两边需用空格隔开，而不同软件名称也用空格分开。</p>
+<p>格式：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">CopyRequires:       libpng-devel &gt;= 1.0.20 zlib</span><br></pre></td></tr></table></figure>
+<p>其它写法例如：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">CopyRequires: bzip2 = %&#123;version&#125;, bzip2-libs =%&#123;version&#125;</span><br></pre></td></tr></table></figure>
+<p>还有例如<code>PreReq</code>、<code>Requires(pre)</code>、<code>Requires(post)</code>、<code>Requires(preun)</code>、<code>Requires(postun)</code>、<code>BuildRequires</code>等都是针对不同阶段的依赖指定。</p>
+<p>关于<code>pre</code>、<code>post</code>、<code>preun</code>、<code>postun</code>含义理解，感觉<code>post</code>有一种“完成”的意思：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">Copy# 安装前执行的脚本，语法和shell脚本的语法相同</span><br><span class="line">%pre</span><br><span class="line"># 安装后执行的脚本</span><br><span class="line">%post</span><br><span class="line"># 卸载前执行的脚本</span><br><span class="line">%preun</span><br><span class="line"># 卸载完成后执行的脚本</span><br><span class="line">%postun</span><br><span class="line"># 清理阶段，在制作完成后删除安装的内容</span><br></pre></td></tr></table></figure>
+<p>例如：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">CopyPreReq: capability&gt;=version      #capability包必须先安装</span><br><span class="line">Conflicts:bash&gt;=2.0              #该包和所有不小于2.0的bash包有冲突</span><br></pre></td></tr></table></figure>
+<h3 id="BuildRoot"><a href="#BuildRoot" class="headerlink" title="BuildRoot"></a>BuildRoot</h3><p>该参数非常重要，因为在生成 rpm 的过程中，执行 <code>make install</code> 时就会把软件安装到上述的路径中，在打包的时候，同样依赖“虚拟目录”为“根目录”进行操作。后面可使用 <code>$RPM_BUILD_ROOT</code> 方式引用。</p>
+<p>考虑到多用户的环境，一般定义为：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Copy%&#123;_tmppath&#125;/%&#123;name&#125;-%&#123;version&#125;-%&#123;release&#125;-root</span><br><span class="line"># OR</span><br><span class="line">%&#123;_tmppath&#125;/%&#123;name&#125;-%&#123;version&#125;-%&#123;release&#125;-buildroot-%(%&#123;__id_u&#125; -n&#125;</span><br></pre></td></tr></table></figure>
+<p>下面介绍 spec 脚本主体：</p>
+<h2 id="prep-阶段"><a href="#prep-阶段" class="headerlink" title="%prep 阶段"></a>%prep 阶段</h2><p>这个阶段是「预处理」，通常用来执行一些解开源程序包的命令，为下一步的编译安装作准备。</p>
+<p><code>%prep</code> 和下面的 <code>%build</code>，<code>%install</code> 段一样，除了可以执行 rpm 所定义的宏命令（以<code>%</code>开头）以外，还可以执行 <code>SHELL</code> 命令，命令可以有很多行，如我们常写的 <code>tar</code> 解包命令。功能上类似于 <code>./configure</code>。</p>
+<p><code>%prep</code> 阶段进行实际的打包准备工作，它是使用节前缀 <code>%prep</code> 表示的。主要功能有：</p>
+<ul>
+<li>将文件 ( <code>SOURCES/</code>) 解压到构建目录 (<code>BUILD/</code>)</li>
+<li>应用 <code>Patch</code>（打补丁） (<code>SOURCES/ =&gt; BUILD/</code>)</li>
+<li>描述 <code>rm -rf $RPM_BUILD_ROOT</code></li>
+<li>描述或编辑本部分用到的命令到 <code>PreReq</code></li>
+<li>通过 <code>-b .XXX</code> 描述补丁备份</li>
+</ul>
+<p>它一般包含 <code>%setup</code> 与 <code>%patch</code> 两个命令。<code>%setup</code> 用于将软件包打开，执行 <code>%patch</code> 可将补丁文件加入解开的源程序中。</p>
+<p>示例：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Copy%prep</span><br><span class="line">%setup -q                                     ← 宏的作用是解压并切换到目录</span><br><span class="line">#%patch0 -p1                                  ← 如果需要打补丁，则依次写</span><br><span class="line">#%patch1 -p1                                  ← 如果需要打补丁，则依次写</span><br></pre></td></tr></table></figure>
+<h3 id="setup"><a href="#setup" class="headerlink" title="%setup"></a>%setup</h3><p>这个宏解压源代码，将当前目录改为源代码解压之后产生的目录。这个宏还有一些选项可以用。例如，在解压后，<code>%setup</code> 宏假设产生的目录是 <code>%{name}-%{version}</code></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Copy%setup -n %&#123;name&#125;-%&#123;version&#125; #把源码包解压并放好</span><br></pre></td></tr></table></figure>
+<p>主要的用途就是将 <code>%sourcedir</code> 目录下的源代码解压到 <code>%builddir</code> 目录下，也就是将<code>~/rpmbuild/SOURCES</code> 里的包解压到 <code>~/rpmbuild/BUILD/%{name}-%{version}</code> 中。一般用 <code>%setup -c</code> 就可以了，但有两种情况：</p>
+<ul>
+<li>一就是同时编译多个源码包，</li>
+<li>二就是源码的 tar 包的名称与解压出来的目录不一致，此时，就需要使用 <code>-n</code> 参数指定一下。</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">Copy%setup 不加任何选项，仅将软件包打开。</span><br><span class="line">%setup -a 切换目录前，解压指定 Source 文件，例如 `-a 0` 表示解压 `Source0`</span><br><span class="line">%setup -n newdir 将软件包解压在newdir目录。</span><br><span class="line">%setup -c 解压缩之前先产生目录。</span><br><span class="line">%setup -b num 将第 num 个 source 文件解压缩。</span><br><span class="line">%setup -D 解压前不删除目录</span><br><span class="line">%setup -T 不使用default的解压缩操作。</span><br><span class="line">%setup -T -b 0 将第 0 个源代码文件解压缩。</span><br><span class="line">%setup -c -n newdir 指定目录名称 newdir，并在此目录产生 rpm 套件。</span><br><span class="line">%patch 最简单的补丁方式，自动指定patch level。</span><br><span class="line">%patch 0 使用第0个补丁文件，相当于%patch ?p 0。</span><br><span class="line">%patch -s 不显示打补丁时的信息。</span><br><span class="line">%patch -T 将所有打补丁时产生的输出文件删除</span><br></pre></td></tr></table></figure>
+<p>应该 <code>-q</code> 参数给 <code>%setup</code> 宏。这会显著减少编译日志文件的输出，尤其是源代码包会解压出一堆文件的时候。</p>
+<p>在 <code>~/rmpbuild/BUILD/%{name}-%{version}</code> 目录中进行 ，使用标准写法，会引用<code>/usr/lib/rpm/marcros</code> 中定义的参数。</p>
+<h3 id="patch"><a href="#patch" class="headerlink" title="%patch"></a>%patch</h3><p>这个宏将头部定义的补丁应用于源代码。如果定义了多个补丁，它可以用一个数字的参数来指示应用哪个补丁文件。它也接受 <code>-b extension</code> 参数，指示 RPM 在打补丁之前，将文件备份为扩展名是 <code>extension</code> 的文件。</p>
+<p>通常补丁都会一起在源码 <code>tar.gz</code> 包中，或放到 <code>SOURCES</code> 目录下。一般参数为：</p>
+<ul>
+<li><code>%patch -p1</code> 使用前面定义的 <code>Patch</code> 补丁进行，<code>-p1</code>是忽略 <code>patch</code> 的第一层目录</li>
+<li><code>%Patch2 -p1 -b xxx.patch</code>打上指定的补丁，<code>-b</code>是指生成备份文件</li>
+</ul>
+<h2 id="build-阶段"><a href="#build-阶段" class="headerlink" title="%build 阶段"></a>%build 阶段</h2><p>本段是「构建」阶段，这个阶段会在 <code>%_builddir</code> 目录下执行源码包的编译。一般是执行执行常见的 <code>configure</code> 和 <code>make</code> 操作。</p>
+<p>该阶段一般由多个 <code>make</code> 命令组成。与 <code>%prep</code> 段落一样，这些命令可以是 <code>shell</code> 命令，也可以是宏。</p>
+<p>记住两点：</p>
+<ol>
+<li><code>%build</code> 和 <code>%install</code> 的过程中，都必须把编译和安装的文件定义到“虚拟根目录” 中</li>
+<li><code>%file</code> 中必须明白，用的是相对目录</li>
+</ol>
+<p>这个阶段我们最常见只有两条指令：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Copy%configure</span><br><span class="line">make %&#123;?_smp_mflags&#125; OPTIMIZE=&quot;%&#123;optflags&#125;&quot;           ← 多核则并行编译</span><br></pre></td></tr></table></figure>
+<p><code>%configure</code> 这个不是关键字，而是 rpm 定义的标准宏命令。意思是执行源代码的<code>configure</code>配置。会自动将 <code>prefix</code> 设置成 <code>/usr</code>。</p>
+<p>这个 <code>%{?_smp_mflags} %{optflags}</code> 是什么意思呢？</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Copy$ rpm --eval &quot;%&#123;?_smp_mflags&#125;&quot;</span><br><span class="line">-j4</span><br><span class="line">$ rpm --eval &quot;%&#123;optflags&#125;&quot;</span><br><span class="line">-O2 -g -pipe -Wall -Wp,-D_FORTIFY_SOURCE=2 -fexceptions -fstack-protector-strong --param=ssp-buffer-size=4 -grecord-gcc-switches   -m64 -mtune=generic</span><br></pre></td></tr></table></figure>
+<p>所以，上面那个命令就是 <code>make -j4</code>。问题又来了，<code>make -j4</code> 表示什么意思？</p>
+<blockquote>
+<p>都是一些优化参数</p>
+</blockquote>
+<ul>
+<li><a href="https://nanxiao.me/linux-kernel-note-26-make-j/" target="_blank" rel="noopener">Linux kernel 笔记 （26）——利用“make -j”提高编译<code>kernel</code>速度</a></li>
+<li><a href="https://bbs.csdn.net/topics/380072770" target="_blank" rel="noopener">CSDB-make -j4是什么意思</a></li>
+</ul>
+<h2 id="install-阶段"><a href="#install-阶段" class="headerlink" title="%install 阶段"></a>%install 阶段</h2><p>「安装」阶段，就是执行 <code>make install</code> 命令操作。开始把软件安装到虚拟的根目录中。这个阶段会在 <code>%buildrootdir</code> 目录里建好目录结构，然后将需要打包到 rpm 软件包里的文件从 <code>%builddir</code> 里拷贝到 <code>%_buildrootdir</code> 里对应的目录里。</p>
+<p>在 <code>~/rpmbuild/BUILD/%{name}-%{version}</code> 目录中进行 <code>make install</code> 的操作。<code>%install</code> 很重要，因为如果这里的路径不对的话，则下面 <code>%file</code> 中寻找文件的时候就会失败。</p>
+<p>特别需要注意的是：<code>%install</code> 部分使用的是绝对路径，而 <code>%file</code> 部分使用则是相对路径，虽然其描述的是同一个地方。千万不要写错。</p>
+<p>当用户最终用 <code>rpm -ivh name-version.rpm</code> 安装软件包时，这些文件会安装到用户系统中相应的目录里。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">Copy%install</span><br><span class="line">if [-d %&#123;buildroot&#125;]; then</span><br><span class="line">   rm -rf %&#123;buildroot&#125;                      ← 清空下安装目录，实际会自动清除</span><br><span class="line">fi</span><br><span class="line">make install DESTDIR=%&#123;buildroot&#125;           ← 安装到buildroot目录下</span><br><span class="line">%&#123;__install&#125; -Dp -m0755 contrib/init.d %&#123;buildroot&#125;%&#123;_initrddir&#125;/foobar</span><br><span class="line">%&#123;__install&#125; -d %&#123;buildroot&#125;%&#123;_sysconfdir&#125;/foobar.d/</span><br></pre></td></tr></table></figure>
+<p>「翻译」一下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Copymake install DESTDIR=/root/rpmbuild/BUILDROOT/%&#123;name&#125;-%&#123;version&#125;-%&#123;release&#125;.x86_64</span><br><span class="line">make install DESTDIR=/root/rpmbuild/BUILDROOT/%&#123;name&#125;-%&#123;version&#125;-%&#123;release&#125;.x86_64</span><br><span class="line">/usr/bin/install -d /root/rpmbuild/BUILDROOT/%&#123;name&#125;-%&#123;version&#125;-%&#123;release&#125;.x86_64/etc/foobar.d/</span><br></pre></td></tr></table></figure>
+<p>需要说明的是，这里的 <code>%install</code> 主要就是为了后面的 <code>%file</code> 服务的。所以，还可以使用常规的系统命令：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Copyinstall -d $RPM_BUILD_ROOT/</span><br><span class="line">cp -a * $RPM_BUILD_ROOT/</span><br></pre></td></tr></table></figure>
+<p>其中 <code>%{buildroot}</code> 和 <code>$RPMBUILDROOT</code> 是等价的， <code>%{buildroot}</code>必须全部用小写，不然要报错。</p>
+<p>注意区分 <code>$RPM_BUILD_ROOT</code>和 <code>$RPM_BUILD_DIR</code>：</p>
+<ul>
+<li><code>$RPM_BUILD_ROOT</code> 是指开头定义的 <code>BuildRoot</code>，是 <code>%file</code> 需要的。</li>
+<li><code>$RPM_BUILD_DIR</code> 通常就是指 <code>~/rpmbuild/BUILD</code></li>
+</ul>
+<h3 id="scripts-section-没必要可以不填"><a href="#scripts-section-没必要可以不填" class="headerlink" title="scripts section 没必要可以不填"></a>scripts section 没必要可以不填</h3><ul>
+<li><code>%pre</code> 安装前执行的脚本</li>
+<li><code>%post</code> 安装后执行的脚本</li>
+<li><code>%preun</code> 卸载前执行的脚本</li>
+<li><code>%postun</code> 卸载后执行的脚本</li>
+<li><code>%pretrans</code> 在事务开始时执行脚本</li>
+<li><code>%posttrans</code> 在事务结束时执行脚本</li>
+</ul>
+<p><code>%preun</code> <code>%postun</code> 的区别是什么呢？</p>
+<ul>
+<li>前者在升级的时候会执行，后者在升级 rpm 包的时候不会执行</li>
+</ul>
+<h2 id="files-阶段"><a href="#files-阶段" class="headerlink" title="%files 阶段"></a>%files 阶段</h2><p>本段是文件段，主要用来说明会将 <code>%{buildroot}</code> 目录下的哪些文件和目录最终打包到rpm包里。定义软件包所包含的文件，分为三类：</p>
+<ul>
+<li>说明文档（doc）</li>
+<li>配置文件（config）</li>
+<li>执行程序</li>
+</ul>
+<p>还可定义文件存取权限，拥有者及组别。</p>
+<p>这里会在虚拟根目录下进行，千万不要写绝对路径，而应用宏或变量表示相对路径。</p>
+<p>在 <code>%files</code> 阶段的第一条命令的语法是：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Copy%defattr(文件权限,用户名,组名,目录权限)</span><br></pre></td></tr></table></figure>
+<p>注意点：同时需要在 <code>%install</code> 中安装。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Copy%files</span><br><span class="line">%defattr (-,root,root,0755)                         ← 设定默认权限</span><br><span class="line">%config(noreplace) /etc/my.cnf                      ← 表明是配置文件，noplace表示替换文件</span><br><span class="line">%doc %&#123;src_dir&#125;/Docs/ChangeLog                      ← 表明这个是文档</span><br><span class="line">%attr(644, root, root) %&#123;_mandir&#125;/man8/mysqld.8*    ← 分别是权限，属主，属组</span><br><span class="line">%attr(755, root, root) %&#123;_sbindir&#125;/mysqld</span><br></pre></td></tr></table></figure>
+<p><code>%exclude</code> 列出不想打包到 rpm 中的文件。注意：如果 <code>%exclude</code> 指定的文件不存在，也会出错的。</p>
+<p>在安装 rpm 时，会将可执行的二进制文件放在 <code>/usr/bin</code> 目录下，动态库放在 <code>/usr/lib</code> 或者 <code>/usr/lib64</code> 目录下，配置文件放在 <code>/etc</code> 目录下，并且多次安装时新的配置文件不会覆盖以前已经存在的同名配置文件。</p>
+<p>关于 <code>%files</code> 阶段有两个特性：</p>
+<ol>
+<li><code>%{buildroot}</code> 里的所有文件都要明确被指定是否要被打包到 rpm里。什么意思呢？假如，<code>%{buildroot}</code> 目录下有 4 个目录 a、b、c和d，在 <code>%files</code> 里仅指定 a 和 b 要打包到 rpm 里，如果不把 c 和 d 用 <code>exclude</code> 声明是要报错的；</li>
+<li>如果声明了 <code>%{buildroot}</code> 里不存在的文件或者目录也会报错。</li>
+</ol>
+<p>关于 <code>%doc</code> 宏，所有跟在这个宏后面的文件都来自 <code>%{_builddir}</code> 目录，当用户安装 rpm 时，由这个宏所指定的文件都会安装到 <code>/usr/share/doc/name-version/</code> 目录里。</p>
+<h2 id="clean"><a href="#clean" class="headerlink" title="%clean"></a>%clean</h2><p>清理段，可以通过 <code>--clean</code> 删除 <code>BUILD</code></p>
+<p>编译完成后一些清理工作，主要包括对 <code>%{buildroot}</code> 目录的清空(这不是必须的)，通常执行诸如 <code>make clean</code> 之类的命令。</p>
+<h2 id="changelog"><a href="#changelog" class="headerlink" title="%changelog"></a>%changelog</h2><p>本段是修改日志段，记录 spec 的修改日志段。你可以将软件的每次修改记录到这里，保存到发布的软件包中，以便查询之用。</p>
+<p>每一个修改日志都有这样一种格式：</p>
+<ul>
+<li>第一行是：<code>* 星期 月 日 年 修改人 电子信箱</code>。其中：星期、月份均用英文形式的前 3 个字母，用中文会报错。</li>
+<li>接下来的行写的是修改了什么地方，可写多行。一般以减号开始，便于后续的查阅。</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Copy%changelog</span><br><span class="line">* Fri Dec 29 2012 foobar &lt;foobar@kidding.com&gt; - 1.0.0-1</span><br><span class="line">- Initial version</span><br></pre></td></tr></table></figure>
+<h2 id="宏"><a href="#宏" class="headerlink" title="宏"></a>宏</h2><p>在定义文件的安装路径时，通常会使用类似 <code>%_sharedstatedir</code> 的宏，这些宏一般会在 <code>/usr/lib/rpm/macros</code> 中定义。关于宏的语法，可以查看 <a href="https://rpm.org/user_doc/macros.html" target="_blank" rel="noopener">Macro syntax</a></p>
+<p>RPM 内建宏定义在 <code>/usr/lib/rpm/redhat/macros</code> 文件中，这些宏基本上定义了目录路径或体系结构等等；同时也包含了一组用于调试 spec 文件的宏。</p>
+<p>所有宏都可以在 <code>/usr/lib/rpm/macros</code> 找到，附录一些常见的宏：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">Copy%&#123;_sysconfdir&#125;        /etc</span><br><span class="line">%&#123;_prefix&#125;            /usr</span><br><span class="line">%&#123;_exec_prefix&#125;       %&#123;_prefix&#125;</span><br><span class="line">%&#123;_bindir&#125;            %&#123;_exec_prefix&#125;/bin</span><br><span class="line">%&#123;_lib&#125;               lib (lib64 on 64bit systems)</span><br><span class="line">%&#123;_libdir&#125;            %&#123;_exec_prefix&#125;/%&#123;_lib&#125;</span><br><span class="line">%&#123;_libexecdir&#125;        %&#123;_exec_prefix&#125;/libexec</span><br><span class="line">%&#123;_sbindir&#125;           %&#123;_exec_prefix&#125;/sbin</span><br><span class="line">%&#123;_sharedstatedir&#125;    /var/lib</span><br><span class="line">%&#123;_datadir&#125;           %&#123;_prefix&#125;/share</span><br><span class="line">%&#123;_includedir&#125;        %&#123;_prefix&#125;/include</span><br><span class="line">%&#123;_oldincludedir&#125;     /usr/include</span><br><span class="line">%&#123;_infodir&#125;           /usr/share/info</span><br><span class="line">%&#123;_mandir&#125;            /usr/share/man</span><br><span class="line">%&#123;_localstatedir&#125;     /var</span><br><span class="line">%&#123;_initddir&#125;          %&#123;_sysconfdir&#125;/rc.d/init.d </span><br><span class="line">%&#123;_topdir&#125;            %&#123;getenv:HOME&#125;/rpmbuild</span><br><span class="line">%&#123;_builddir&#125;          %&#123;_topdir&#125;/BUILD</span><br><span class="line">%&#123;_rpmdir&#125;            %&#123;_topdir&#125;/RPMS</span><br><span class="line">%&#123;_sourcedir&#125;         %&#123;_topdir&#125;/SOURCES</span><br><span class="line">%&#123;_specdir&#125;           %&#123;_topdir&#125;/SPECS</span><br><span class="line">%&#123;_srcrpmdir&#125;         %&#123;_topdir&#125;/SRPMS</span><br><span class="line">%&#123;_buildrootdir&#125;      %&#123;_topdir&#125;/BUILDROOT</span><br><span class="line">%&#123;_var&#125;               /var</span><br><span class="line">%&#123;_tmppath&#125;           %&#123;_var&#125;/tmp</span><br><span class="line">%&#123;_usr&#125;               /usr</span><br><span class="line">%&#123;_usrsrc&#125;            %&#123;_usr&#125;/src</span><br><span class="line">%&#123;_docdir&#125;            %&#123;_datadir&#125;/doc</span><br><span class="line">%&#123;buildroot&#125;          %&#123;_buildrootdir&#125;/%&#123;name&#125;-%&#123;version&#125;-%&#123;release&#125;.%&#123;_arch&#125;</span><br><span class="line">$RPM_BUILD_ROOT       %&#123;buildroot&#125;</span><br></pre></td></tr></table></figure>
+<p>利用 rpmbuild 构建 rpm 安装包时，通过命令 <code>rpm --showrc|grep prefix</code> 查看。</p>
+<p>通过 <code>rpm --eval &quot;%{macro}&quot;</code> 来查看具体对应路径。</p>
+<p>比如我们要查看 <code>%{_bindir}</code> 的路径，就可以使用命令 <code>rpm --eval &quot;%{ _bindir}&quot;</code> 来查看。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">Copy%&#123;_topdir&#125;            %&#123;getenv:HOME&#125;/rpmbuild</span><br><span class="line">%&#123;_builddir&#125;          %&#123;_topdir&#125;/BUILD</span><br><span class="line">%&#123;_rpmdir&#125;            %&#123;_topdir&#125;/RPMS</span><br><span class="line">%&#123;_sourcedir&#125;         %&#123;_topdir&#125;/SOURCES</span><br><span class="line">%&#123;_specdir&#125;           %&#123;_topdir&#125;/SPECS</span><br><span class="line">%&#123;_srcrpmdir&#125;         %&#123;_topdir&#125;/SRPMS</span><br><span class="line">%&#123;_buildrootdir&#125;      %&#123;_topdir&#125;/BUILDROOT</span><br><span class="line"></span><br><span class="line">Note: On releases older than Fedora 10 (and EPEL), %&#123;_buildrootdir&#125; does not exist.</span><br><span class="line">Build flags macros</span><br><span class="line"></span><br><span class="line">%&#123;_global_cflags&#125;     -O2 -g -pipe</span><br><span class="line">%&#123;_optflags&#125;          %&#123;__global_cflags&#125; -m32 -march=i386 -mtune=pentium4 # if redhat-rpm-config is installed</span><br></pre></td></tr></table></figure>
+<h2 id="变量"><a href="#变量" class="headerlink" title="变量"></a>变量</h2><p><code>define</code> 定义的变量类似于局部变量，只在 <code>%{!?foo: ... }</code> 区间有效，不过 SPEC 并不会自动清除该变量，只有再次遇到 <code>%{}</code> 时才会清除</p>
+<h3 id="define-vs-global"><a href="#define-vs-global" class="headerlink" title="define vs. global"></a>define vs. global</h3><p>两者都可以用来进行变量定义，不过在细节上有些许差别，简单列举如下：</p>
+<ul>
+<li><code>define</code> 用来定义宏，<code>global</code> 用来定义变量；</li>
+<li>如果定义带参数的宏 (类似于函数)，必须要使用 <code>define</code>；</li>
+<li>在 <code>%{}</code> 内部，必须要使用 <code>global</code> 而非 <code>define</code>；</li>
+<li><code>define</code> 在使用时计算其值，而 <code>global</code> 则在定义时就计算其值；</li>
+</ul>
+<p>可以简单参考如下的示例。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">Copy#--- %prep之前的参数是必须要有的</span><br><span class="line">Name:           mysql</span><br><span class="line">Version:        5.7.17</span><br><span class="line">Release:        1%&#123;?dist&#125;</span><br><span class="line">Summary:        MySQL from FooBar.</span><br><span class="line">License:        GPLv2+ and BSD</span><br><span class="line"></span><br><span class="line">%description</span><br><span class="line">It is a MySQL from FooBar.</span><br><span class="line"></span><br><span class="line">%prep</span><br><span class="line">#--- 带参数时，必须使用%define定义</span><br><span class="line">%define myecho() echo %1 %2</span><br><span class="line">%&#123;!?bar: %define bar defined&#125;</span><br><span class="line"></span><br><span class="line">echo 1: %&#123;bar&#125;</span><br><span class="line">%&#123;myecho 2: %&#123;bar&#125;&#125;</span><br><span class="line">echo 3: %&#123;bar&#125;</span><br><span class="line"></span><br><span class="line"># 如下是输出内容</span><br><span class="line">#1: defined</span><br><span class="line">#2: defined</span><br><span class="line">#3: %&#123;bar&#125;</span><br></pre></td></tr></table></figure>
+<p>3 的输出是不符合预期的，可以将 <code>%define</code> 修改为 <code>global</code> 即可</p>
+<h3 id="dist-表示什么含义"><a href="#dist-表示什么含义" class="headerlink" title="%{?dist} 表示什么含义"></a>%{?dist} 表示什么含义</h3><p>不加问号，如果 <code>dist</code> 有定义，那么就会用定义的值替换，否则就会保 <code>%{dist}</code>;<br> 加问好，如果 <code>dist</code> 有定义，那么也是会用定义的值替换，否则就直接移除这个tag <code>%{?dist}</code></p>
+<p>举例：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">Copy$ rpm -E &apos;foo:%&#123;foo&#125;&apos;$&apos;\n&apos;&apos;bar:%&#123;?bar&#125;&apos;</span><br><span class="line">foo:%&#123;foo&#125;</span><br><span class="line">bar:</span><br><span class="line"></span><br><span class="line">$ rpm -D&apos;foo foov&apos; -E &apos;foo:%&#123;foo&#125;&apos;$&apos;\n&apos;&apos;bar:%&#123;?bar&#125;&apos;</span><br><span class="line">foo:foov</span><br><span class="line">bar:</span><br><span class="line"></span><br><span class="line">$ rpm -D&apos;foo foov&apos; -D&apos;bar barv&apos; -E &apos;foo:%&#123;foo&#125;&apos;$&apos;\n&apos;&apos;bar:%&#123;?bar&#125;&apos;</span><br><span class="line">foo:foov</span><br><span class="line">bar:barv</span><br></pre></td></tr></table></figure>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>看了以上SPEC的总结，以为了解差不多了，结果看了网络域的SPEC文件，自己真实<code>too young too simple</code>。看看能否看懂吧：<a href="http://code.huawei.com/cloudos-packages/fn-venv-python-common-packages-arm/blob/master/fn-venv-python-common-packages.spec" target="_blank" rel="noopener">fn-venv-python-common-packages-arm</a></p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://my.oschina.net/u/913265/blog/892889" target="_blank" rel="noopener">开源中国-RPM包的制作</a> 对 rpmbuild 目录的创建及生成介绍比较详细</li>
+<li><a href="http://hlee.iteye.com/blog/343499" target="_blank" rel="noopener">夜鸣猪-RPM包rpmbuild SPEC文件深度说明</a></li>
+<li><a href="https://zh.opensuse.org/index.php?title=openSUSE:Specfile_guidelines&amp;variant=zh-hans" target="_blank" rel="noopener">OpenSUSE-spec 文件指南</a></li>
+<li><a href="https://blog.csdn.net/get_set/article/details/53453320" target="_blank" rel="noopener">CSDN-RPM打包原理、示例、详解及备查</a> 很详细，有示例</li>
+<li><a href="https://fedoraproject.org/wiki/How_to_create_an_RPM_package/zh-cn#.E6.96.B0.E5.BB.BA.E4.B8.80.E4.B8.AA_.spec_.E6.96.87.E4.BB.B6" target="_blank" rel="noopener">Fedora-WIKI-How to create an RPM package/zh-cn</a> 中文介绍</li>
+<li><a href="https://www.ibm.com/developerworks/cn/linux/l-rpm/index.htm" target="_blank" rel="noopener">IBM-RPM 打包技术与典型 SPEC 文件分析</a></li>
+<li><a href="https://jin-yang.github.io/post/linux-create-rpm-package.html" target="_blank" rel="noopener">JIN-YANG-RPM 包制作</a> 总结很全，还介绍了签名</li>
+<li><a href="https://blog.csdn.net/younger_china/article/details/53131105" target="_blank" rel="noopener">CSDN-RPM构建 - SPEC文件参数解析</a> 该博主，总共围绕 RPM 构建写了几篇文章的</li>
+<li><a href="http://www.linuxfly.org/post/137/" target="_blank" rel="noopener">原-关于rpm打包中的条件判断</a> 介绍了 spec 中条件判断的语法</li>
+<li><a href="https://stackoverflow.com/questions/25508687/whats-the-meaing-of-1dist-in-spec-file-in-rpm-package" target="_blank" rel="noopener">Whats the meaing of 1%{?dist} in SPEC file in RPM package</a></li>
+</ul>
+<p>作者：<a href="https://michael728.github.io/" target="_blank" rel="noopener">             MichaelXoX         </a></p>
+<p>出处：<a href="https://www.cnblogs.com/michael-xiang/p/10480809.html" target="_blank" rel="noopener">https://www.cnblogs.com/michael-xiang/p/10480809.html</a></p>
+<p>本站使用「<a href="https://creativecommons.org/licenses/by/4.0" target="_blank" rel="noopener">署名 4.0 国际</a>」创作共享协议，转载请在文章明显位置注明作者及出处。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/linux/" rel="tag"># linux</a>
+          
+            <a href="/tags/服务器/" rel="tag"># 服务器</a>
+          
+            <a href="/tags/rpm/" rel="tag"># rpm</a>
+          
+            <a href="/tags/build/" rel="tag"># build</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/08/29/用wget下载整个网站，或者特定目录全部文件/" rel="next" title="用wget下载整个网站，或者特定目录全部文件">
+                <i class="fa fa-chevron-left"></i> 用wget下载整个网站，或者特定目录全部文件
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="张奇怪" />
+          <p class="site-author-name" itemprop="name">张奇怪</p>
+           
+              <p class="site-description motion-element" itemprop="description"></p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">41</span>
+                <span class="site-state-item-name">posts</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">4</span>
+                <span class="site-state-item-name">categories</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">20</span>
+                <span class="site-state-item-name">tags</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#spec-文件"><span class="nav-number">1.</span> <span class="nav-text">spec 文件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#文件头"><span class="nav-number">2.</span> <span class="nav-text">文件头</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#RPM-包信息查看"><span class="nav-number">2.1.</span> <span class="nav-text">RPM 包信息查看</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#RPM-包依赖"><span class="nav-number">2.2.</span> <span class="nav-text">RPM 包依赖</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#BuildRequires"><span class="nav-number">2.2.1.</span> <span class="nav-text">BuildRequires</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Requires"><span class="nav-number">2.2.2.</span> <span class="nav-text">Requires</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#BuildRoot"><span class="nav-number">2.3.</span> <span class="nav-text">BuildRoot</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#prep-阶段"><span class="nav-number">3.</span> <span class="nav-text">%prep 阶段</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#setup"><span class="nav-number">3.1.</span> <span class="nav-text">%setup</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#patch"><span class="nav-number">3.2.</span> <span class="nav-text">%patch</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#build-阶段"><span class="nav-number">4.</span> <span class="nav-text">%build 阶段</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#install-阶段"><span class="nav-number">5.</span> <span class="nav-text">%install 阶段</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#scripts-section-没必要可以不填"><span class="nav-number">5.1.</span> <span class="nav-text">scripts section 没必要可以不填</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#files-阶段"><span class="nav-number">6.</span> <span class="nav-text">%files 阶段</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#clean"><span class="nav-number">7.</span> <span class="nav-text">%clean</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#changelog"><span class="nav-number">8.</span> <span class="nav-text">%changelog</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#宏"><span class="nav-number">9.</span> <span class="nav-text">宏</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#变量"><span class="nav-number">10.</span> <span class="nav-text">变量</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#define-vs-global"><span class="nav-number">10.1.</span> <span class="nav-text">define vs. global</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#dist-表示什么含义"><span class="nav-number">10.2.</span> <span class="nav-text">%{?dist} 表示什么含义</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#小结"><span class="nav-number">11.</span> <span class="nav-text">小结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考"><span class="nav-number">12.</span> <span class="nav-text">参考</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">张奇怪</span>
+</div>
+
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="https://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
